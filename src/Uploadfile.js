@@ -15,7 +15,7 @@ const UploadFile = ({ setInvestors, apiextension }) => {
 
     setUploading(true);
     try {
-      const res = await fetch(`http://localhost:5000${apiextension}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${apiextension}`, {
         method: 'POST',
         headers: { 'x-access-token': cookie },
         body: data,

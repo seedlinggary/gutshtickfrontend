@@ -16,9 +16,7 @@ function saveBlob(blob, filename) {
 async function DownloadFile(gppd, infor,address) {
     console.log('inside func')
     console.log(infor)
-    // let backend = 'https://distributionresolutionapi.com'
-    // let backend = 'https://distributionresolutionapi.com'
-    let backend = 'http://127.0.0.1:5000'
+    let backend = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000'
     let cookie = localStorage.getItem('cookie')
     const requestOptions = {
         method: gppd,

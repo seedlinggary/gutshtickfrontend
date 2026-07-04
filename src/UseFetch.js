@@ -5,7 +5,7 @@ const useFetch = (url, options) => {
   const [data, setData] = useState(null);
   const [isPending, setIsPending] = useState(true);
   const [error, setError] = useState(null);
-  const backend = "http://127.0.0.1:5000";
+  const backend = import.meta.env.VITE_API_URL || "http://127.0.0.1:5000";
 
   useEffect(() => {
     const abortCont = new AbortController();

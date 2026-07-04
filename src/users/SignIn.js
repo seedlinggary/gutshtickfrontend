@@ -28,7 +28,7 @@ const SignIn = () => {
     try {
       const headers = new Headers();
       headers.append('Authorization', 'Basic ' + base64.encode(`${email}:${password}`));
-      const res = await fetch('http://127.0.0.1:5000/login', { method: 'GET', headers });
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000'}/login`, { method: 'GET', headers });
       const data = res.ok ? await res.json() : null;
       if (!res.ok || !data) {
         setError('Invalid email or password. Please try again.');
