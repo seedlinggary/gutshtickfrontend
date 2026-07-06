@@ -7,16 +7,13 @@
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.5.2",
     "base-64": "^1.0.0",
-    "bootstrap": "^5.3.3",
     "react": "^18.3.1",
-    "react-bootstrap": "^2.10.9",
     "react-dom": "^18.3.1",
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.0.0",
     "react-twitter-widgets": "^1.11.0",
     "redux": "^5.0.1",
-    "redux-thunk": "^3.1.0",
-    "styled-components": "^6.1.18"
+    "redux-thunk": "^3.1.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.5.2",

@@ -200,7 +200,7 @@ export default function WordScramble() {
         {!gameOver && (
           <>
             <div style={{ textAlign: 'center', margin: '24px 0 8px' }}>
-              <div style={{ fontSize: 42, fontWeight: 700, letterSpacing: 8, color: 'var(--accent)', fontFamily: 'monospace' }}>
+              <div style={{ fontSize: 'clamp(24px, 8vw, 42px)', fontWeight: 700, letterSpacing: 'clamp(3px, 1.5vw, 8px)', color: 'var(--accent)', fontFamily: 'monospace', wordBreak: 'break-all' }}>
                 {scrambled}
               </div>
               <div style={{ fontSize: 13, color: 'var(--muted)', marginTop: 8 }}>Unscramble this word</div>

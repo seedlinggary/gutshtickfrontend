@@ -2,7 +2,6 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
-import 'bootstrap/dist/css/bootstrap.min.css';
 import store from './Store';
 import { fetchData } from './actions';
 import { Provider } from 'react-redux';

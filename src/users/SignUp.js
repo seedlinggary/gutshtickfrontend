@@ -53,7 +53,7 @@ const SignUp = () => {
         {error && <div className="gs-error-box">{error}</div>}
 
         <form onSubmit={handleSubmit}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div className="gs-form-row-2">
             <div className="auth-field" style={{ margin: 0 }}>
               <label className="auth-label" htmlFor="first_name">First name</label>
               <input id="first_name" className="auth-input" placeholder="Joe" value={form.first_name} onChange={set('first_name')} />

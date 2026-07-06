@@ -181,10 +181,12 @@ export default function LightsOut() {
               {grid.map((row, r) =>
                 row.map((cell, c) => {
                   const isHint = hintCell && hintCell[0] === r && hintCell[1] === c;
+                  const cellSize = `clamp(34px, calc((100vw - 80px - ${(size - 1) * 7}px) / ${size}), 62px)`;
                   return (
                     <div
                       key={`${r}-${c}`}
                       className={`light-cell ${cell === 1 ? 'on' : 'off'}${isHint ? ' hint-cell' : ''}`}
+                      style={{ width: cellSize, height: cellSize }}
                       onClick={() => handleCellClick(r, c)}
                     />
                   );

@@ -190,6 +190,23 @@ export default function Wordle() {
   const keyStates = getKeyState();
   const emptyRows = maxAttempts - guesses.length - (gameOver ? 0 : 1);
 
+  // Shrink the board/keyboard on narrow viewports so a 5-wide row (and the
+  // 10-wide top keyboard row) never forces horizontal page scroll.
+  const wordleCellSize = 'clamp(38px, calc((100vw - 104px) / 5), 52px)';
+  const wordleCellStyle = { width: wordleCellSize, height: wordleCellSize };
+  const wordleKeyBase = 'calc((100vw - 116px) / 10)';
+  const wordleKeyPadding = 'clamp(8px, 3vw, 13px) clamp(2px, 1vw, 8px)';
+  const wordleKeyStyle = {
+    minWidth: `clamp(20px, ${wordleKeyBase}, 34px)`,
+    width: `clamp(20px, ${wordleKeyBase}, 34px)`,
+    padding: wordleKeyPadding,
+  };
+  const wordleWideKeyStyle = {
+    minWidth: `clamp(30px, calc(${wordleKeyBase} * 1.529), 52px)`,
+    width: `clamp(30px, calc(${wordleKeyBase} * 1.529), 52px)`,
+    padding: wordleKeyPadding,
+  };
+
   return (
     <div className="game-page">
       <div className="gs-container">
@@ -216,7 +233,7 @@ export default function Wordle() {
           {guesses.map((g, ri) => (
             <div key={ri} className="wordle-row">
               {g.word.split('').map((letter, ci) => (
-                <div key={ci} className={`wordle-cell ${g.evaluation[ci]}`}>{letter}</div>
+                <div key={ci} className={`wordle-cell ${g.evaluation[ci]}`} style={wordleCellStyle}>{letter}</div>
               ))}
             </div>
           ))}
@@ -224,7 +241,7 @@ export default function Wordle() {
           {!gameOver && (
             <div className="wordle-row">
               {Array(5).fill('').map((_, ci) => (
-                <div key={ci} className={`wordle-cell ${currentGuess[ci] ? 'filled' : ''}`}>
+                <div key={ci} className={`wordle-cell ${currentGuess[ci] ? 'filled' : ''}`} style={wordleCellStyle}>
                   {currentGuess[ci] || ''}
                 </div>
               ))}
@@ -234,7 +251,7 @@ export default function Wordle() {
           {Array(Math.max(0, emptyRows)).fill('').map((_, ri) => (
             <div key={ri} className="wordle-row">
               {Array(5).fill('').map((_, ci) => (
-                <div key={ci} className="wordle-cell"></div>
+                <div key={ci} className="wordle-cell" style={wordleCellStyle}></div>
               ))}
             </div>
           ))}
@@ -242,11 +259,12 @@ export default function Wordle() {
 
         <div className="wordle-keyboard">
           {KEY_ROWS.map((row, ri) => (
-            <div key={ri} className="wordle-key-row">
+            <div key={ri} className="wordle-key-row" style={{ gap: 'clamp(2px, 1vw, 4px)' }}>
               {row.map(key => (
                 <button
                   key={key}
                   className={`wordle-key${key.length > 1 ? ' wide' : ''}${keyStates[key] ? ` ${keyStates[key]}` : ''}`}
+                  style={key.length > 1 ? wordleWideKeyStyle : wordleKeyStyle}
                   onClick={() => handleKey(key)}
                 >
                   {key}

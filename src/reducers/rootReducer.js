@@ -1,6 +1,5 @@
 const initialState = {
   feed: null,
-  pictures: null,
   error: null,
   isLoading: false,
   isDataFetched: false,
@@ -16,7 +15,6 @@ const rootReducer = (state = initialState, action) => {
       return {
         ...state,
         feed: action.payload.feed,
-        pictures: action.payload.pictures,
         error: null,
         isLoading: false,
         isDataFetched: true,

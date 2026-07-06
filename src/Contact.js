@@ -25,7 +25,7 @@ const Contact = () => {
         <div className="contact-form-card">
           <h3 style={{ marginBottom: 24 }}>Send a message</h3>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <div className="gs-form-row-2">
             <div className="gs-field" style={{ margin: 0 }}>
               <label className="gs-label" htmlFor="name">Your name</label>
               <input

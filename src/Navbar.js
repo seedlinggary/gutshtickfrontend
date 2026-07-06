@@ -1,13 +1,23 @@
-import React from 'react';
-import Container from 'react-bootstrap/Container';
-import Nav from 'react-bootstrap/Nav';
-import Navbar from 'react-bootstrap/Navbar';
-import NavDropdown from 'react-bootstrap/NavDropdown';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import useFetch from './UseFetch';
 import { fetchCategory, fetchData } from './actions';
 import { getEmail, getToken, isAdmin, isSuperAdmin, clearAuth } from './auth';
+import NotificationBell from './NotificationBell';
+
+function useOutsideClose(open, setOpen) {
+  const ref = useRef(null);
+  useEffect(() => {
+    if (!open) return;
+    function onDown(e) {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    }
+    document.addEventListener('mousedown', onDown);
+    return () => document.removeEventListener('mousedown', onDown);
+  }, [open, setOpen]);
+  return ref;
+}
 
 function AppNavbar() {
   const dispatch = useDispatch();
@@ -18,87 +28,129 @@ function AppNavbar() {
   const boss = isAdmin();
   const superAdmin = isSuperAdmin();
 
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [feedOpen, setFeedOpen] = useState(false);
+  const [adminOpen, setAdminOpen] = useState(false);
+  const feedRef = useOutsideClose(feedOpen, setFeedOpen);
+  const adminRef = useOutsideClose(adminOpen, setAdminOpen);
+
   const { data: categories } = useFetch('/generalc', {
     method: 'GET',
     headers: { 'x-access-token': cookie },
   });
 
-  function go(path) { navigate(path); }
+  function closeMenus() {
+    setMobileOpen(false);
+    setFeedOpen(false);
+    setAdminOpen(false);
+  }
+
+  function go(path) {
+    closeMenus();
+    navigate(path);
+  }
 
   function goToFeed(path, category) {
+    closeMenus();
     dispatch(fetchCategory(category));
     dispatch(fetchData());
     navigate(path);
   }
 
   function handleSignOut() {
+    closeMenus();
     clearAuth();
     navigate('/');
     navigate(0);
   }
 
   return (
-    <Navbar collapseOnSelect expand="lg" bg="dark" variant="dark" fixed="top" className="gs-navbar">
-      <Container>
-        <Navbar.Brand onClick={() => go('/')} style={{ cursor: 'pointer' }}>
+    <nav className="gs-navbar">
+      <div className="navbar-inner">
+        <button className="navbar-brand" onClick={() => go('/')}>
           The Good <span>Shtick</span>
-        </Navbar.Brand>
-        <Navbar.Toggle aria-controls="main-nav" />
-        <Navbar.Collapse id="main-nav">
-          <Nav className="me-auto">
-            <Nav.Link onClick={() => go('/')}>Home</Nav.Link>
-            <Nav.Link onClick={() => go('/about')}>About</Nav.Link>
+        </button>
+        <button
+          className="navbar-toggler"
+          aria-label="Toggle navigation"
+          aria-expanded={mobileOpen}
+          onClick={() => setMobileOpen((o) => !o)}
+        >
+          <span className="navbar-toggler-icon" />
+        </button>
+        <div className={`navbar-collapse${mobileOpen ? ' show' : ''}`}>
+          <ul className="navbar-nav navbar-nav-start">
+            <li className="nav-item"><button className="nav-link" onClick={() => go('/')}>Home</button></li>
+            <li className="nav-item"><button className="nav-link" onClick={() => go('/about')}>About</button></li>
 
-            <NavDropdown title="Feed" id="feeds-dropdown">
-              {boss && (
-                <NavDropdown.Item onClick={() => goToFeed('/feed/0', '0')}>
-                  ⏳ Pending Approval
-                </NavDropdown.Item>
+            <li className="nav-item dropdown" ref={feedRef}>
+              <button className="nav-link dropdown-toggle" onClick={() => setFeedOpen((o) => !o)}>
+                Feed
+              </button>
+              {feedOpen && (
+                <ul className="dropdown-menu">
+                  {boss && (
+                    <li><button className="dropdown-item" onClick={() => goToFeed('/feed/0', '0')}>
+                      ⏳ Pending Approval
+                    </button></li>
+                  )}
+                  <li><button className="dropdown-item" onClick={() => goToFeed('/feed/all', 'all')}>
+                    All Posts
+                  </button></li>
+                  {email && (
+                    <li><button className="dropdown-item" onClick={() => goToFeed('/feed/liked', 'liked')}>
+                      ❤ My Liked Posts
+                    </button></li>
+                  )}
+                  {categories && categories.length > 0 && <li><hr className="dropdown-divider" /></li>}
+                  {categories && categories.map((cat) => (
+                    <li key={cat.id}>
+                      <button className="dropdown-item" onClick={() => goToFeed(`/feed/${cat.id}`, cat.id)}>
+                        {cat.name}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
               )}
-              <NavDropdown.Item onClick={() => goToFeed('/feed/all', 'all')}>
-                All Posts
-              </NavDropdown.Item>
-              {email && (
-                <NavDropdown.Item onClick={() => goToFeed('/feed/liked', 'liked')}>
-                  ❤ My Liked Posts
-                </NavDropdown.Item>
-              )}
-              {categories && categories.length > 0 && <NavDropdown.Divider />}
-              {categories && categories.map((cat) => (
-                <NavDropdown.Item key={cat.id} onClick={() => goToFeed(`/feed/${cat.id}`, cat.id)}>
-                  {cat.name}
-                </NavDropdown.Item>
-              ))}
-            </NavDropdown>
+            </li>
 
-            <Nav.Link onClick={() => go('/games')}>🎮 Games</Nav.Link>
+            <li className="nav-item"><button className="nav-link" onClick={() => go('/games')}>🎮 Games</button></li>
 
             {boss && (
-              <NavDropdown title="⚙ Admin" id="admin-dropdown">
-                <NavDropdown.Item onClick={() => go('/admin')}>Admin Dashboard</NavDropdown.Item>
-                {superAdmin && (
-                  <NavDropdown.Item onClick={() => go('/superadmin')}>Super Admin</NavDropdown.Item>
+              <li className="nav-item dropdown" ref={adminRef}>
+                <button className="nav-link dropdown-toggle" onClick={() => setAdminOpen((o) => !o)}>
+                  ⚙ Admin
+                </button>
+                {adminOpen && (
+                  <ul className="dropdown-menu">
+                    <li><button className="dropdown-item" onClick={() => go('/admin')}>Admin Dashboard</button></li>
+                    {superAdmin && (
+                      <li><button className="dropdown-item" onClick={() => go('/superadmin')}>Super Admin</button></li>
+                    )}
+                  </ul>
                 )}
-              </NavDropdown>
+              </li>
             )}
-          </Nav>
+          </ul>
 
-          <Nav>
+          <ul className="navbar-nav navbar-nav-end">
             {email ? (
               <>
-                <Nav.Link onClick={() => go('/CreateShtick')}>+ Post</Nav.Link>
-                <Nav.Link onClick={handleSignOut}>Sign Out</Nav.Link>
+                <li className="nav-item navbar-notif"><NotificationBell /></li>
+                <li className="nav-item"><button className="nav-link" onClick={() => go('/CreateShtick')}>+ Post</button></li>
+                <li className="nav-item"><button className="nav-link" onClick={() => go('/profile')}>Profile</button></li>
+                <li className="nav-item"><button className="nav-link" onClick={handleSignOut}>Sign Out</button></li>
               </>
             ) : (
               <>
-                <Nav.Link onClick={() => go('/signin')}>Sign In</Nav.Link>
-                <Nav.Link onClick={() => go('/signup')}>Sign Up</Nav.Link>
+                <li className="nav-item"><button className="nav-link" onClick={() => go('/signin')}>Sign In</button></li>
+                <li className="nav-item"><button className="nav-link" onClick={() => go('/signup')}>Sign Up</button></li>
               </>
             )}
-          </Nav>
-        </Navbar.Collapse>
-      </Container>
-    </Navbar>
+          </ul>
+        </div>
+      </div>
+    </nav>
   );
 }
 

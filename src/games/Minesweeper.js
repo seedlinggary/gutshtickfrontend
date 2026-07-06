@@ -224,9 +224,8 @@ export default function Minesweeper() {
     }
   };
 
-  // ── Right-click flag ────────────────────────────────────────────────────────
-  const handleRightClick = (e, r, c) => {
-    e.preventDefault();
+  // ── Flag toggle (shared by right-click and long-press) ──────────────────────
+  const flagCell = (r, c) => {
     if (gameStatus !== 'playing' || grid[r][c].isRevealed) return;
     // Don't flag if we're in chord mode on this cell
     if (chordTargetRef.current) return;
@@ -234,6 +233,57 @@ export default function Minesweeper() {
     g[r][c].isFlagged = !g[r][c].isFlagged;
     setMinesLeft((m) => m + (g[r][c].isFlagged ? -1 : 1));
     setGrid(g);
+  };
+
+  // ── Right-click flag ────────────────────────────────────────────────────────
+  const handleRightClick = (e, r, c) => {
+    e.preventDefault();
+    flagCell(r, c);
+  };
+
+  // ── Touch support: tap reveals via onClick (works already); long-press flags ─
+  const touchTimerRef = useRef(null);
+  const touchMovedRef = useRef(false);
+  const longPressFiredRef = useRef(false);
+
+  const clearTouchTimer = () => {
+    if (touchTimerRef.current) {
+      clearTimeout(touchTimerRef.current);
+      touchTimerRef.current = null;
+    }
+  };
+
+  // Always clear any pending long-press timer on unmount so it can't fire
+  // after the component is gone.
+  useEffect(() => clearTouchTimer, []);
+
+  const handleTouchStart = (r, c) => {
+    if (gameStatus === 'won' || gameStatus === 'lost') return;
+    touchMovedRef.current = false;
+    longPressFiredRef.current = false;
+    clearTouchTimer();
+    touchTimerRef.current = setTimeout(() => {
+      if (!touchMovedRef.current) {
+        longPressFiredRef.current = true;
+        flagCell(r, c);
+      }
+    }, 450);
+  };
+
+  // Cancel the long-press if the finger moves (e.g. scrolling) instead of holding
+  const handleTouchMove = () => {
+    touchMovedRef.current = true;
+    clearTouchTimer();
+  };
+
+  // Clean up on release; if the long-press already flagged the cell, swallow
+  // the compatibility click that would otherwise also reveal it.
+  const handleTouchEnd = (e) => {
+    clearTouchTimer();
+    if (longPressFiredRef.current) {
+      e.preventDefault();
+      longPressFiredRef.current = false;
+    }
   };
 
   // ── mousedown: detect chord gesture start ───────────────────────────────────
@@ -334,13 +384,13 @@ export default function Minesweeper() {
       </div>
 
       {gameStatus === 'won' && (
-        <div className="game-result-banner won" style={{ margin: '0 0 12px' }}>
+        <div className="game-result-banner won" style={{ margin: '0 0 12px', flexWrap: 'wrap' }}>
           🎉 Cleared in {seconds}s! {hintUsed ? '(hint used)' : 'No hints!'}
           <button className="gs-btn gs-btn-primary gs-btn-sm" style={{ marginLeft: 12 }} onClick={startGame}>Play Again</button>
         </div>
       )}
       {gameStatus === 'lost' && (
-        <div className="game-result-banner lost" style={{ margin: '0 0 12px' }}>
+        <div className="game-result-banner lost" style={{ margin: '0 0 12px', flexWrap: 'wrap' }}>
           💥 Hit a mine! Better luck next time.
           <button className="gs-btn gs-btn-primary gs-btn-sm" style={{ marginLeft: 12 }} onClick={startGame}>Try Again</button>
         </div>
@@ -365,11 +415,19 @@ export default function Minesweeper() {
                 <div
                   key={key}
                   className={cls}
-                  style={cell.isRevealed && !cell.isMine && cell.adjacent > 0 ? { color: ADJ_COLORS[cell.adjacent] } : {}}
+                  style={{
+                    ...(cell.isRevealed && !cell.isMine && cell.adjacent > 0 ? { color: ADJ_COLORS[cell.adjacent] } : {}),
+                    WebkitTouchCallout: 'none',
+                    touchAction: 'manipulation',
+                  }}
                   onClick={(e) => handleClick(e, cell.r, cell.c)}
                   onContextMenu={(e) => handleRightClick(e, cell.r, cell.c)}
                   onMouseDown={(e) => handleMouseDown(e, cell.r, cell.c)}
                   onMouseUp={(e) => handleMouseUp(e, cell.r, cell.c)}
+                  onTouchStart={() => handleTouchStart(cell.r, cell.c)}
+                  onTouchMove={handleTouchMove}
+                  onTouchEnd={handleTouchEnd}
+                  onTouchCancel={handleTouchEnd}
                 >
                   {cell.isFlagged && !cell.isRevealed
                     ? '🚩'

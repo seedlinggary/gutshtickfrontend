@@ -272,22 +272,27 @@ export default function TwoZeroFourEight() {
         <div style={{ display: 'flex', justifyContent: 'center' }}>
           <div className="board-2048">
             {grid.flat().map((val, i) => (
-              <div key={i} className={`tile-2048 ${tileClass(val)}`}>
+              <div
+                key={i}
+                className={`tile-2048 ${tileClass(val)}`}
+                style={{ width: 'clamp(44px, calc((100vw - 120px) / 4), 72px)', height: 'clamp(44px, calc((100vw - 120px) / 4), 72px)' }}
+              >
                 {val !== 0 ? val : ''}
               </div>
             ))}
           </div>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, marginTop: 12 }}>
-          <button className="gs-btn gs-btn-outline gs-btn-sm" onClick={() => handleArrow('up')}>▲</button>
-          <div style={{ display: 'flex', gap: 4 }}>
-            <button className="gs-btn gs-btn-outline gs-btn-sm" onClick={() => handleArrow('left')}>◄</button>
-            <button className="gs-btn gs-btn-outline gs-btn-sm" onClick={() => handleArrow('down')}>▼</button>
-            <button className="gs-btn gs-btn-outline gs-btn-sm" onClick={() => handleArrow('right')}>►</button>
+        {/* Touch/tap D-pad — mirrors the keyboard controls for touchscreens (hidden above 640px via CSS) */}
+        <div className="arrow-controls-2048">
+          <button onClick={() => handleArrow('up')} aria-label="Move up">▲</button>
+          <div className="arrow-row-2048">
+            <button onClick={() => handleArrow('left')} aria-label="Move left">◄</button>
+            <button onClick={() => handleArrow('down')} aria-label="Move down">▼</button>
+            <button onClick={() => handleArrow('right')} aria-label="Move right">►</button>
           </div>
-          <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 4 }}>Arrow keys or WASD also work</div>
         </div>
+        <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 4, textAlign: 'center' }}>Arrow keys or WASD also work</div>
 
         <div className="game-controls">
           {!gameOver && !hintUsed && (

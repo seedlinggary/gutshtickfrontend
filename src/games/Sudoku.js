@@ -193,7 +193,7 @@ export default function Sudoku() {
       )}
 
       {gameStatus === 'won' && (
-        <div className="game-result-banner won" style={{ margin: '0 auto 16px', maxWidth: 520 }}>
+        <div className="game-result-banner won" style={{ margin: '0 auto 16px', maxWidth: 520, flexWrap: 'wrap' }}>
           🎉 Puzzle solved! {hintCount > 0 ? `(${hintCount} hint${hintCount > 1 ? 's' : ''} used)` : 'Flawlessly!'} — {fmt(seconds)}
           <button className="gs-btn gs-btn-primary gs-btn-sm" style={{ marginLeft: 12 }} onClick={startGame}>
             Next Puzzle
@@ -203,7 +203,13 @@ export default function Sudoku() {
 
       {board && (
         <div className="sudoku-wrapper">
-          <div className="sudoku-grid">
+          <div
+            className="sudoku-grid"
+            style={{
+              gridTemplateColumns: 'repeat(9, clamp(26px, calc((100vw - 52px) / 9), 44px))',
+              gridTemplateRows: 'repeat(9, clamp(26px, calc((100vw - 52px) / 9), 44px))',
+            }}
+          >
             {board.map((row, r) =>
               row.map((val, c) => {
                 const isFixed = fixed[r][c];
@@ -216,7 +222,12 @@ export default function Sudoku() {
                   <div
                     key={`${r}-${c}`}
                     className={`sudoku-cell${isFixed ? ' fixed' : ''}${isSelected ? ' selected' : ''}${isSameNum && !isSelected ? ' highlight' : ''}${hasError ? ' error' : ''}`}
-                    style={{ borderRight, borderBottom }}
+                    style={{
+                      borderRight,
+                      borderBottom,
+                      width: 'clamp(26px, calc((100vw - 52px) / 9), 44px)',
+                      height: 'clamp(26px, calc((100vw - 52px) / 9), 44px)',
+                    }}
                     onClick={() => setSelected([r, c])}
                   >
                     {val !== 0 ? val : ''}

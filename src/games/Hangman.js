@@ -167,7 +167,7 @@ export default function Hangman() {
 
         <div className="hangman-game">
           {status !== 'playing' && (
-            <div className={`game-result-banner ${status === 'won' ? 'won' : 'lost'}`}>
+            <div className={`game-result-banner ${status === 'won' ? 'won' : 'lost'}`} style={{ flexWrap: 'wrap' }}>
               {status === 'won'
                 ? `🎉 You got it! ${hintUsed ? '(with hint)' : 'Perfect!'}`
                 : `💀 The word was: ${word.toUpperCase()}`}

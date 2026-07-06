@@ -162,6 +162,14 @@ export default function Snake() {
     return () => clearInterval(loopRef.current);
   }, [difficulty]);
 
+  // Shared by keyboard and the on-screen D-pad so both respect the same
+  // "no instant reverse into yourself" guard.
+  const setDirection = useCallback((newDir) => {
+    const cur = stateRef.current.dir;
+    if (newDir.x === -cur.x && newDir.y === -cur.y) return; // no reverse
+    stateRef.current.nextDir = newDir;
+  }, []);
+
   useEffect(() => {
     const handleKey = (e) => {
       const map = {
@@ -173,13 +181,11 @@ export default function Snake() {
       const newDir = map[e.key];
       if (!newDir) return;
       e.preventDefault();
-      const cur = stateRef.current.dir;
-      if (newDir.x === -cur.x && newDir.y === -cur.y) return; // no reverse
-      stateRef.current.nextDir = newDir;
+      setDirection(newDir);
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, []);
+  }, [setDirection]);
 
   useEffect(() => { draw(); }, [draw]);
   useEffect(() => () => clearInterval(loopRef.current), []);
@@ -213,8 +219,8 @@ export default function Snake() {
         </div>
       )}
 
-      <div className="snake-canvas-wrapper">
-        <div className="snake-score-row">
+      <div className="snake-canvas-wrapper" style={{ width: '100%', maxWidth: W }}>
+        <div className="snake-score-row" style={{ flexWrap: 'wrap' }}>
           <span>Score: <b>{score}</b></span>
           <span>High: <b>{highScore}</b></span>
           <button className="gs-btn gs-btn-outline gs-btn-sm" onClick={() => setHintVisible((h) => !h)}>
@@ -227,7 +233,7 @@ export default function Snake() {
           width={W}
           height={H}
           className="snake-canvas"
-          style={{ touchAction: 'none' }}
+          style={{ touchAction: 'none', width: '100%', maxWidth: W, height: 'auto', display: 'block' }}
         />
 
         {gameStatus === 'idle' && (
@@ -252,11 +258,11 @@ export default function Snake() {
       </div>
 
       <div className="game-touch-controls">
-        <button onClick={() => { stateRef.current.nextDir = { x: 0, y: -1 }; }}>↑</button>
+        <button onClick={() => setDirection({ x: 0, y: -1 })}>↑</button>
         <div style={{ display: 'flex', gap: 8 }}>
-          <button onClick={() => { stateRef.current.nextDir = { x: -1, y: 0 }; }}>←</button>
-          <button onClick={() => { stateRef.current.nextDir = { x: 0, y: 1 }; }}>↓</button>
-          <button onClick={() => { stateRef.current.nextDir = { x: 1, y: 0 }; }}>→</button>
+          <button onClick={() => setDirection({ x: -1, y: 0 })}>←</button>
+          <button onClick={() => setDirection({ x: 0, y: 1 })}>↓</button>
+          <button onClick={() => setDirection({ x: 1, y: 0 })}>→</button>
         </div>
       </div>
     </div>

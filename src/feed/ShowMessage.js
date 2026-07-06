@@ -4,6 +4,7 @@ import { useDispatch } from 'react-redux';
 import ShowUrl from './ShowURL';
 import apiRequest from '../ApiRequest';
 import Comments from './Comments';
+import ShareButton from '../ShareButton';
 import { fetchCategory, fetchData } from '../actions';
 import { isLoggedIn } from '../auth';
 
@@ -30,12 +31,11 @@ function HeartIcon({ filled }) {
   );
 }
 
-const ShowMessage = ({ message, pictures }) => {
+const ShowMessage = ({ message }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [isLikedId, setIsLikedId] = useState(false);
   const [likeCount, setLikeCount] = useState(message.likes ? message.likes.length : 0);
-  const [image, setImage] = useState(null);
 
   const [viewCount, setViewCount] = useState(message.view_count || 0);
   const loggedIn = isLoggedIn();
@@ -59,13 +59,6 @@ const ShowMessage = ({ message, pictures }) => {
         .catch(() => {});
     }
   }, [message.id]);
-
-  useEffect(() => {
-    if (message.picture && pictures) {
-      const key = message.picture.name + '.jpeg';
-      if (pictures[key]) setImage(pictures[key]);
-    }
-  }, [pictures]);
 
   const handleLike = async () => {
     if (!loggedIn) { navigate('/signin'); return; }
@@ -97,9 +90,6 @@ const ShowMessage = ({ message, pictures }) => {
                 <span className="shtick-badge">{cat.name}</span>
               </button>
             ))}
-            {message.specific_category && (
-              <span style={{ fontSize: 12, color: 'var(--muted)' }}>· {message.specific_category}</span>
-            )}
           </div>
           <span className="shtick-time">{formatDate(message.pub_date)}</span>
         </div>
@@ -113,8 +103,8 @@ const ShowMessage = ({ message, pictures }) => {
         )}
 
         {/* Image */}
-        {image && (
-          <img className="shtick-image" src={`data:image/jpeg;base64,${image}`} alt={message.caption} />
+        {message.picture?.url && (
+          <img className="shtick-image" src={message.picture.url} alt={message.caption} loading="lazy" />
         )}
 
         {/* URL */}
@@ -149,6 +139,11 @@ const ShowMessage = ({ message, pictures }) => {
               <HeartIcon filled={!!isLikedId} />
               {likeCount > 0 && <span>{likeCount}</span>}
             </button>
+            <ShareButton
+              title="The Good Shtick"
+              text={message.caption}
+              url={`${window.location.origin}/post/${message.id}`}
+            />
           </div>
         </div>
 

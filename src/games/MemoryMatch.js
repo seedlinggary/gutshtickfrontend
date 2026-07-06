@@ -196,30 +196,33 @@ export default function MemoryMatch() {
 
         <div style={{ display: 'flex', justifyContent: 'center' }}>
           <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cfg.cols}, 1fr)`, gap: 8, margin: '16px auto' }}>
-            {cards.map(card => (
-              <div
-                key={card.id}
-                onClick={() => !card.flipped && !card.matched && handleCardClick(card.id)}
-                style={{
-                  width: 64,
-                  height: 64,
-                  borderRadius: 'var(--radius-sm)',
-                  border: `2px solid ${card.matched ? 'var(--success)' : 'var(--border)'}`,
-                  background: card.flipped || card.matched ? 'var(--surface)' : 'var(--border)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: 28,
-                  cursor: card.flipped || card.matched || gameOver ? 'default' : 'pointer',
-                  transition: 'background .15s, transform .1s',
-                  opacity: card.matched ? 0.5 : 1,
-                  transform: card.flipped ? 'scale(1.05)' : 'scale(1)',
-                  userSelect: 'none',
-                }}
-              >
-                {(card.flipped || card.matched) ? card.emoji : ''}
-              </div>
-            ))}
+            {cards.map(card => {
+              const cardSize = `clamp(40px, calc((100vw - 80px - ${(cfg.cols - 1) * 8}px) / ${cfg.cols}), 64px)`;
+              return (
+                <div
+                  key={card.id}
+                  onClick={() => !card.flipped && !card.matched && handleCardClick(card.id)}
+                  style={{
+                    width: cardSize,
+                    height: cardSize,
+                    borderRadius: 'var(--radius-sm)',
+                    border: `2px solid ${card.matched ? 'var(--success)' : 'var(--border)'}`,
+                    background: card.flipped || card.matched ? 'var(--surface)' : 'var(--border)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: 'clamp(18px, 6vw, 28px)',
+                    cursor: card.flipped || card.matched || gameOver ? 'default' : 'pointer',
+                    transition: 'background .15s, transform .1s',
+                    opacity: card.matched ? 0.5 : 1,
+                    transform: card.flipped ? 'scale(1.05)' : 'scale(1)',
+                    userSelect: 'none',
+                  }}
+                >
+                  {(card.flipped || card.matched) ? card.emoji : ''}
+                </div>
+              );
+            })}
           </div>
         </div>
 

@@ -1,9 +1,12 @@
 import React from 'react';
 import ShowMessage from './ShowMessage';
+import AdSlot from '../ads/AdSlot';
 import { connect } from 'react-redux';
 import { fetchLimitsLoaded, fetchData } from '../actions';
 
-const FeedHome = ({ feed, pictures, error, isLoading, fetchLimitsLoaded, fetchData }) => {
+const AD_EVERY_N_POSTS = 5;
+
+const FeedHome = ({ feed, error, isLoading, fetchLimitsLoaded, fetchData }) => {
   const handleLoadMore = () => {
     fetchLimitsLoaded();
     fetchData();
@@ -37,8 +40,13 @@ const FeedHome = ({ feed, pictures, error, isLoading, fetchLimitsLoaded, fetchDa
 
   return (
     <div>
-      {feed.map((message) => (
-        <ShowMessage key={message.id} message={message} pictures={pictures} />
+      {feed.map((message, idx) => (
+        <React.Fragment key={message.id}>
+          <ShowMessage message={message} />
+          {(idx + 1) % AD_EVERY_N_POSTS === 0 && (
+            <AdSlot key={`ad-${idx}`} placement="feed" />
+          )}
+        </React.Fragment>
       ))}
       <div style={{ textAlign: 'center', paddingTop: 8, paddingBottom: 24 }}>
         <button className="gs-btn gs-btn-outline" onClick={handleLoadMore} disabled={isLoading}>
@@ -51,7 +59,6 @@ const FeedHome = ({ feed, pictures, error, isLoading, fetchLimitsLoaded, fetchDa
 
 const mapStateToProps = (state) => ({
   feed: state.feed,
-  pictures: state.pictures,
   error: state.error,
   isLoading: state.isLoading,
 });
