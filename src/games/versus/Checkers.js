@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import HowToPlay from '../HowToPlay';
 
 // Board: 8x8. 1=red, 2=black, 3=red king, 4=black king
 const EMPTY = 0, RED = 1, BLACK = 2, RED_KING = 3, BLACK_KING = 4;
@@ -232,6 +233,18 @@ export default function Checkers({ mode, difficulty, onBack }) {
         <h1 className="game-title">Checkers</h1>
         <p className="game-subtitle">{mode === 'local' ? 'Pass & Play' : `vs Computer (${difficulty})`}</p>
       </div>
+
+      <HowToPlay>
+        <p>Capture all of your opponent's pieces (or leave them with no legal moves) to win.</p>
+        <ul>
+          <li>Tap one of your pieces to select it — its legal destinations light up with a dot. Tap a highlighted destination to move there.</li>
+          <li>Pieces move diagonally onto empty dark squares, one step at a time — except kings, see below.</li>
+          <li>Captures are mandatory: if any of your pieces can jump an opponent's piece, you must make a capturing move (you can't make a quiet move instead).</li>
+          <li>After capturing, if that same piece can capture again, you must continue jumping with it before your turn ends (multi-jump).</li>
+          <li>Reaching the far edge of the board crowns a piece as a king (♛), which can then move and capture diagonally in all four directions instead of just forward.</li>
+        </ul>
+        <p><strong>vs Computer</strong> gives you an easy, medium, or hard bot. <strong>Pass & Play</strong> lets two people take turns on this device.</p>
+      </HowToPlay>
 
       <div style={{ display: 'flex', gap: 20, justifyContent: 'center', marginBottom: 12, flexWrap: 'wrap' }}>
         <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 700 }}>

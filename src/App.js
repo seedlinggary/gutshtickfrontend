@@ -28,6 +28,7 @@ import AppNavbar from './Navbar';
 import Footer from './Footer';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import Disclaimer from './Disclaimer';
+import ContentGuidelines from './ContentGuidelines';
 import SignIn from './users/SignIn';
 import SignUp from './users/SignUp';
 import ForgotPassword from './users/ForgotPassword';
@@ -72,6 +73,23 @@ const Hashi         = lazy(() => import('./games/solo/Hashi'));
 const Nurikabe      = lazy(() => import('./games/solo/Nurikabe'));
 const Mastermind    = lazy(() => import('./games/solo/Mastermind'));
 
+// ── Relaxing games (lazy — no scores/leaderboards, just something to do) ──────
+const ColorByNumber  = lazy(() => import('./games/relaxing/ColorByNumber'));
+const RoomDesigner   = lazy(() => import('./games/relaxing/RoomDesigner'));
+const JigsawPuzzle   = lazy(() => import('./games/relaxing/JigsawPuzzle'));
+const ZenGarden      = lazy(() => import('./games/relaxing/ZenGarden'));
+const BubblePop      = lazy(() => import('./games/relaxing/BubblePop'));
+const Tangram        = lazy(() => import('./games/relaxing/Tangram'));
+const DotToDot       = lazy(() => import('./games/relaxing/DotToDot'));
+const MandalaDraw    = lazy(() => import('./games/relaxing/MandalaDraw'));
+const ChillWordSearch = lazy(() => import('./games/relaxing/ChillWordSearch'));
+const ZenMatch3      = lazy(() => import('./games/relaxing/ZenMatch3'));
+const Spirograph     = lazy(() => import('./games/relaxing/Spirograph'));
+const FractalBloom   = lazy(() => import('./games/relaxing/FractalBloom'));
+const LightTrails    = lazy(() => import('./games/relaxing/LightTrails'));
+const StainedGlass   = lazy(() => import('./games/relaxing/StainedGlass'));
+const Constellation  = lazy(() => import('./games/relaxing/Constellation'));
+
 import SoloGameShell from './games/SoloGameShell';
 import { isLoggedIn, isAdmin, isSuperAdmin } from './auth';
 
@@ -106,6 +124,7 @@ function App() {
               <Route path="/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/disclaimer" element={<Disclaimer />} />
+              <Route path="/content-guidelines" element={<ContentGuidelines />} />
               <Route path="/signin" element={<SignIn />} />
               <Route path="/signup" element={<SignUp />} />
               <Route path="/signup/:paymentcanceled" element={<SignUp />} />
@@ -145,6 +164,23 @@ function App() {
               <Route path="/games/hashi"         element={<SoloGameShell><Hashi /></SoloGameShell>} />
               <Route path="/games/nurikabe"      element={<SoloGameShell><Nurikabe /></SoloGameShell>} />
               <Route path="/games/mastermind"    element={<SoloGameShell><Mastermind /></SoloGameShell>} />
+
+              {/* ── Relaxing games ── */}
+              <Route path="/games/color-by-number"  element={<SoloGameShell><ColorByNumber /></SoloGameShell>} />
+              <Route path="/games/room-designer"    element={<SoloGameShell><RoomDesigner /></SoloGameShell>} />
+              <Route path="/games/jigsaw-puzzle"    element={<SoloGameShell><JigsawPuzzle /></SoloGameShell>} />
+              <Route path="/games/zen-garden"       element={<SoloGameShell><ZenGarden /></SoloGameShell>} />
+              <Route path="/games/bubble-pop"       element={<SoloGameShell><BubblePop /></SoloGameShell>} />
+              <Route path="/games/tangram"          element={<SoloGameShell><Tangram /></SoloGameShell>} />
+              <Route path="/games/dot-to-dot"       element={<SoloGameShell><DotToDot /></SoloGameShell>} />
+              <Route path="/games/mandala-draw"     element={<SoloGameShell><MandalaDraw /></SoloGameShell>} />
+              <Route path="/games/word-search-chill"element={<SoloGameShell><ChillWordSearch /></SoloGameShell>} />
+              <Route path="/games/zen-match3"       element={<SoloGameShell><ZenMatch3 /></SoloGameShell>} />
+              <Route path="/games/spirograph"       element={<SoloGameShell><Spirograph /></SoloGameShell>} />
+              <Route path="/games/fractal-bloom"    element={<SoloGameShell><FractalBloom /></SoloGameShell>} />
+              <Route path="/games/light-trails"     element={<SoloGameShell><LightTrails /></SoloGameShell>} />
+              <Route path="/games/stained-glass"    element={<SoloGameShell><StainedGlass /></SoloGameShell>} />
+              <Route path="/games/constellation"    element={<SoloGameShell><Constellation /></SoloGameShell>} />
 
               {/* ── 1v1 games (lobby → game) ── */}
               <Route path="/games/versus/:gameId" element={<VersusWrapper />} />

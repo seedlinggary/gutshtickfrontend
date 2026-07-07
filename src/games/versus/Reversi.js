@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import HowToPlay from '../HowToPlay';
 
 const SIZE = 8;
 const DIRECTIONS = [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
@@ -246,6 +247,18 @@ export default function Reversi({ mode, difficulty, onBack }) {
         <h1 className="game-title">Reversi</h1>
         <p className="game-subtitle">{mode === 'local' ? 'Pass & Play' : `vs Computer (${difficulty})`}</p>
       </div>
+
+      <HowToPlay>
+        <p>Finish with more discs of your color on the board than your opponent.</p>
+        <ul>
+          <li>Tap one of the highlighted cells to place a disc there — only cells that would flip at least one opponent line are valid moves and get highlighted.</li>
+          <li>Placing a disc flips every opponent disc caught in a straight line (horizontal, vertical, or diagonal) between your new disc and another one of your discs already on the board — you must flip at least one line for a move to be legal.</li>
+          <li>If you have no legal moves, your turn is automatically skipped and play passes to your opponent.</li>
+          <li>The four corner cells are marked — discs there can never be flipped, making them especially valuable.</li>
+          <li>The game ends when the board is full or neither player has a legal move; whoever has more discs on the board wins.</li>
+        </ul>
+        <p><strong>vs Computer</strong> gives you an easy, medium, or hard bot. <strong>Pass & Play</strong> lets two people take turns on this device.</p>
+      </HowToPlay>
 
       {/* Score */}
       <div style={{ display: 'flex', gap: 24, justifyContent: 'center', marginBottom: 12, flexWrap: 'wrap' }}>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import HowToPlay from '../HowToPlay';
 
 const ROWS = 6, COLS = 7;
 
@@ -216,6 +217,15 @@ export default function ConnectFour({ mode, difficulty, onBack }) {
         <h1 className="game-title">Connect Four</h1>
         <p className="game-subtitle">{mode === 'local' ? 'Pass & Play' : `vs Computer (${difficulty})`}</p>
       </div>
+
+      <HowToPlay>
+        <p>Be the first to connect <strong>four of your discs in a row</strong> — horizontally, vertically, or diagonally.</p>
+        <ul>
+          <li>Tap any column to drop a disc into it — the disc falls to the lowest open slot in that column.</li>
+          <li>Players alternate turns. If the grid fills up completely with no four-in-a-row, it's a draw.</li>
+        </ul>
+        <p><strong>vs Computer</strong> gives you an easy, medium, or hard bot. <strong>Pass & Play</strong> lets two people take turns on this device.</p>
+      </HowToPlay>
 
       {/* Status */}
       {result ? (

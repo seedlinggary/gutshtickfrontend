@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import HowToPlay from '../HowToPlay';
 
 const SUITS = ['♠', '♥', '♦', '♣'];
 const RANKS = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
@@ -347,6 +348,18 @@ export default function Poker({ players, onBack }) {
         <h2 style={p.title}>♠ Texas Hold'em</h2>
         <span style={{ color: '#bdc3c7', fontSize: 14 }}>Pot: {pot} | Phase: {phase.toUpperCase()}</span>
       </div>
+
+      <HowToPlay>
+        <p>No-Limit Texas Hold'em. Win chips by having the best 5-card hand at showdown, or by being the last player left after everyone else folds. The game ends when only one player still has chips.</p>
+        <p><strong>Turns:</strong> The dealer button rotates each hand and blinds are posted automatically. Your 2 hole cards are only shown face-up to you during your own turn (or to everyone at showdown) — everyone else's cards show as face-down "?" cards, so this build correctly hides hand information between players sharing the device.</p>
+        <p><strong>How it works:</strong></p>
+        <ul>
+          <li>Each player gets 2 private hole cards; 5 community cards are revealed in stages — the Flop (3), the Turn (1 more), and the River (1 more) — with a round of betting after each stage.</li>
+          <li>Hand rankings from best to worst: Royal Flush, Straight Flush, Four of a Kind, Full House, Flush, Straight, Three of a Kind, Two Pair, One Pair, High Card.</li>
+          <li>On your turn: Fold (give up the hand), Check (bet nothing, only if no one has bet), Call (match the current bet), or Raise (increase the bet, using the slider to set the amount).</li>
+        </ul>
+        <p><strong>Play:</strong> Tap Fold, Check/Call, or Raise on your turn. When raising, drag the slider (or tap along it) to set your raise amount before it's applied.</p>
+      </HowToPlay>
 
       {message && <div style={p.message}>{message}</div>}
 

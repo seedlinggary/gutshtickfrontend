@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiRequest from '../ApiRequest';
 import { isLoggedIn } from '../auth';
+import HowToPlay from './HowToPlay';
 
 const EMOJIS = ['🎸','🌍','🎯','🏆','🎪','🎨','🦊','🦁','🐉','🌈'];
 
@@ -149,6 +150,17 @@ export default function MemoryMatch() {
             <h1>Memory Match</h1>
             <p style={{ color: 'var(--muted)' }}>Flip cards to find matching emoji pairs.</p>
           </div>
+
+          <HowToPlay>
+            <p><b>Objective:</b> find and match every pair of emoji cards on the board.</p>
+            <ul>
+              <li>Click (or tap on mobile) a face-down card to flip it over. Do the same with a second card.</li>
+              <li>If the two flipped cards match, they stay face-up. If they don't match, both flip back down after about a second — try to remember what you saw for next time.</li>
+              <li>Match all pairs to win. Medium and Hard have a countdown timer, so run out of time and it's game over; Easy has no timer.</li>
+              <li>A one-time hint briefly flips every remaining card face-up so you can memorize positions, then flips them back down.</li>
+            </ul>
+          </HowToPlay>
+
           <div className="difficulty-select">
             {['easy','medium','hard'].map(d => (
               <button key={d} className={`diff-btn diff-${d}`} onClick={() => startGame(d)}>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import HowToPlay from '../HowToPlay';
 
 const COLORS = ['red', 'blue', 'green', 'yellow'];
 const COLOR_DISPLAY = { red: '#e74c3c', blue: '#3498db', green: '#27ae60', yellow: '#f1c40f', wild: '#8e44ad' };
@@ -286,6 +287,20 @@ export default function UNO({ players, onBack }) {
           {players[currentPlayer]?.isBot ? ' (thinking...)' : ''}
         </div>
       </div>
+
+      <HowToPlay>
+        <p>Be the first to play every card in your hand. In this build, emptying your hand ends the game immediately (there's no multi-round score-to-500 — it's a single race to zero cards).</p>
+        <p><strong>Turns:</strong> Only your own hand (Player 1, seat 0) is shown face-up in this build — the other seats are played by bots and shown only as a face-down pile with a card count, so no hidden information leaks between players sharing the device.</p>
+        <p><strong>How it works:</strong></p>
+        <ul>
+          <li>Play a card that matches the color or the number/action of the top discard card.</li>
+          <li>Number cards (0-9) just get played; Skip makes the next player lose their turn; Reverse flips the direction of play; Draw Two forces the next player to draw 2 cards and be skipped.</li>
+          <li>Wild lets you change the current color to anything; Wild Draw Four does that plus forces the next player to draw 4 and be skipped.</li>
+          <li>If you have no playable card, you must draw one from the deck instead.</li>
+          <li>Getting down to your last card triggers an "UNO!" alert banner.</li>
+        </ul>
+        <p><strong>Play:</strong> Tap a card in your hand to play it — only cards that legally match the top card are enabled, others are dimmed. Tap the DRAW pile to draw a card on your turn. After playing a Wild card, a color-picker popup appears — tap the color you want to switch to.</p>
+      </HowToPlay>
 
       {message && <div style={s.message}>{message}</div>}
       {showUno !== null && <div style={s.unoAlert}>UNO! — {players[showUno].name}</div>}

@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiRequest from '../../ApiRequest';
 import { isLoggedIn } from '../../auth';
+import HowToPlay from '../HowToPlay';
 
 // Puzzles: { size, solution: 2d array of 0/1, givens: [[r,c,val],...] }
 // All solutions verified:
@@ -278,6 +279,15 @@ export default function BinaryPuzzle() {
           <h1>Binary Puzzle</h1>
           <span className={`diff-badge diff-${difficulty}`}>{difficulty}</span>
         </div>
+        <HowToPlay>
+          <p>Fill every cell with a 0 or a 1 so the finished grid follows all three rules below. Shaded cells are pre-filled "givens" and can't be changed.</p>
+          <ul>
+            <li>Each row and each column must contain an equal number of 0s and 1s.</li>
+            <li>No three consecutive cells in a row or column can hold the same digit.</li>
+            <li>No two rows can be identical, and no two columns can be identical.</li>
+          </ul>
+          <p>Click or tap a cell to cycle it through empty → 0 → 1 → empty. Rule violations are outlined in red. Hint reveals one correct cell (costs points).</p>
+        </HowToPlay>
         <div className="game-meta">
           {violations.size > 0 && <span style={{color:'var(--danger)'}}>⚠ Rule violation!</span>}
           {hintUsed && <span className="hint-used">Hint used</span>}

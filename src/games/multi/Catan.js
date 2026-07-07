@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import HowToPlay from '../HowToPlay';
 
 const TERRAIN_COLORS = { fields: '#f0c040', pasture: '#90d060', forest: '#228833', mountains: '#aaaaaa', hills: '#c87a40', desert: '#e8d888' };
 const TERRAIN_RESOURCE = { fields: 'grain', pasture: 'wool', forest: 'lumber', mountains: 'ore', hills: 'brick', desert: null };
@@ -373,6 +374,19 @@ export default function Catan({ players, onBack }) {
         <span style={{color:'#bdc3c7',fontSize:13}}>{msg}</span>
       </div>
 
+      <HowToPlay>
+        <p>First player to reach 10 Victory Points wins. Points come from Settlements (1 each), Cities (2 each), Largest Army (2), Longest Road (2), and any Victory Point development cards you hold.</p>
+        <p><strong>Turns:</strong> Rotates through all seated players (2-4). The board and everyone's built structures are always public, and (in this simplified build) every player's resource cards are shown openly too — there's no concealed hand to hide between turns. Play opens with a Setup phase where players take turns, in snake order (1→n, then n→1), placing their first two settlements and roads.</p>
+        <p><strong>How it works:</strong></p>
+        <ul>
+          <li>On your turn, roll two dice — every settlement/city next to a hex matching the roll produces 1 (or 2, for a city) of that hex's resource for its owner.</li>
+          <li>Rolling a 7 doesn't produce resources — instead you move the Robber onto a hex, blocking its production until it's moved again.</li>
+          <li>Build a Road (1 brick + 1 lumber), a Settlement (1 brick + 1 lumber + 1 wool + 1 grain), or upgrade a Settlement to a City (3 ore + 2 grain, worth 2 VP instead of 1).</li>
+          <li>You can also trade 4 of any one resource to the bank for 1 of another.</li>
+        </ul>
+        <p><strong>Play:</strong> Tap the Settlement / City / Road buttons to enter that build mode, then tap a highlighted valid spot on the board — or use the easier-to-tap list of valid spots that appears below the board — to build there. Tap a hex to move the Robber after rolling a 7. Use the dropdown selectors and "Trade 4:1" to trade with the bank.</p>
+      </HowToPlay>
+
       {roll&&<div style={{textAlign:'center',fontSize:28,marginBottom:4}}>🎲 {roll}</div>}
 
       {/* Board */}
@@ -423,6 +437,32 @@ export default function Catan({ players, onBack }) {
           });
         })()}
       </div>
+
+      {/* Settlement placement list — the on-board vertex dots are only ~12px,
+          too small for reliable touch, so mirror the road pattern below with
+          a list of full-size tap targets for every valid settlement spot. */}
+      {((mode==='settle')||(phase==='setup'&&setupStep==='settle'))&&isHuman&&(
+        <div style={S.spotsArea}>
+          <div style={{fontSize:12,color:'#bdc3c7',marginBottom:4}}>Tap a settlement spot:</div>
+          <div style={{display:'flex',flexWrap:'wrap',gap:4}}>
+            {validS.map(v=>(
+              <button key={v} style={S.spotBtn} onClick={()=>handleVertexClick(v)}>{v}</button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* City upgrade list — same touch-target reasoning as settlements above */}
+      {mode==='city'&&isHuman&&(
+        <div style={S.spotsArea}>
+          <div style={{fontSize:12,color:'#bdc3c7',marginBottom:4}}>Tap a settlement to upgrade to a city:</div>
+          <div style={{display:'flex',flexWrap:'wrap',gap:4}}>
+            {Object.keys(gs.settlements).filter(v=>gs.settlements[v]===curP).map(v=>(
+              <button key={v} style={S.spotBtn} onClick={()=>buildCity(v)}>{v}</button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Roads overlay (simplified text list) */}
       {mode==='road'&&isHuman&&(
@@ -506,7 +546,7 @@ const S={
   btn:{background:'#27ae60',color:'#fff',border:'none',padding:'10px 14px',borderRadius:8,cursor:'pointer',fontSize:13,margin:'0 4px',minHeight:42,boxSizing:'border-box'},
   hex:{width:'clamp(46px, 13vw, 72px)',height:'clamp(36px, 10.1vw, 56px)',borderRadius:8,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:2,transition:'border 0.15s',boxSizing:'border-box',flexShrink:0},
   spotsArea:{background:'#2c3e50',borderRadius:8,padding:'8px 12px',marginBottom:8},
-  spotBtn:{background:'#34495e',color:'#bdc3c7',border:'none',borderRadius:4,padding:'6px 10px',cursor:'pointer',fontSize:11,margin:2,minHeight:32,boxSizing:'border-box'},
+  spotBtn:{background:'#34495e',color:'#bdc3c7',border:'none',borderRadius:4,padding:'6px 10px',cursor:'pointer',fontSize:11,margin:2,minHeight:40,boxSizing:'border-box'},
   playersRow:{display:'flex',gap:8,flexWrap:'wrap',marginTop:8,marginBottom:8},
   playerCard:{background:'#2c3e50',borderRadius:8,padding:'8px 10px',flex:1,minWidth:130},
   actionBar:{background:'#2c3e50',borderRadius:8,padding:10,display:'flex',flexWrap:'wrap',gap:8,alignItems:'center'},

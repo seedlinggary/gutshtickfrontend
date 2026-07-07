@@ -1,6 +1,8 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import AdSlot from '../../ads/AdSlot';
+import ComingSoon from '../ComingSoon';
+import { isAdmin } from '../../auth';
 
 const GAME_MAP = {
   'spades':       lazy(() => import('./Spades')),
@@ -114,6 +116,12 @@ export default function MultiWrapper() {
     })));
     setStarted(false);
   }, [gameId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Multiplayer games are still being rolled out to the general audience —
+  // only admins/super-admins can actually play them for now.
+  if (!isAdmin()) {
+    return <ComingSoon title={`${meta?.title || gameId} — Multiplayer`} />;
+  }
 
   if (!GameComponent || !meta) {
     return (

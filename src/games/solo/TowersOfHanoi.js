@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiRequest from '../../ApiRequest';
 import { isLoggedIn } from '../../auth';
+import HowToPlay from '../HowToPlay';
 
 const DISC_COLORS = ['#e74c3c', '#e67e22', '#f1c40f', '#2ecc71', '#1abc9c', '#3498db', '#9b59b6', '#e91e63'];
 const MIN_MOVES = { easy: 15, medium: 63, hard: 255 };
@@ -184,6 +185,14 @@ export default function TowersOfHanoi() {
           <h1>Towers of Hanoi</h1>
           <span className={`diff-badge diff-${difficulty}`}>{difficulty}</span>
         </div>
+        <HowToPlay>
+          <p>Move the entire stack of discs from peg A to peg C, one disc at a time.</p>
+          <ul>
+            <li>You may only move the topmost disc of any peg.</li>
+            <li>A disc can only be placed onto an empty peg or on top of a larger disc — never on top of a smaller one.</li>
+          </ul>
+          <p>Click or tap a peg to pick up its top disc, then click/tap another peg to drop the disc there (clicking the same peg again deselects it without moving anything). Hint tells you which move to make next along the optimal solution.</p>
+        </HowToPlay>
         <div className="game-meta">
           <span>Moves: {moves}</span>
           <span style={{ marginLeft: '1rem', color: 'var(--muted)' }}>Optimal: {MIN_MOVES[difficulty]}</span>

@@ -2,6 +2,7 @@ import React, { useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiRequest from '../../ApiRequest';
 import { isLoggedIn } from '../../auth';
+import HowToPlay from '../HowToPlay';
 
 // Puzzles: solution is 2D array (1=filled, 0=empty)
 const PUZZLES = {
@@ -155,6 +156,9 @@ export default function Nonogram() {
   const [msg, setMsg] = useState('');
   const dragging = useRef(false);
   const dragMode = useRef('fill'); // 'fill' or 'cross'
+  // Touch has no right-click gesture (the desktop way to switch to cross
+  // mode), so touch users pick their paint mode with this toggle instead.
+  const [touchPaintMode, setTouchPaintMode] = useState('fill');
 
   const rowClues = puzzle ? getRowClues(puzzle.solution) : [];
   const colClues = puzzle ? getColClues(puzzle.solution) : [];
@@ -204,16 +208,17 @@ export default function Nonogram() {
 
   const handleMouseUp = () => { dragging.current = false; };
 
-  // Touch equivalents: no right-tap gesture exists, so touch always paints in
-  // 'fill' mode (the primary left-click behavior); drag-paint reuses the same
+  // Touch equivalents: no right-tap gesture exists, so touch paints in
+  // whichever mode is selected via the Fill/Cross toggle below the board
+  // (defaults to 'fill'); drag-paint reuses the same
   // handleCellInteract/handleMouseEnter functions the mouse path uses.
   const handleBoardTouchStart = (e) => {
     const cell = getCellFromTouch(e);
     if (!cell) return;
     e.preventDefault();
     dragging.current = true;
-    dragMode.current = 'fill';
-    handleCellInteract(cell.r, cell.c, 'fill');
+    dragMode.current = touchPaintMode;
+    handleCellInteract(cell.r, cell.c, touchPaintMode);
   };
 
   const handleBoardTouchMove = (e) => {
@@ -297,11 +302,28 @@ export default function Nonogram() {
           <h1>Nonogram</h1>
           <span className={`diff-badge diff-${difficulty}`}>{difficulty}</span>
         </div>
+        <HowToPlay>
+          <p>Reveal a hidden picture by filling in the correct cells, using only the number clues along each row and column.</p>
+          <ul>
+            <li>Each clue is a sequence of numbers, e.g. "3 1 2" — reading across (or down), that means a run of 3 filled cells, then a gap of at least one empty cell, then a run of 1, then a gap, then a run of 2, in that order (with any amount of empty space before the first run or after the last).</li>
+            <li>A row or column clue turns green once its filled cells exactly match that clue.</li>
+          </ul>
+          <p>Click to fill a cell; right-click to cross it out (crossing is just an optional helper mark for cells you've deduced are empty — it doesn't affect winning). Click-and-drag paints a whole line of cells at once. On touch devices, use the Fill/Cross toggle above the board to choose which mark tapping applies, since there's no right-click gesture on touch — then tap or drag a finger across the board the same way.</p>
+        </HowToPlay>
         <div className="game-meta" style={{fontSize:'0.85rem',color:'var(--muted)'}}>
           Left-click: fill | Right-click: cross out
           {hintUsed && <span className="hint-used" style={{marginLeft:'1rem'}}>Hint used</span>}
         </div>
         {msg && <div className={`game-msg ${won?'success':'info'}`}>{msg}</div>}
+
+        {/* Touch-only paint mode toggle — see comment on touchPaintMode above */}
+        <div style={{display:'flex',gap:'0.4rem',margin:'0.5rem 0',alignItems:'center'}}>
+          <span style={{fontSize:'0.8rem',color:'var(--muted)'}}>Touch paint mode:</span>
+          <button className={`gs-btn gs-btn-sm ${touchPaintMode==='fill'?'gs-btn-primary':'gs-btn-outline'}`}
+            onClick={()=>setTouchPaintMode('fill')}>Fill</button>
+          <button className={`gs-btn gs-btn-sm ${touchPaintMode==='cross'?'gs-btn-primary':'gs-btn-outline'}`}
+            onClick={()=>setTouchPaintMode('cross')}>Cross ✕</button>
+        </div>
 
         <div style={{overflowX:'auto',margin:'1rem 0',userSelect:'none'}}
           onTouchStart={handleBoardTouchStart}

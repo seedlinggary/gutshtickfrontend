@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import HowToPlay from '../HowToPlay';
 
 // ─── Map Data ───────────────────────────────────────────────────────────────
 
@@ -421,6 +422,18 @@ export default function Risk({ players, onBack }) {
             {players[currentPlayer].name} — {phase === 'reinforce' ? `Reinforce (${armiesToPlace} left)` : phase === 'attack' ? 'Attack' : 'Fortify'}
           </div>
         </div>
+
+        <HowToPlay>
+          <p>World domination: eliminate all opponents by capturing every one of the 20 territories across 4 continents.</p>
+          <p><strong>Turns:</strong> Rotates among 2-4 players. The entire map — who owns what, and every army count — is always public, so there's no hidden information to conceal between turns.</p>
+          <p><strong>How it works:</strong> each turn has 3 phases, shown in the banner at the top:</p>
+          <ul>
+            <li><strong>Reinforce</strong> — place new armies on your own territories. You get at least 3, plus 1 per every 3 territories you own, plus a bonus for owning an entire continent.</li>
+            <li><strong>Attack</strong> — attack an adjacent enemy territory from one of your territories with 2+ armies. Both sides roll dice (you roll up to 3, the defender rolls up to 2) and compare highest-to-highest; the loser of each pair removes one army. Reduce the defender to 0 armies to capture their territory.</li>
+            <li><strong>Fortify</strong> — once per turn, move armies from one of your territories to another territory you own, as long as there's an unbroken chain of your own territories connecting them, then end your turn.</li>
+          </ul>
+          <p><strong>Play:</strong> During Reinforce, tap your own territories to place armies one at a time. During Attack, tap a territory of yours (2+ armies) to select it as the attacker, then tap an adjacent enemy territory to resolve a dice battle — or tap "Skip to Fortify" if you're done attacking. During Fortify, tap a source territory, drag the slider to choose how many armies to send, then tap a connected territory of yours to move them, or tap "End Turn".</p>
+        </HowToPlay>
 
         {/* Player scoreboard */}
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>

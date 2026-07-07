@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiRequest from '../ApiRequest';
 import { isLoggedIn } from '../auth';
+import HowToPlay from './HowToPlay';
 
 const COLORS = [
   { id: 'red',    hex: '#ef4444', className: 'simon-red' },
@@ -129,6 +130,18 @@ export default function Simon() {
             <h1>Simon</h1>
             <p style={{ color: 'var(--muted)' }}>Watch the sequence, then repeat it. How far can you go?</p>
           </div>
+
+          <HowToPlay>
+            <p><b>Objective:</b> memorize and repeat a growing sequence of colored flashes.</p>
+            <ul>
+              <li>Watch the four pads (red, blue, green, yellow) light up one at a time in sequence.</li>
+              <li>Once the sequence finishes, click (or tap on mobile) the pads in the same order the lights showed.</li>
+              <li>Get it right and the sequence grows by one more color; get it wrong and the game ends immediately.</li>
+              <li>Reach the target level for your difficulty to win: level 8 (Easy), 12 (Medium), or 16 (Hard).</li>
+              <li>A one-time hint replays the current sequence from the start if you forget it.</li>
+            </ul>
+          </HowToPlay>
+
           <div className="difficulty-select">
             {['easy','medium','hard'].map(d => (
               <button key={d} className={`diff-btn diff-${d}`} onClick={() => startGame(d)}>

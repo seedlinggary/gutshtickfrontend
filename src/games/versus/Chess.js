@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import HowToPlay from '../HowToPlay';
 
 // ── Piece constants ──────────────────────────────────────
 const EMPTY = null;
@@ -539,6 +540,19 @@ export default function Chess({ mode, difficulty, onBack }) {
         <h1 className="game-title">Chess</h1>
         <p className="game-subtitle">{mode === 'local' ? 'Pass & Play' : `vs Computer (${difficulty})`}</p>
       </div>
+
+      <HowToPlay>
+        <p>Standard chess rules — checkmate your opponent's king to win.</p>
+        <ul>
+          <li>Tap a piece to select it — its legal destination squares light up with a dot (or a highlighted outline if it would capture a piece there). Tap a highlighted square to move.</li>
+          <li>Each piece type moves as in standard chess (pawns, knights, bishops, rooks, queens, kings).</li>
+          <li>Castling, en passant, and pawn double-moves are all supported. Pawns that reach the far rank automatically promote to a queen.</li>
+          <li>If your king is in check, you'll see a "Check!" message — you must make a move that gets it out of check.</li>
+          <li>Checkmate (no legal move escapes check) ends the game for the side in check; stalemate (no legal move, but not in check) is a draw.</li>
+          <li>Captured pieces and the move list are shown next to the board.</li>
+        </ul>
+        <p><strong>vs Computer</strong> gives you an easy, medium, or hard bot. <strong>Pass & Play</strong> lets two people take turns on this device (White moves first).</p>
+      </HowToPlay>
 
       {/* Status */}
       {(statusMsg || botThinking || gameStatus !== 'playing') && (

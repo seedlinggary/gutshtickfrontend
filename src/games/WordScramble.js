@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiRequest from '../ApiRequest';
 import { isLoggedIn } from '../auth';
+import HowToPlay from './HowToPlay';
 
 const WORDS = {
   easy: ['APPLE','BREAD','CHAIR','DANCE','EARTH','FLAME','GRAPE','HEART','IMAGE','JUDGE','KNIFE','LEMON','MUSIC','NIGHT','OCEAN','PAINT','QUEEN','RIVER','SMILE','TIGER','UNCLE','VOICE','WATER','EXTRA','YOUNG','CRANE','DREAM','FROST','GHOST','HOUSE'],
@@ -163,6 +164,18 @@ export default function WordScramble() {
             <h1>Word Scramble</h1>
             <p style={{ color: 'var(--muted)' }}>Unscramble the word before time runs out. 10 rounds to win!</p>
           </div>
+
+          <HowToPlay>
+            <p><b>Objective:</b> unscramble each jumbled word before the timer runs out, across 10 rounds.</p>
+            <ul>
+              <li>Type your answer into the text box (tapping it opens your device's keyboard on mobile) and press Enter or the Check button to submit — same for desktop and mobile.</li>
+              <li>A correct guess immediately moves you to the next round with a fresh word and a reset timer.</li>
+              <li>Run out of time on any round and the game ends.</li>
+              <li>Difficulty changes word length and the time limit per round: Easy (4-5 letters, 60s), Medium (5-7 letters, 45s), Hard (7-10 letters, 30s) — harder difficulties also score more points per word.</li>
+              <li>A one-time hint reveals the word's first letter.</li>
+            </ul>
+          </HowToPlay>
+
           <div className="difficulty-select">
             {['easy','medium','hard'].map(d => (
               <button key={d} className={`diff-btn diff-${d}`} onClick={() => startGame(d)}>

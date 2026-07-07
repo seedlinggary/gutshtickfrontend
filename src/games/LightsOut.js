@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiRequest from '../ApiRequest';
 import { isLoggedIn } from '../auth';
+import HowToPlay from './HowToPlay';
 
 const CONFIGS = {
   easy:   { size: 3, moves: 5 },
@@ -127,6 +128,17 @@ export default function LightsOut() {
             <h1>Lights Out</h1>
             <p style={{ color: 'var(--muted)' }}>Click cells to toggle lights. Turn them all OFF to win!</p>
           </div>
+
+          <HowToPlay>
+            <p><b>Objective:</b> turn every light OFF to solve the puzzle.</p>
+            <ul>
+              <li>Click (or tap on mobile) a cell to toggle it — this also toggles its up/down/left/right neighbors, so one click flips up to 5 lights at once.</li>
+              <li>There's no single "off switch" — you have to figure out the right sequence of toggles, since each click affects its neighbors too.</li>
+              <li>Difficulty changes the grid size and how scrambled the starting puzzle is: Easy is a 3×3 grid, Medium 4×4, Hard 5×5.</li>
+              <li>Your score is based on solving in fewer moves. A one-time hint highlights a cell that reduces the number of lit cells, but it costs points.</li>
+            </ul>
+          </HowToPlay>
+
           <div className="difficulty-select">
             {['easy','medium','hard'].map(d => (
               <button key={d} className={`diff-btn diff-${d}`} onClick={() => startGame(d)}>

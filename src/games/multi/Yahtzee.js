@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import HowToPlay from '../HowToPlay';
 
 const CATEGORIES = [
   { id: 'ones', label: 'Ones', section: 'upper' },
@@ -206,6 +207,20 @@ export default function Yahtzee({ players, onBack }) {
         <h2 style={st.title}>🎲 Yahtzee</h2>
         <span style={{ color: '#bdc3c7', fontSize: 14 }}>Round {round}/13</span>
       </div>
+
+      <HowToPlay>
+        <p>Score the most points over 13 rounds. Each round, every player takes one turn rolling dice and filling in one category on their scorecard.</p>
+        <p><strong>Turns:</strong> Yahtzee has no hidden information, so every player's scorecard is always visible side-by-side (scroll sideways if they don't all fit). The app simply enables the roll/keep/score controls only for whoever's turn it currently is.</p>
+        <p><strong>How it works:</strong></p>
+        <ul>
+          <li>Roll 5 dice up to 3 times per turn, choosing which dice to keep between rolls.</li>
+          <li>After your final roll (or earlier if you stop rolling), score your dice into one open category on your card — each category can only be used once per game.</li>
+          <li>Upper section (Ones–Sixes) scores that number × how many you rolled; a bonus +35 is awarded if your upper total reaches 63+.</li>
+          <li>Lower section: Three/Four of a Kind (sum of all dice), Full House (25), Small Straight (30), Large Straight (40), YAHTZEE — five of a kind (50), and Chance (sum of all dice, always available).</li>
+          <li>The game ends after 13 rounds; highest total wins.</li>
+        </ul>
+        <p><strong>Play:</strong> Tap "Roll Dice" to roll. Between rolls, tap a die to lock it as "kept" (it won't be rerolled) — tap again to unlock it. Once you're out of rolls (or ready to stop), tap an open category on your own scorecard to lock in that score; the app shows a live preview of what each open category would score with your current dice.</p>
+      </HowToPlay>
 
       <div style={{ textAlign: 'center', fontSize: 18, color: '#f39c12', fontWeight: 'bold', marginBottom: 12 }}>
         {players[currentPlayer].name}'s Turn

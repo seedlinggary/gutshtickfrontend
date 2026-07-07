@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiRequest from '../../ApiRequest';
 import { isLoggedIn } from '../../auth';
+import HowToPlay from '../HowToPlay';
 
 // Puzzles: { size, islands: [{r,c,n},...], solution: [{r1,c1,r2,c2,count},...] }
 // Each puzzle's bridge network is built first (connected, non-crossing), and island
@@ -427,6 +428,15 @@ export default function Hashi() {
           <h1>Hashi (Bridges)</h1>
           <span className={`diff-badge diff-${difficulty}`}>{difficulty}</span>
         </div>
+        <HowToPlay>
+          <p>Connect every numbered island with straight bridges so each island ends up with exactly as many bridges touching it as its number says, and every island is reachable from every other island through the bridge network.</p>
+          <ul>
+            <li>Bridges run only horizontally or vertically, directly between two islands with a clear straight line between them — no island or existing bridge blocking the path.</li>
+            <li>You can build at most two bridges between the same pair of islands.</li>
+            <li>Bridges can never cross each other.</li>
+          </ul>
+          <p>Click or tap an island, then click/tap another island in the same row or column to add a bridge between them. Clicking that same pair again adds a second, parallel bridge; a third click removes the bridge entirely. An island turns green once it has exactly the right number of bridges, red if it has too many.</p>
+        </HowToPlay>
         <div className="game-meta">
           <span>Click an island, then click another (same row/col) to add a bridge. Click again to add second bridge, again to remove.</span>
           {firstIsland && (

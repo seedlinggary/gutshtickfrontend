@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiRequest from '../ApiRequest';
 import { isLoggedIn } from '../auth';
+import HowToPlay from './HowToPlay';
 
 const WORDS = {
   easy: ['CRANE','PLANT','STONE','LIGHT','BREAD','CLIMB','DANCE','EARTH','FLAME','GRACE','HEART','KNIFE','LEMON','MUSIC','NIGHT','OCEAN','PEACE','RIVER','SMILE','TIGER','WATER','YOUNG','APPLE','BRAVE','CHAIR','CLOUD','DREAM','FRUIT','HOUSE','JUDGE','OLIVE','PAINT','ROUND','SWEET','TRAIN','WHOLE','CLEAN','ACTOR','AFTER','AGAIN','AGREE','ALARM','ALBUM','ANGEL','ANGRY','ANKLE','ARROW'],
@@ -170,6 +171,18 @@ export default function Wordle() {
             <h1>Wordle</h1>
             <p style={{ color: 'var(--muted)' }}>Guess the 5-letter word before you run out of attempts.</p>
           </div>
+
+          <HowToPlay>
+            <p><b>Objective:</b> guess the hidden 5-letter word within your allotted attempts.</p>
+            <ul>
+              <li>Type letters using the on-screen keyboard (works the same for a click or a tap) or your device's physical keyboard, then press Enter/ENTER to submit a guess. Use ⌫/Backspace to delete a letter.</li>
+              <li>After each guess, each letter's tile is colored to give you feedback: <b>green</b> means correct letter, correct position; <b>yellow</b> means the letter is in the word but in a different position; <b>gray</b> means the letter isn't in the word at all.</li>
+              <li>The on-screen keyboard keys pick up the same colors as you guess, so you can track which letters you've already tried.</li>
+              <li>Difficulty changes how many attempts you get and how common the word is: Easy (7 attempts, common words), Medium (6 attempts, harder words), Hard (5 attempts, tricky words).</li>
+              <li>A one-time hint reveals the correct letter for one position you haven't gotten right yet.</li>
+            </ul>
+          </HowToPlay>
+
           <div className="difficulty-select">
             {['easy','medium','hard'].map(d => (
               <button key={d} className={`diff-btn diff-${d}`} onClick={() => startGame(d)}>

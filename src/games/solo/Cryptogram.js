@@ -2,6 +2,9 @@ import React, { useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiRequest from '../../ApiRequest';
 import { isLoggedIn } from '../../auth';
+import HowToPlay from '../HowToPlay';
+
+const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
 const QUOTE_DATA = {
   easy: [
@@ -139,27 +142,39 @@ export default function Cryptogram() {
     return newMapping;
   };
 
+  // Shared by physical-keyboard entry (handleKeyDown) and the on-screen letter
+  // picker (tapped on touch devices, which never get a real keyboard since
+  // there's no <input> to focus). Applies a plain-letter guess to the
+  // currently selected coded letter and auto-advances to the next unsolved one.
+  const applyLetterGuess = (letterChar) => {
+    if (!selectedEncoded || won || revealedLetters.has(selectedEncoded)) return;
+    const newMapping = applyMapping(selectedEncoded, letterChar, userMapping, revealedLetters);
+    const curIdx = uniqueEncoded.indexOf(selectedEncoded);
+    for (let offset = 1; offset <= uniqueEncoded.length; offset++) {
+      const next = uniqueEncoded[(curIdx + offset) % uniqueEncoded.length];
+      if (!revealedLetters.has(next) && newMapping[next] !== cipher?.decode[next]) {
+        setSelectedEncoded(next);
+        break;
+      }
+    }
+  };
+
+  const clearSelectedLetter = () => {
+    if (!selectedEncoded || won || revealedLetters.has(selectedEncoded)) return;
+    const newMapping = { ...userMapping };
+    delete newMapping[selectedEncoded];
+    setUserMapping(newMapping);
+  };
+
   const handleKeyDown = (e) => {
     if (!selectedEncoded || won) return;
     const key = e.key.toUpperCase();
     if (key >= 'A' && key <= 'Z') {
       e.preventDefault();
-      const newMapping = applyMapping(selectedEncoded, key, userMapping, revealedLetters);
-      // Auto-advance to next unresolved encoded letter
-      const curIdx = uniqueEncoded.indexOf(selectedEncoded);
-      for (let offset = 1; offset <= uniqueEncoded.length; offset++) {
-        const next = uniqueEncoded[(curIdx + offset) % uniqueEncoded.length];
-        if (!revealedLetters.has(next) && newMapping[next] !== cipher?.decode[next]) {
-          setSelectedEncoded(next);
-          break;
-        }
-      }
+      applyLetterGuess(key);
     } else if (e.key === 'Backspace' || e.key === 'Delete') {
       e.preventDefault();
-      if (revealedLetters.has(selectedEncoded)) return;
-      const newMapping = { ...userMapping };
-      delete newMapping[selectedEncoded];
-      setUserMapping(newMapping);
+      clearSelectedLetter();
     } else if (e.key === 'Tab') {
       e.preventDefault();
       const idx = uniqueEncoded.indexOf(selectedEncoded);
@@ -238,8 +253,16 @@ export default function Cryptogram() {
           <h1>Cryptogram</h1>
           <span className={`diff-badge diff-${difficulty}`}>{difficulty}</span>
         </div>
+        <HowToPlay>
+          <p>A famous quote has been encoded with a substitution cipher: every occurrence of one letter is always replaced by the same other letter throughout the quote. Your job is to work out the substitution and decode the whole thing.</p>
+          <ul>
+            <li>Each coded letter always stands for exactly one plain letter, and each plain letter is used by only one coded letter (a few letters are pre-revealed to get you started).</li>
+            <li>Use word patterns, letter frequency, and repeated letters to work out the rest by trial and error.</li>
+          </ul>
+          <p>Click or tap a coded letter — either in the quote itself or in the "all coded letters" panel — to select it, then tap the plain letter it decodes to on the on-screen A-Z picker below the panel. On a physical keyboard you can also just type the plain letter directly (it auto-advances to the next unsolved letter); press Tab/Shift+Tab to jump between letters and Backspace to clear a guess.</p>
+        </HowToPlay>
         <div className="game-meta" style={{ fontSize: '0.85rem', color: 'var(--muted)' }}>
-          Click a coded letter, then type the plaintext letter. Tab to advance, Backspace to clear.
+          Click a coded letter, then type the plaintext letter (or tap a letter below). Tab to advance, Backspace to clear.
           {hintUsed && <span className="hint-used" style={{ marginLeft: '1rem' }}>Hint used</span>}
         </div>
         {msg && <div className={`game-msg ${won ? 'success' : 'info'}`}>{msg}</div>}
@@ -310,6 +333,35 @@ export default function Cryptogram() {
             })}
           </div>
         </div>
+
+        {/* On-screen A-Z letter picker — the primary input method on touch
+            devices, since there's no real <input> here to focus, so mobile
+            browsers never pop up a virtual keyboard for the physical-key
+            handler above. Also usable with a mouse as an alternative to typing. */}
+        {!won && (
+          <div className="gs-card" style={{ padding: '1rem', margin: '1rem 0' }}>
+            <div style={{ fontSize: '0.85rem', color: 'var(--muted)', marginBottom: '0.5rem' }}>
+              {selectedEncoded ? `Tap the plain letter for coded letter "${selectedEncoded}":` : 'Select a coded letter above, then tap its plain letter here:'}
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem' }}>
+              {LETTERS.map(letter => (
+                <button key={letter}
+                  className="gs-btn gs-btn-outline gs-btn-sm"
+                  disabled={!selectedEncoded}
+                  onClick={() => applyLetterGuess(letter)}
+                  style={{ width: 32, height: 32, padding: 0, minWidth: 32 }}>
+                  {letter}
+                </button>
+              ))}
+              <button className="gs-btn gs-btn-outline gs-btn-sm"
+                disabled={!selectedEncoded}
+                onClick={clearSelectedLetter}
+                style={{ height: 32 }}>
+                Clear
+              </button>
+            </div>
+          </div>
+        )}
 
         <div className="game-controls">
           {!hintUsed && !won && (

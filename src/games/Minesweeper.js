@@ -241,10 +241,13 @@ export default function Minesweeper() {
     flagCell(r, c);
   };
 
-  // ── Touch support: tap reveals via onClick (works already); long-press flags ─
+  // ── Touch support: tap reveals via onClick (works already); long-press flags;
+  // double-tap on a revealed number chords it — the touch equivalent of holding
+  // both mouse buttons, since a touchscreen has no concept of "both buttons". ─
   const touchTimerRef = useRef(null);
   const touchMovedRef = useRef(false);
   const longPressFiredRef = useRef(false);
+  const lastTapRef = useRef({ r: null, c: null, time: 0 });
 
   const clearTouchTimer = () => {
     if (touchTimerRef.current) {
@@ -261,6 +264,22 @@ export default function Minesweeper() {
     if (gameStatus === 'won' || gameStatus === 'lost') return;
     touchMovedRef.current = false;
     longPressFiredRef.current = false;
+
+    const now = Date.now();
+    const isDoubleTap = lastTapRef.current.r === r && lastTapRef.current.c === c
+      && now - lastTapRef.current.time < 300;
+    lastTapRef.current = { r, c, time: now };
+
+    if (isDoubleTap) {
+      clearTouchTimer();
+      const cell = grid[r][c];
+      if (cell.isRevealed && cell.adjacent > 0) {
+        longPressFiredRef.current = true; // reuse this flag to swallow the compat click
+        performChord(r, c, grid);
+      }
+      return;
+    }
+
     clearTouchTimer();
     touchTimerRef.current = setTimeout(() => {
       if (!touchMovedRef.current) {
@@ -345,7 +364,12 @@ export default function Minesweeper() {
         <Link to="/games" className="game-back">← Games</Link>
         <h1 className="game-title">Minesweeper</h1>
         <p className="game-subtitle">
-          Left click to reveal · Right click to flag · <b>Both buttons</b> on a number to chord-reveal neighbors
+          <span className="desktop-only-hint">
+            Left click to reveal · Right click to flag · <b>Both buttons</b> on a number to chord-reveal neighbors
+          </span>
+          <span className="mobile-only-hint">
+            Tap to reveal · Long-press to flag · <b>Double-tap</b> a number to chord-reveal neighbors
+          </span>
         </p>
       </div>
 

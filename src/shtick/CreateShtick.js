@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import apiRequest from '../ApiRequest';
 import useFetch from '../UseFetch';
 import UploadFile from '../Uploadfile';
@@ -71,6 +71,10 @@ const CreateShtick = () => {
         <div className="create-card">
           <h2 className="create-title">Share Good Shtick</h2>
           <p className="create-subtitle">Post something worth sharing — a quote, link, image, or just a great caption.</p>
+          <p className="create-subtitle" style={{ marginTop: -8, marginBottom: 18 }}>
+            Every post is reviewed before it goes live — see our{' '}
+            <Link to="/content-guidelines">Content Guidelines</Link> for what gets approved.
+          </p>
 
           {error && <div className="gs-error-box">{error}</div>}
           {success && (

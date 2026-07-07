@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiRequest from '../../ApiRequest';
 import { isLoggedIn } from '../../auth';
+import HowToPlay from '../HowToPlay';
 
 // Clues: { top, right, bottom, left } - arrays of clues for each row/col from that edge
 // top[c] = how many buildings visible from top of column c
@@ -231,6 +232,14 @@ export default function Skyscrapers() {
           <h1>Skyscrapers</h1>
           <span className={`diff-badge diff-${difficulty}`}>{difficulty}</span>
         </div>
+        <HowToPlay>
+          <p>Fill the grid with building heights 1 through N (N = the grid's size) so each row and column contains every height exactly once — and the number of buildings visible from each direction matches the clue outside the grid on that edge.</p>
+          <ul>
+            <li>A taller building blocks the view of any shorter building behind it, so a clue is the count of "visible" buildings — the number you'd actually see looking down that row/column from that edge, counting only buildings taller than every building before them.</li>
+            <li>All four edges (top, bottom, left, right) have their own clues, and all of them must be satisfied at once.</li>
+          </ul>
+          <p>Click or tap a cell to select it, then click a number on the number pad below the grid to fill it in (✕ clears it). Cells that don't match the solution are highlighted red. Hint reveals one correct cell.</p>
+        </HowToPlay>
         <div className="game-meta">
           {hintUsed && <span className="hint-used">Hint used</span>}
         </div>

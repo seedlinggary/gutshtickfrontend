@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiRequest from '../../ApiRequest';
 import { isLoggedIn } from '../../auth';
+import HowToPlay from '../HowToPlay';
 
 const COLOR_LIST = ['red', 'blue', 'green', 'yellow', 'orange', 'purple', 'white', 'pink'];
 const COLOR_HEX = {
@@ -183,6 +184,15 @@ export default function Mastermind() {
           <h1>Mastermind</h1>
           <span className={`diff-badge diff-${difficulty}`}>{difficulty}</span>
         </div>
+        <HowToPlay>
+          <p>Crack the secret color code — a hidden sequence of colored pegs — before you run out of guesses.</p>
+          <ul>
+            <li>After each guess, you get a black peg for every position where your guess has the exact right color in the exact right spot.</li>
+            <li>You get a white peg for every guessed color that's correct but sitting in the wrong position (and not already counted as a black peg).</li>
+            <li>The count of black and white pegs — not which slots they refer to — is your only clue, so use it to narrow down the code guess by guess.</li>
+          </ul>
+          <p>Click or tap a slot in your current guess to select it, then click/tap a color swatch to fill that slot — it auto-advances to the next empty slot. Once every slot is filled, tap Submit Guess. Hint reveals the correct color for the currently selected slot.</p>
+        </HowToPlay>
         <div className="game-meta">
           <span>Guess {Math.min(guesses.length + 1, config.maxGuesses)}/{config.maxGuesses}</span>
           {hintUsed && <span className="hint-used" style={{ marginLeft: '1rem' }}>Hint used</span>}

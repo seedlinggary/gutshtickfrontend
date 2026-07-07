@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import HowToPlay from '../HowToPlay';
 
 const GRID = 10;
 const SHIPS = [
@@ -387,6 +388,25 @@ export default function Battleship({ mode, difficulty, onBack }) {
         <h1 className="game-title">Battleship</h1>
         <p className="game-subtitle">{mode === 'local' ? 'Pass & Play' : `vs Computer (${difficulty})`}</p>
       </div>
+
+      <HowToPlay>
+        <p>Sink your opponent's entire fleet before they sink yours.</p>
+        <p><strong>Phase 1 — Place your fleet:</strong></p>
+        <ul>
+          <li>Tap a cell on your board to place the currently-highlighted ship, starting from that cell.</li>
+          <li>Tap the Rotate button (or press <strong>R</strong> on a keyboard) to switch a ship between horizontal and vertical before placing it.</li>
+          <li>Or tap "Auto-Place All" to place your whole fleet randomly in one tap.</li>
+          <li>Your fleet: Carrier (5 cells), Battleship (4), Cruiser (3), Submarine (3), Destroyer (2).</li>
+          <li>In Pass & Play, each player places their fleet in turn — hide the screen from the other player before it's their turn to place.</li>
+        </ul>
+        <p><strong>Phase 2 — Battle:</strong></p>
+        <ul>
+          <li>Tap a cell on your opponent's grid to fire at it. A hit is marked 💥, a miss with a dot.</li>
+          <li>You'll be told when you sink one of their ships. Sink every ship in their fleet to win.</li>
+          <li>You can toggle between viewing your Attack Grid and your own Fleet at any time.</li>
+        </ul>
+        <p><strong>vs Computer</strong> gives you an easy, medium, or hard bot (harder difficulties hunt down ships more intelligently after landing a hit). <strong>Pass & Play</strong> lets two people take turns on this device, firing at each other's hidden fleets.</p>
+      </HowToPlay>
 
       {phase === 'setup' && (
         <div>

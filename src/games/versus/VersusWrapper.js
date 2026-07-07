@@ -1,6 +1,8 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import AdSlot from '../../ads/AdSlot';
+import ComingSoon from '../ComingSoon';
+import { isAdmin } from '../../auth';
 
 const GAME_MAP = {
   'chess':         lazy(() => import('./Chess')),
@@ -44,6 +46,12 @@ export default function VersusWrapper() {
 
   const GameComponent = GAME_MAP[gameId];
   const title = GAME_TITLES[gameId] || gameId;
+
+  // 1v1 games are still being rolled out to the general audience — only
+  // admins/super-admins can actually play them for now.
+  if (!isAdmin()) {
+    return <ComingSoon title={`${title} — 1v1`} />;
+  }
 
   if (!GameComponent) {
     return (

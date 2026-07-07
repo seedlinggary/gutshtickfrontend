@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import HowToPlay from '../HowToPlay';
 
 // ─── Card Utilities ───────────────────────────────────────────────────────────
 
@@ -730,6 +731,20 @@ export default function Rummy({ players, onBack }) {
           <h2 style={{ margin: 0, flex: 1 }}>Gin Rummy — Round {roundNum}</h2>
           <div style={{ fontSize: 13, color: 'var(--muted)' }}>First to 100 wins</div>
         </div>
+
+        <HowToPlay>
+          <p>Gin Rummy — first player to reach 100 total points across rounds wins.</p>
+          <p><strong>Turns:</strong> Each round deals 10 cards (2 players) or 7 cards (3+ players) to everyone. The screen always shows only the current player's own hand, detected melds, and deadwood count — other players are shown only as a card count — so hidden information is correctly kept between turns on this shared device.</p>
+          <p><strong>How it works:</strong></p>
+          <ul>
+            <li>On your turn, draw one card — either the top of the discard pile or a fresh card from the deck — then discard one card from your hand.</li>
+            <li>A meld is a Set (3-4 cards of the same rank) or a Run (3+ consecutive cards of one suit). "Deadwood" is the point value of cards not in any meld (face cards = 10, Ace = 1, numbers = face value).</li>
+            <li>Knock when your deadwood is 10 or less to end the round — the app automatically discards your optimal card and reveals everyone's hands and melds.</li>
+            <li>Gin (deadwood of exactly 0) scores a +25 bonus on top of the round's points.</li>
+            <li>If an opponent's deadwood is less than or equal to yours when you knock (an "undercut"), the round's points flip to them instead, plus a +25 penalty against you.</li>
+          </ul>
+          <p><strong>Play:</strong> Tap the DECK or DISCARD pile to draw. Tap a card in your hand to discard it (melded cards are highlighted green, your just-drawn card is highlighted yellow). Tap "Knock" or "Gin" (enabled only once your hand qualifies) to end the round.</p>
+        </HowToPlay>
 
         {/* Score panel */}
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>

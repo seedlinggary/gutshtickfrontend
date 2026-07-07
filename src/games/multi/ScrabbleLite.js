@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import HowToPlay from '../HowToPlay';
 
 // Tile bag
 const TILE_DIST = {
@@ -385,6 +386,20 @@ export default function ScrabbleLite({ players, onBack }) {
         <h2 style={SC.title}>Scrabble Lite</h2>
         <span style={{color:'#bdc3c7',fontSize:13}}>Bag: {bag.length} | {players[currentPlayer].name}'s turn</span>
       </div>
+
+      <HowToPlay>
+        <p>Score the most points by spelling words on the 15×15 board before the tile bag runs out. The game ends when the bag is empty and a player uses their last tile, or everyone passes twice in a row.</p>
+        <p><strong>Turns:</strong> The board is shared and public, like a real Scrabble board. Only the current player's own rack of 7 tiles is shown — other players are shown only as a tile count and score until it's their turn.</p>
+        <p><strong>How it works:</strong></p>
+        <ul>
+          <li>Place tiles in one straight line (horizontal or vertical) to spell a word, checked against a built-in word list.</li>
+          <li>The very first word of the game must cross the center star square; every word after that must connect to tiles already on the board.</li>
+          <li>Colored premium squares double or triple a single letter's value (light/dark blue) or the whole word's score (pink/red) the first time a tile is placed on them.</li>
+          <li>Using all 7 of your tiles in a single turn earns a +50 "bingo" bonus.</li>
+          <li>Blank tiles (shown as "?") can stand in for any letter — you'll be asked to choose which letter when you place one.</li>
+        </ul>
+        <p><strong>Play:</strong> This is entirely tap-based — no dragging. Tap a tile in your rack to select it (it lifts up), then tap an empty board square to place it there; repeat for each letter of your word. Tap a tile you've already placed this turn to pick it back up. When ready, tap "Submit Word" to score the play and draw back up to 7 tiles, or tap "Pass" (with nothing placed) to skip your turn, or "Clear / Cancel" to undo your in-progress placements.</p>
+      </HowToPlay>
 
       {msg&&<div style={SC.message}>{msg}</div>}
 

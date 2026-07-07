@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import apiRequest from '../ApiRequest';
 import { isLoggedIn } from '../auth';
+import HowToPlay from './HowToPlay';
 
 // ── Sudoku generator ──────────────────────────────────────────────────────────
 
@@ -159,6 +160,18 @@ export default function Sudoku() {
         <h1 className="game-title">Sudoku</h1>
         <p className="game-subtitle">Fill the 9×9 grid so every row, column, and box has 1–9</p>
       </div>
+
+      <HowToPlay>
+        <p><b>Objective:</b> fill every empty cell so each row, column, and 3×3 box contains the digits 1–9 exactly once.</p>
+        <ul>
+          <li>Click (or tap on mobile) a cell to select it, then click a number on the numpad to fill it in — same steps for mouse and touch.</li>
+          <li>Bold numbers are the puzzle's fixed "givens" and can't be changed.</li>
+          <li>Use the ⌫ button to erase a number from the selected cell.</li>
+          <li>Cells that conflict with the solution are highlighted in red so you can spot mistakes as you go.</li>
+          <li>Difficulty controls how many cells start empty: Easy removes 35, Medium 46, Hard 54.</li>
+          <li>The Hint button fills the correct number into the selected cell, but each hint used lowers your final score.</li>
+        </ul>
+      </HowToPlay>
 
       <div className="game-controls-bar">
         <div className="game-difficulty-select">

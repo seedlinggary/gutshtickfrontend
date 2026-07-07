@@ -2,6 +2,7 @@ import React, { useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiRequest from '../../ApiRequest';
 import { isLoggedIn } from '../../auth';
+import HowToPlay from '../HowToPlay';
 
 // Cell states: 'unknown', 'black', 'white'
 // Puzzles: { size, clues: [[r,c,n],...], solution: 2d array of 'B'|'W' }
@@ -380,6 +381,15 @@ export default function Nurikabe() {
           <h1>Nurikabe</h1>
           <span className={`diff-badge diff-${difficulty}`}>{difficulty}</span>
         </div>
+        <HowToPlay>
+          <p>Shade the grid into black "sea" cells and white "island" cells so it matches every numbered clue.</p>
+          <ul>
+            <li>Every numbered clue starts a white island containing exactly that many connected white cells, including the clue cell itself.</li>
+            <li>Islands can't touch each other — no two islands may share an edge (only the black sea can separate them).</li>
+            <li>All the black cells must form a single connected region (one sea, not several separate blobs), and no 2×2 block of cells may be entirely black.</li>
+          </ul>
+          <p>Click or tap a cell to cycle it through unknown → black → white → unknown. On desktop, right-click sets a cell straight to white; click-and-drag (or drag a finger on touch) paints a run of cells the same way as your first click/tap in that drag. A red outline flags an illegal 2×2 all-black block.</p>
+        </HowToPlay>
         <div className="game-meta" style={{ fontSize: '0.85rem', color: 'var(--muted)' }}>
           Left-click: cycle (unknown/black/white) | Right-click: white | Drag to paint
           {hintUsed && <span className="hint-used" style={{ marginLeft: '1rem' }}>Hint used</span>}

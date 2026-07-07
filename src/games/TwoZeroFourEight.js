@@ -1,7 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiRequest from '../ApiRequest';
 import { isLoggedIn } from '../auth';
+import HowToPlay from './HowToPlay';
 
 const WIN_TARGET = { easy: 512, medium: 1024, hard: 2048 };
 
@@ -197,6 +198,32 @@ export default function TwoZeroFourEight() {
     processMove(dir, grid, score, difficulty);
   };
 
+  // ── Swipe support: one finger drag across the board moves in that direction ──
+  const touchStartRef = useRef(null);
+  const SWIPE_THRESHOLD = 24; // px — small enough to feel responsive, large enough to ignore taps
+
+  const handleBoardTouchStart = (e) => {
+    const t = e.touches[0];
+    touchStartRef.current = { x: t.clientX, y: t.clientY };
+  };
+
+  const handleBoardTouchEnd = (e) => {
+    const start = touchStartRef.current;
+    touchStartRef.current = null;
+    if (!start) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - start.x;
+    const dy = t.clientY - start.y;
+    const absX = Math.abs(dx);
+    const absY = Math.abs(dy);
+    if (Math.max(absX, absY) < SWIPE_THRESHOLD) return;
+    if (absX > absY) {
+      handleArrow(dx > 0 ? 'right' : 'left');
+    } else {
+      handleArrow(dy > 0 ? 'down' : 'up');
+    }
+  };
+
   const useHint = () => {
     if (hintUsed || gameOver) return;
     setHintUsed(true);
@@ -221,6 +248,20 @@ export default function TwoZeroFourEight() {
             <h1>2048</h1>
             <p style={{ color: 'var(--muted)' }}>Slide tiles to merge them. Reach the target tile to win!</p>
           </div>
+
+          <HowToPlay>
+            <p><b>Objective:</b> slide and merge numbered tiles until you reach the target tile value.</p>
+            <ul>
+              <li>On desktop, use the Arrow keys or WASD to slide every tile on the board in that direction.</li>
+              <li>On mobile, swipe anywhere on the board in the direction you want to move, or use the on-screen arrow buttons — both do the same thing as the keyboard.</li>
+              <li>When two tiles with the same number collide, they merge into one tile with double the value and add to your score.</li>
+              <li>After each move, a new tile (2 or, occasionally, 4) appears in an empty spot.</li>
+              <li>Reach the target tile for your difficulty to win — 512 (Easy), 1024 (Medium), or 2048 (Hard) — then choose to keep playing for a higher score.</li>
+              <li>The game ends if the board fills up and no move can slide or merge any tile.</li>
+              <li>A one-time hint suggests the direction that merges the most tiles right now.</li>
+            </ul>
+          </HowToPlay>
+
           <div className="difficulty-select">
             {['easy','medium','hard'].map(d => (
               <button key={d} className={`diff-btn diff-${d}`} onClick={() => startGame(d)}>
@@ -269,7 +310,11 @@ export default function TwoZeroFourEight() {
         )}
         {hintMsg && <div className="game-msg info">{hintMsg}</div>}
 
-        <div style={{ display: 'flex', justifyContent: 'center' }}>
+        <div
+          style={{ display: 'flex', justifyContent: 'center', touchAction: 'none' }}
+          onTouchStart={handleBoardTouchStart}
+          onTouchEnd={handleBoardTouchEnd}
+        >
           <div className="board-2048">
             {grid.flat().map((val, i) => (
               <div
@@ -292,7 +337,10 @@ export default function TwoZeroFourEight() {
             <button onClick={() => handleArrow('right')} aria-label="Move right">►</button>
           </div>
         </div>
-        <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 4, textAlign: 'center' }}>Arrow keys or WASD also work</div>
+        <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 4, textAlign: 'center' }}>
+          <span className="desktop-only-hint">Arrow keys or WASD also work</span>
+          <span className="mobile-only-hint">Swipe the board in any direction to move</span>
+        </div>
 
         <div className="game-controls">
           {!gameOver && !hintUsed && (

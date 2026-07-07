@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import HowToPlay from '../HowToPlay';
 
 const SUSPECTS = ['Miss Scarlett','Colonel Mustard','Mrs. White','Mr. Green','Mrs. Peacock','Professor Plum'];
 const WEAPONS = ['Candlestick','Knife','Lead Pipe','Revolver','Rope','Wrench'];
@@ -256,6 +257,19 @@ export default function Clue({ players, onBack }) {
           {gamePlayers[currentPlayer].name}'s turn — {phase.toUpperCase()}
         </div>
       </div>
+
+      <HowToPlay>
+        <p>Be the first to correctly name the secret Suspect, Weapon, and Room in a final Accusation. An incorrect accusation eliminates you from winning (though you keep playing to disprove others' suggestions).</p>
+        <p><strong>Turns:</strong> Rotates among 3+ players (bots fill any empty seats up to the 3-player minimum). This build shows only the hand and detective notepad of whoever is actively deciding right now — the player moving/suggesting, or whoever is currently being asked to disprove a suggestion — so hidden card information is correctly kept between players sharing the device.</p>
+        <p><strong>How it works:</strong></p>
+        <ul>
+          <li>On your turn, move to an adjacent room, then make a Suggestion naming a suspect and weapon (the room is automatically wherever you just moved).</li>
+          <li>Starting with the next player, whoever can disprove your suggestion privately shows you one matching card (their choice which one, if they have more than one match).</li>
+          <li>Use your notepad to track which suspects/weapons/rooms have been ruled out (✗) as you learn them from suggestions.</li>
+          <li>When you're confident you know all three solution cards, make a final Accusation instead of a suggestion — get it exactly right to win immediately.</li>
+        </ul>
+        <p><strong>Play:</strong> Tap a highlighted adjacent room on the 3×3 room grid to move there. Use the Suspect/Weapon dropdowns and tap "Suggest" to make a suggestion, or tap "Make Accusation" to open the final accusation form (pick Suspect/Weapon/Room, then tap "Accuse!"). When asked to disprove someone else's suggestion, tap one of your matching cards to show it, or "Can't Show" if you have none.</p>
+      </HowToPlay>
 
       {/* Room grid */}
       <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:6,marginBottom:12}}>

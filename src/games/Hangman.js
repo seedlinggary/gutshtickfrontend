@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import apiRequest from '../ApiRequest';
 import { isLoggedIn } from '../auth';
+import HowToPlay from './HowToPlay';
 
 const WORD_BANK = {
   easy: ['apple', 'beach', 'cloud', 'dance', 'eagle', 'flame', 'grape', 'happy', 'input', 'jumpy',
@@ -134,6 +135,16 @@ export default function Hangman() {
         <h1 className="game-title">Hangman</h1>
         <p className="game-subtitle">Guess the word before the man is hung</p>
       </div>
+
+      <HowToPlay>
+        <p><b>Objective:</b> guess every letter in the hidden word before you run out of wrong guesses.</p>
+        <ul>
+          <li>Click a letter on the on-screen keyboard, or type a letter on your physical keyboard — both work the same, including on mobile (tap the on-screen letters).</li>
+          <li>Correct letters fill in their spot(s) in the word; wrong letters are crossed off and add a body part to the gallows.</li>
+          <li>Difficulty changes the word length and how many wrong guesses you can make before losing: Easy allows 8 wrong guesses, Medium 6, Hard 4.</li>
+          <li>You get one hint per game — it reveals a random unguessed letter, but the win is then recorded as a "win with hint" instead of a perfect win.</li>
+        </ul>
+      </HowToPlay>
 
       <div className="game-controls-bar">
         <div className="game-difficulty-select">

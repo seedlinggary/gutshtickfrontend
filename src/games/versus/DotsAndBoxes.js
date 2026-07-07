@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import HowToPlay from '../HowToPlay';
 
 // Grid sizes: easy=4x4 boxes (5x5 dots), medium=5x5, hard=6x6
 const GRID_SIZES = { easy: 4, medium: 5, hard: 6 };
@@ -120,6 +121,7 @@ export default function DotsAndBoxes({ mode, difficulty, onBack }) {
   const [currentPlayer, setCurrentPlayer] = useState(1);
   const [botThinking, setBotThinking] = useState(false);
   const [gameOver, setGameOver] = useState(false);
+  const [hoverLine, setHoverLine] = useState(null); // { type: 'h'|'v', r, c } — drives hover color instead of direct DOM mutation, so a wide invisible touch-hit-area line can share the same state
 
   const isBot = mode === 'vs_computer' && currentPlayer === 2;
 
@@ -195,6 +197,7 @@ export default function DotsAndBoxes({ mode, difficulty, onBack }) {
     setCurrentPlayer(1);
     setBotThinking(false);
     setGameOver(false);
+    setHoverLine(null);
   }
 
   const { p1, p2 } = countScores(state.boxes);
@@ -214,6 +217,18 @@ export default function DotsAndBoxes({ mode, difficulty, onBack }) {
         <h1 className="game-title">Dots & Boxes</h1>
         <p className="game-subtitle">{n}×{n} grid — {mode === 'local' ? 'Pass & Play' : `vs Computer (${difficulty})`}</p>
       </div>
+
+      <HowToPlay>
+        <p>Claim more boxes than your opponent by completing their four sides.</p>
+        <ul>
+          <li>Tap a line between two dots to draw it.</li>
+          <li>Whenever your line completes the 4th (final) side of a box, you claim that box and immediately get another turn — chaining several box completions together in one turn is a common tactic.</li>
+          <li>If your line doesn't complete a box, play passes to the other player.</li>
+          <li>Watch out for "giving away" a box: drawing the 3rd side of a box lets your opponent claim it (and often a whole chain of boxes) on their next turn.</li>
+          <li>When every line is drawn, whoever claimed the most boxes wins.</li>
+        </ul>
+        <p><strong>vs Computer</strong> gives you an easy, medium, or hard bot (harder difficulties avoid handing you free boxes). <strong>Pass & Play</strong> lets two people take turns on this device.</p>
+      </HowToPlay>
 
       {/* Score */}
       <div style={{ display: 'flex', gap: 24, justifyContent: 'center', marginBottom: 12, flexWrap: 'wrap' }}>
@@ -275,20 +290,30 @@ export default function DotsAndBoxes({ mode, difficulty, onBack }) {
                 const x1 = c * DOT_GAP + dotSize;
                 const y1 = r * DOT_GAP + dotSize / 2;
                 const x2 = (c + 1) * DOT_GAP;
+                const isHover = !v && hoverLine && hoverLine.type === 'h' && hoverLine.r === r && hoverLine.c === c;
+                const clickable = !v && !gameOver && !botThinking && (mode !== 'vs_computer' || currentPlayer === 1);
                 return (
-                  <line
-                    key={`h-${r}-${c}`}
-                    x1={x1} y1={y1} x2={x2} y2={y1}
-                    stroke={v ? (v === 1 ? P1C : P2C) : 'var(--border)'}
-                    strokeWidth={v ? 5 : 3}
-                    strokeLinecap="round"
-                    style={{ cursor: (!v && !gameOver && !botThinking && (mode !== 'vs_computer' || currentPlayer === 1)) ? 'pointer' : 'default' }}
-                    onMouseEnter={e => { if (!v) e.target.setAttribute('stroke', currentPlayer === 1 ? P1C + 'AA' : P2C + 'AA'); }}
-                    onMouseLeave={e => { if (!v) e.target.setAttribute('stroke', 'var(--border)'); }}
-                    onClick={() => !v && handleLine('h', r, c)}
-                  >
-                    <title>Horizontal line row {r} col {c}</title>
-                  </line>
+                  <g key={`h-${r}-${c}`}>
+                    {/* Wide invisible hit-area so this thin line is still easy to tap on a phone screen */}
+                    <line
+                      x1={x1} y1={y1} x2={x2} y2={y1}
+                      stroke="transparent"
+                      strokeWidth={20}
+                      style={{ cursor: clickable ? 'pointer' : 'default' }}
+                      onMouseEnter={() => !v && setHoverLine({ type: 'h', r, c })}
+                      onMouseLeave={() => setHoverLine(null)}
+                      onClick={() => !v && handleLine('h', r, c)}
+                    >
+                      <title>Horizontal line row {r} col {c}</title>
+                    </line>
+                    <line
+                      x1={x1} y1={y1} x2={x2} y2={y1}
+                      stroke={v ? (v === 1 ? P1C : P2C) : isHover ? (currentPlayer === 1 ? P1C + 'AA' : P2C + 'AA') : 'var(--border)'}
+                      strokeWidth={v ? 5 : 3}
+                      strokeLinecap="round"
+                      pointerEvents="none"
+                    />
+                  </g>
                 );
               })
             )}
@@ -299,20 +324,30 @@ export default function DotsAndBoxes({ mode, difficulty, onBack }) {
                 const x1 = c * DOT_GAP + dotSize / 2;
                 const y1 = r * DOT_GAP + dotSize;
                 const y2 = (r + 1) * DOT_GAP;
+                const isHover = !v && hoverLine && hoverLine.type === 'v' && hoverLine.r === r && hoverLine.c === c;
+                const clickable = !v && !gameOver && !botThinking && (mode !== 'vs_computer' || currentPlayer === 1);
                 return (
-                  <line
-                    key={`v-${r}-${c}`}
-                    x1={x1} y1={y1} x2={x1} y2={y2}
-                    stroke={v ? (v === 1 ? P1C : P2C) : 'var(--border)'}
-                    strokeWidth={v ? 5 : 3}
-                    strokeLinecap="round"
-                    style={{ cursor: (!v && !gameOver && !botThinking && (mode !== 'vs_computer' || currentPlayer === 1)) ? 'pointer' : 'default' }}
-                    onMouseEnter={e => { if (!v) e.target.setAttribute('stroke', currentPlayer === 1 ? P1C + 'AA' : P2C + 'AA'); }}
-                    onMouseLeave={e => { if (!v) e.target.setAttribute('stroke', 'var(--border)'); }}
-                    onClick={() => !v && handleLine('v', r, c)}
-                  >
-                    <title>Vertical line row {r} col {c}</title>
-                  </line>
+                  <g key={`v-${r}-${c}`}>
+                    {/* Wide invisible hit-area so this thin line is still easy to tap on a phone screen */}
+                    <line
+                      x1={x1} y1={y1} x2={x1} y2={y2}
+                      stroke="transparent"
+                      strokeWidth={20}
+                      style={{ cursor: clickable ? 'pointer' : 'default' }}
+                      onMouseEnter={() => !v && setHoverLine({ type: 'v', r, c })}
+                      onMouseLeave={() => setHoverLine(null)}
+                      onClick={() => !v && handleLine('v', r, c)}
+                    >
+                      <title>Vertical line row {r} col {c}</title>
+                    </line>
+                    <line
+                      x1={x1} y1={y1} x2={x1} y2={y2}
+                      stroke={v ? (v === 1 ? P1C : P2C) : isHover ? (currentPlayer === 1 ? P1C + 'AA' : P2C + 'AA') : 'var(--border)'}
+                      strokeWidth={v ? 5 : 3}
+                      strokeLinecap="round"
+                      pointerEvents="none"
+                    />
+                  </g>
                 );
               })
             )}

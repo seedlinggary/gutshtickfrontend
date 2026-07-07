@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiRequest from '../ApiRequest';
-import { isLoggedIn } from '../auth';
+import { isLoggedIn, isAdmin } from '../auth';
 import AdSlot from '../ads/AdSlot';
 import ShareButton from '../ShareButton';
 
@@ -59,6 +59,27 @@ const MULTI_GAMES = [
   { id: 'rummy',       path: '/games/multi/rummy',        title: 'Gin Rummy',     icon: '🀄', color: '#4a1942', tags: ['Cards','Classic'],   desc: 'Meld sets and runs, knock before your opponent gins.' },
 ];
 
+// Relaxing games have no win/loss/score — nothing to track, no leaderboard,
+// no /game/save calls. Kept out of ALL_IDS/ALL_GAMES so they never show up
+// in the Leaderboards tab's per-game dropdown.
+const RELAXING_GAMES = [
+  { id: 'color_by_number', path: '/games/color-by-number', title: 'Color by Number', icon: '🎨', color: '#f472b6', tags: ['Relaxing','Creative'], desc: 'Fill numbered regions with their matching color. A new picture every time.' },
+  { id: 'room_designer',   path: '/games/room-designer',   title: 'Room Designer',   icon: '🛋️', color: '#c084fc', tags: ['Relaxing','Creative'], desc: 'Drag furniture into a room and arrange it however you like. No rules.' },
+  { id: 'jigsaw_puzzle',   path: '/games/jigsaw-puzzle',   title: 'Jigsaw Puzzle',   icon: '🧩', color: '#60a5fa', tags: ['Relaxing','Puzzle'],   desc: 'Piece together a fresh generated image. New picture every game.' },
+  { id: 'zen_garden',      path: '/games/zen-garden',      title: 'Zen Garden',      icon: '🪨', color: '#a3a380', tags: ['Relaxing','Creative'], desc: 'Rake calming sand patterns around randomly placed stones.' },
+  { id: 'bubble_pop',      path: '/games/bubble-pop',      title: 'Bubble Pop',      icon: '🫧', color: '#38bdf8', tags: ['Relaxing','Casual'],   desc: 'Pop drifting bubbles at your own pace. No timer, no pressure.' },
+  { id: 'tangram',         path: '/games/tangram',         title: 'Tangram',         icon: '🔺', color: '#fb923c', tags: ['Relaxing','Puzzle'],   desc: 'Fit geometric pieces into a silhouette. A new shape every game.' },
+  { id: 'dot_to_dot',      path: '/games/dot-to-dot',      title: 'Dot to Dot',      icon: '🔢', color: '#34d399', tags: ['Relaxing','Casual'],   desc: 'Connect the numbered dots to reveal a picture.' },
+  { id: 'mandala_draw',    path: '/games/mandala-draw',    title: 'Mandala Draw',    icon: '🌸', color: '#e879f9', tags: ['Relaxing','Creative'], desc: 'Draw with mirrored symmetry for an instant kaleidoscope pattern.' },
+  { id: 'chill_word_search',path:'/games/word-search-chill',title:'Chill Word Search', icon: '🔤', color: '#facc15', tags: ['Relaxing','Word'],   desc: 'Find hidden words at your own pace. No timer, no losing.' },
+  { id: 'zen_match3',      path: '/games/zen-match3',      title: 'Zen Match-3',     icon: '💎', color: '#2dd4bf', tags: ['Relaxing','Casual'],   desc: 'Endless, low-pressure match-3. Swap gems, clear lines, relax.' },
+  { id: 'spirograph',      path: '/games/spirograph',      title: 'Spirograph',     icon: '🌀', color: '#818cf8', tags: ['Relaxing','Creative'], desc: 'Classic gear-driven curves. New ratios and colors every time.' },
+  { id: 'fractal_bloom',   path: '/games/fractal-bloom',   title: 'Fractal Bloom',  icon: '🌺', color: '#fb7185', tags: ['Relaxing','Creative'], desc: 'Tap to grow procedural blooming branches. Plant a whole garden.' },
+  { id: 'light_trails',    path: '/games/light-trails',    title: 'Light Trails',   icon: '✨', color: '#22d3ee', tags: ['Relaxing','Creative'], desc: 'Glowing trails follow your finger or cursor. Pure ambient fun.' },
+  { id: 'stained_glass',   path: '/games/stained-glass',   title: 'Stained Glass',  icon: '🪟', color: '#f59e0b', tags: ['Relaxing','Creative'], desc: 'Tap to place colored glass shards and build a mosaic.' },
+  { id: 'constellation',   path: '/games/constellation',   title: 'Constellation',  icon: '⭐', color: '#4338ca', tags: ['Relaxing','Creative'], desc: 'Place stars in a night sky — nearby ones connect automatically.' },
+];
+
 const ALL_IDS = [
   ...SOLO_GAMES.map(g => g.id),
   ...VERSUS_GAMES.map(g => g.id),
@@ -69,6 +90,7 @@ const ALL_GAMES = [...SOLO_GAMES, ...VERSUS_GAMES, ...MULTI_GAMES];
 
 const TABS = [
   { key: 'solo',  label: '🎮 Solo',        sub: '25 games' },
+  { key: 'relaxing', label: '🌿 Relaxing', sub: '15 games' },
   { key: 'versus',label: '⚔️  1v1',         sub: '10 games' },
   { key: 'multi', label: '👥 Multiplayer', sub: '10 games' },
   { key: 'leaderboards', label: '🏆 Leaderboards', sub: 'All games' },
@@ -179,13 +201,15 @@ function LeaderboardsPanel() {
   );
 }
 
-function GameCard({ game, myStats, top3, onClick }) {
+function GameCard({ game, myStats, top3, onClick, locked }) {
   return (
-    <div className="game-card" onClick={onClick}>
+    <div className={`game-card${locked ? ' game-card-locked' : ''}`} onClick={onClick}>
       <div className="game-card-icon" style={{ background: game.color }}>{game.icon}</div>
       <div className="game-card-body">
         <div className="game-card-tags">
-          {game.tags.map((t) => <span key={t} className="game-tag">{t}</span>)}
+          {locked
+            ? <span className="game-tag game-tag-locked">🔒 Admins Only</span>
+            : game.tags.map((t) => <span key={t} className="game-tag">{t}</span>)}
         </div>
         <h3 className="game-card-title">{game.title}</h3>
         <p className="game-card-desc">{game.desc}</p>
@@ -208,7 +232,9 @@ function GameCard({ game, myStats, top3, onClick }) {
             ))}
           </div>
         )}
-        <button className="gs-btn gs-btn-primary gs-btn-sm game-card-play">Play Now →</button>
+        <button className={`gs-btn gs-btn-sm game-card-play${locked ? ' gs-btn-outline' : ' gs-btn-primary'}`}>
+          {locked ? 'Coming Soon' : 'Play Now →'}
+        </button>
       </div>
     </div>
   );
@@ -230,13 +256,16 @@ export default function Games() {
     apiRequest('GET', null, '/game/leaderboards/top3').then(setLeaderboard).catch(() => {});
   }, []);
 
-  const activeGames = tab === 'solo' ? SOLO_GAMES : tab === 'versus' ? VERSUS_GAMES : MULTI_GAMES;
+  const activeGames = tab === 'solo' ? SOLO_GAMES
+    : tab === 'relaxing' ? RELAXING_GAMES
+    : tab === 'versus' ? VERSUS_GAMES
+    : MULTI_GAMES;
 
   return (
     <div className="games-page">
       <div className="games-hero">
         <h1>🎮 The Good Shtick Arcade</h1>
-        <p>Solo puzzles, head-to-head duels, or multiplayer parties — all tracked for logged-in players.</p>
+        <p>Solo puzzles, relaxing games, head-to-head duels, or multiplayer parties — all tracked for logged-in players.</p>
       </div>
 
       <div style={{ maxWidth: 480, margin: '0 auto 20px' }}>
@@ -256,6 +285,11 @@ export default function Games() {
         ))}
       </div>
 
+      {tab === 'relaxing' && (
+        <div className="games-tab-notice">
+          🌿 No scores, no timers, no losing — just something to do with your hands. Every game generates a fresh board, so it's never the same twice.
+        </div>
+      )}
       {tab === 'versus' && (
         <div className="games-tab-notice">
           ⚔️ Challenge the computer or pass the screen to a friend. Bots have Easy, Medium, and Hard difficulty.
@@ -278,6 +312,7 @@ export default function Games() {
               myStats={stats?.[game.id]}
               top3={leaderboard[game.id]?.slice(0, 3)}
               onClick={() => navigate(game.path)}
+              locked={(tab === 'versus' || tab === 'multi') && !isAdmin()}
             />
           ))}
         </div>

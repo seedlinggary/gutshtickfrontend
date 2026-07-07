@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiRequest from '../../ApiRequest';
 import { isLoggedIn } from '../../auth';
+import HowToPlay from '../HowToPlay';
 
 // Puzzles: { size, givens: [[r,c,val],...], inequalities: [{from:[r,c], to:[r,c], type:'<'|'>'},...], solution: 2d array }
 // All solutions are verified Latin squares (each row/col has 1..N exactly once).
@@ -332,6 +333,15 @@ export default function Futoshiki() {
           <h1>Futoshiki</h1>
           <span className={`diff-badge diff-${difficulty}`}>{difficulty}</span>
         </div>
+        <HowToPlay>
+          <p>Fill the grid with numbers 1 through N (N = the grid's size) so that every row and every column contains each number exactly once — but you must also satisfy every inequality sign printed between cells.</p>
+          <ul>
+            <li>A "&lt;" or "&gt;" between two side-by-side cells means the value on the side the sign opens toward must be greater than the value on the pointed side.</li>
+            <li>The "∧"/"∨" chevrons between vertically stacked cells work the same way, just applied top-to-bottom instead of left-to-right.</li>
+            <li>Every inequality must hold at once, alongside the usual "no repeats in any row/column" rule.</li>
+          </ul>
+          <p>Click or tap a cell to select it, then click a number on the number pad below the grid to fill it in (✕ clears it). Cells that break a rule are outlined in red. Hint reveals one correct cell.</p>
+        </HowToPlay>
         <div className="game-meta">
           {violations.size > 0 && <span style={{color:'var(--danger)'}}>⚠ Violations detected</span>}
           {hintUsed && <span className="hint-used">Hint used</span>}

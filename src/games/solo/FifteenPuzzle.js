@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiRequest from '../../ApiRequest';
 import { isLoggedIn } from '../../auth';
+import HowToPlay from '../HowToPlay';
 
 const GOAL = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0];
 
@@ -144,6 +145,14 @@ export default function FifteenPuzzle() {
           <h1>15 Puzzle</h1>
           <span className={`diff-badge diff-${difficulty}`}>{difficulty}</span>
         </div>
+        <HowToPlay>
+          <p>Slide the numbered tiles around the board until they read 1 through 15 in order, left-to-right and top-to-bottom, with the blank space left in the bottom-right corner.</p>
+          <ul>
+            <li>You can only slide a tile that sits directly next to (above, below, left, or right of) the blank space.</li>
+            <li>Sliding a tile moves it into the blank space, and the blank takes over the tile's old spot.</li>
+          </ul>
+          <p>Click or tap any tile adjacent to the blank to slide it into place. On a keyboard, the arrow keys slide the tile on that side of the blank. Hint suggests one useful move.</p>
+        </HowToPlay>
         <div className="game-meta">
           <span>Moves: {moveCount}</span>
           {hintUsed && <span className="hint-used">Hint used</span>}

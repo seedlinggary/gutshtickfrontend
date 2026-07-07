@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import HowToPlay from '../HowToPlay';
 
 const WORD_LIST = [
   'apple','bank','bark','bat','berry','bill','block','board','boot','bottle','bow','box','bridge','brush',
@@ -238,6 +239,19 @@ export default function Codenames({ players, onBack }) {
           <span style={{ color: '#3498db', marginLeft: 12 }}>Blue: {blueScore} left</span>
         </div>
       </div>
+
+      <HowToPlay>
+        <p>Two teams (Red starts with 9 words to find, Blue has 8) race to have their team's Guesser identify all of their own color-coded words on the 5×5 grid. Guessing the single black Assassin word instantly loses the game for that team's opponents.</p>
+        <p><strong>Turns:</strong> Each team alternates a Spymaster giving a one-word clue, then their Guesser tapping words. Roles are assigned in seat order: Red Spymaster, Red Guesser, Blue Spymaster, Blue Guesser. Only the active human Spymaster sees the secret color key on the grid — everyone else always sees plain gray tiles — that's how this build keeps the Spymaster's hidden knowledge from the Guesser on the same shared screen.</p>
+        <p><strong>How it works:</strong></p>
+        <ul>
+          <li>The Spymaster gives a single clue word plus a number, meaning "this many of our team's words relate to this clue."</li>
+          <li>Their Guesser then gets that many guesses, plus one extra.</li>
+          <li>Guessing your own team's word correctly lets you keep guessing (up to your limit); guessing a bystander or the other team's word ends your turn immediately (and reveals that word's true color to everyone).</li>
+          <li>Guessing the Assassin ends the game instantly — the other team wins.</li>
+        </ul>
+        <p><strong>Play:</strong> As Spymaster, type your clue word and a number into the boxes, then tap "Give Clue." As Guesser, tap a word tile to guess it (revealed tiles show their true color), or tap "Pass / End Guessing" to stop guessing early and hand the turn over.</p>
+      </HowToPlay>
 
       <div style={{ ...cd.messageBar, borderColor: teamColor }}>{message}</div>
 

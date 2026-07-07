@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import HowToPlay from '../HowToPlay';
 
 const CONFIGS = {
   easy:   [3, 4, 5],
@@ -164,6 +165,18 @@ export default function Nim({ mode, difficulty, onBack }) {
           {mode === 'local' ? 'Pass & Play' : `vs Computer (${difficulty})`} — Misère variant
         </p>
       </div>
+
+      <HowToPlay>
+        <p>This is the <strong>misère</strong> variant of Nim: whoever is forced to take the <strong>last object loses</strong> — not wins.</p>
+        <ul>
+          <li>The board has several rows, each with a pile of objects (🪵).</li>
+          <li>On your turn, tap an object in any one row to select how many to take: tapping an object selects it and everything after it to the end of that row.</li>
+          <li>Confirm your selection to remove those objects, or cancel and pick a different amount.</li>
+          <li>You must take at least 1 object, and only from a single row per turn — you can take as many as you like from that row, up to the whole pile.</li>
+          <li>Whoever takes the very last remaining object loses the game.</li>
+        </ul>
+        <p><strong>vs Computer</strong> gives you an easy, medium, or hard bot (harder difficulties play the mathematically optimal misère strategy). <strong>Pass & Play</strong> lets two people take turns on this device.</p>
+      </HowToPlay>
 
       <div style={{ maxWidth: 480, margin: '0 auto' }}>
         {winner ? (

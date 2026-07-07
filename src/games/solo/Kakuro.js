@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiRequest from '../../ApiRequest';
 import { isLoggedIn } from '../../auth';
+import HowToPlay from '../HowToPlay';
 
 // Cell types: null = wall/black, {type:'clue',down:N,right:N} = clue cell, {type:'input',solution:N} = input cell
 // Puzzles per difficulty (2 each)
@@ -219,6 +220,15 @@ export default function Kakuro() {
           <h1>Kakuro</h1>
           <span className={`diff-badge diff-${difficulty}`}>{difficulty}</span>
         </div>
+        <HowToPlay>
+          <p>Fill the white cells with digits 1-9 so that every "run" of connected white cells (a horizontal run or a vertical run) adds up to the clue number for that run, with no digit repeated within a single run.</p>
+          <ul>
+            <li>The small number in the top-right corner of a black cell is the sum clue for the run of white cells directly to its right.</li>
+            <li>The small number in the bottom-left corner of a black cell is the sum clue for the run of white cells directly below it.</li>
+            <li>A run ends at the next black cell or the edge of the grid.</li>
+          </ul>
+          <p>Click or tap a white cell to select it, then click a digit on the number pad below the grid to fill it in (✕ clears it). Cells that don't match the solution are highlighted red. Hint reveals one correct cell.</p>
+        </HowToPlay>
         <div className="game-meta">
           {hintUsed && <span className="hint-used">Hint used</span>}
         </div>

@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import apiRequest from '../ApiRequest';
 import { isLoggedIn } from '../auth';
+import HowToPlay from './HowToPlay';
 
 const COLS = 25;
 const ROWS = 20;
@@ -197,6 +198,18 @@ export default function Snake() {
         <h1 className="game-title">Snake</h1>
         <p className="game-subtitle">Eat the red dot, avoid yourself. Arrow keys or WASD to move.</p>
       </div>
+
+      <HowToPlay>
+        <p><b>Objective:</b> eat as much food as possible without running into your own tail.</p>
+        <ul>
+          <li>On desktop, use the Arrow keys or WASD to steer.</li>
+          <li>On mobile, use the on-screen arrow buttons below the board (they work the same as the keyboard controls).</li>
+          <li>Each red dot you eat adds 10 points and makes your snake grow one segment longer, which makes later moves trickier to navigate.</li>
+          <li>Walls wrap around — flying off one edge brings you back on the opposite side — but colliding with your own body ends the game.</li>
+          <li>You can't reverse directly into yourself (e.g. tapping Left while moving Right is ignored).</li>
+          <li>Toggle "Show Direction" for a hint arrow pointing from your head toward the food.</li>
+        </ul>
+      </HowToPlay>
 
       <div className="game-controls-bar">
         <div className="game-difficulty-select">

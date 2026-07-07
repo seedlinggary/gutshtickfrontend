@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import HowToPlay from '../HowToPlay';
 
 // ~1000 common English words (representative sample)
 const WORD_LIST = new Set([
@@ -312,6 +313,18 @@ export default function WordDuel({ mode, difficulty, onBack }) {
         <h1 className="game-title">Word Duel</h1>
         <p className="game-subtitle">{mode === 'local' ? 'Pass & Play' : `vs Computer (${difficulty})`}</p>
       </div>
+
+      <HowToPlay>
+        <p>Build the longest valid English word you can before time runs out.</p>
+        <ul>
+          <li>Both players see the same 7 random letters at the top of the screen.</li>
+          <li>Type a word using only those letters (each letter can be used at most as many times as it appears) into your input box, then tap Submit (or press Enter).</li>
+          <li>You have a time limit that depends on difficulty: 60 seconds on easy, 45 on medium, 30 on hard. If time runs out before you submit, you're scored with no word.</li>
+          <li>Scoring: whoever's word is longer and valid wins. If both words are the same length, whoever submitted first wins the tiebreak. An invalid (not-a-real-word) or misspelled entry scores as if you submitted nothing.</li>
+          <li>In Pass & Play, both players type on the same device at the same time — your input box shows dots instead of letters so the other player can't read your word over your shoulder while they type theirs.</li>
+        </ul>
+        <p><strong>vs Computer</strong> gives you an easy, medium, or hard bot (harder bots submit faster and find longer words). <strong>Pass & Play</strong> lets two people play head-to-head on this device.</p>
+      </HowToPlay>
 
       {/* Letters */}
       <div style={{ display: 'flex', gap: 'clamp(4px, 2vw, 8px)', justifyContent: 'center', flexWrap: 'wrap', marginBottom: 20 }}>

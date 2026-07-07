@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import HowToPlay from '../HowToPlay';
 
 const SUITS = ['♠', '♥', '♦', '♣'];
 const RANKS = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
@@ -351,6 +352,21 @@ export default function Spades({ players, onBack }) {
           <span style={{ marginLeft: 16 }}>E/W: {scores[1][0]} ({scores[1][1]} bags)</span>
         </div>
       </div>
+
+      <HowToPlay>
+        <p>Spades is played in two fixed partnerships: North &amp; South vs. East &amp; West. Be the first team to reach 500 points to win — but if your team's score ever drops to -200, you lose instantly.</p>
+        <p><strong>Turns:</strong> This build only shows your own hand face-up (you always sit "South"); the other three seats are played by bots, shown face-down. Bidding rotates starting left of the dealer, then trick-play starts with the same player.</p>
+        <p><strong>How it works:</strong></p>
+        <ul>
+          <li>Each round, all 13 cards of a full deck are dealt out (13 per player).</li>
+          <li>Bidding: each player bids how many of the 13 tricks they think their side will take, from 0 ("Nil") up to 13.</li>
+          <li>Trick play: follow the led suit if you can. Spades can't be led until someone has been forced to play one ("spades broken").</li>
+          <li>Scoring is per partnership: if your team's combined tricks meet your combined bid, you score 10 points per bid trick plus 1 point per extra trick ("bag"); missing your bid costs 10 points per bid trick.</li>
+          <li>Ten accumulated bags cost your team a 100-point penalty.</li>
+          <li>A Nil bid (0) scores +100 if you take zero tricks the whole round, or -100 if you take even one.</li>
+        </ul>
+        <p><strong>Play:</strong> Tap a bid button (or "Nil") during bidding. During play, tap a highlighted card in your hand — only cards that are legal to play right now are enabled; illegal ones are dimmed.</p>
+      </HowToPlay>
 
       {phase === 'bidding' && (
         <div style={styles.biddingArea}>

@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiRequest from '../../ApiRequest';
 import { isLoggedIn } from '../../auth';
+import HowToPlay from '../HowToPlay';
 
 const DIFFICULTY_CONFIG = {
   easy:   { n: 6 },
@@ -158,6 +159,14 @@ export default function NQueens() {
           <h1>N-Queens</h1>
           <span className={`diff-badge diff-${difficulty}`}>{difficulty}</span>
         </div>
+        <HowToPlay>
+          <p>Place N queens on the N×N board (N = the board's size) so that no two queens attack each other.</p>
+          <ul>
+            <li>Two queens attack each other if they share the same row, the same column, or the same diagonal (in either direction).</li>
+            <li>You win once all N queens are placed on the board with zero attacking pairs among them.</li>
+          </ul>
+          <p>Click or tap an empty square to place a queen there, or tap an occupied square to remove that queen. Any queen involved in an attacking pair is highlighted red. Hint places one safe queen for you.</p>
+        </HowToPlay>
         <div className="game-meta">
           <span>Queens placed: {queens.length} / {n}</span>
           {conflicts.size > 0 && <span style={{color:'var(--danger)',marginLeft:'1rem'}}>⚠ {conflicts.size/2} conflict(s)</span>}

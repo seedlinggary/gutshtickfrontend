@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiRequest from '../../ApiRequest';
 import { isLoggedIn } from '../../auth';
+import HowToPlay from '../HowToPlay';
 
 // Pre-made puzzles: { size, solution, cages: [{cells:[[r,c],...], op, target}] }
 // All solutions verified: each row/col has each number 1..N exactly once.
@@ -412,6 +413,15 @@ export default function KenKen() {
           <h1>KenKen</h1>
           <span className={`diff-badge diff-${difficulty}`}>{difficulty}</span>
         </div>
+        <HowToPlay>
+          <p>Fill the grid with numbers 1 through N (N = the grid's size) so every row and column contains each number exactly once, and every heavily-outlined "cage" of cells produces its target number using the operation shown.</p>
+          <ul>
+            <li>Each cage's clue (shown in its top-left cell, e.g. "6×" or "3-") means: combine the numbers you place in that cage's cells with that operation to get the target.</li>
+            <li>For subtraction and division cages, the clue is whichever result is positive/greater-than-one — order of the cells doesn't matter.</li>
+            <li>A single-cell cage's clue is just that cell's value.</li>
+          </ul>
+          <p>Click or tap a cell to select it, then click a number on the number pad to fill it in (Clear empties the selected cell). A cell turns red if it duplicates a value in its row/column, or if it's part of a fully-filled cage that doesn't satisfy its clue. Hint reveals one correct cell.</p>
+        </HowToPlay>
         <div className="game-meta">
           <span>Mistakes: {mistakes}</span>
           {hintUsed && <span className="hint-used">Hint used</span>}

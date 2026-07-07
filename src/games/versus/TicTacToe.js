@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import HowToPlay from '../HowToPlay';
 
 // ── Helpers ──────────────────────────────────────────────
 function checkWinner(board) {
@@ -332,6 +333,18 @@ export default function TicTacToe({ mode, difficulty, onBack }) {
           {mode === 'local' ? 'Pass & Play' : `vs Computer (${difficulty})`}
         </p>
       </div>
+
+      <HowToPlay>
+        <p><strong>Classic 3x3:</strong> Tap an empty cell to place your mark. Get three of your marks in a row — horizontally, vertically, or diagonally — to win. If all nine cells fill up with no winner, it's a draw.</p>
+        <p><strong>Ultimate (Super) Tic-Tac-Toe:</strong> The board is 9 small 3x3 boards arranged in a 3x3 grid. Tap a cell in the highlighted (active) sub-board to play there.</p>
+        <ul>
+          <li>Whichever cell you pick inside a sub-board sends your opponent to the matching sub-board next (e.g. play the top-right cell and they must play in the top-right sub-board).</li>
+          <li>Win a sub-board by getting three in a row inside it — that claims the sub-board for you.</li>
+          <li>If the sub-board you'd be sent to is already won or full, your opponent may play in any open sub-board instead.</li>
+          <li>Win three sub-boards in a row (on the big 3x3 meta-grid) to win the game.</li>
+        </ul>
+        <p><strong>vs Computer</strong> gives you an easy, medium, or hard bot to play against. <strong>Pass & Play</strong> lets two people take turns on this device.</p>
+      </HowToPlay>
 
       {/* Variant selector */}
       <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginBottom: 20 }}>

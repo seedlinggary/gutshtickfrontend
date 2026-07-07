@@ -2,6 +2,7 @@ import React, { useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiRequest from '../../ApiRequest';
 import { isLoggedIn } from '../../auth';
+import HowToPlay from '../HowToPlay';
 
 const COLORS = {
   red:    '#e74c3c',
@@ -547,6 +548,15 @@ export default function FlowFree() {
           <h1>Flow Free</h1>
           <span className={`diff-badge diff-${difficulty}`}>{difficulty}</span>
         </div>
+        <HowToPlay>
+          <p>Connect every pair of matching colored dots with an unbroken pipe so that pipes fill the entire board, with no two pipes crossing or overlapping.</p>
+          <ul>
+            <li>Each color has exactly two dots — draw one continuous path between them.</li>
+            <li>A path can only travel between orthogonally adjacent cells (up/down/left/right), never diagonally.</li>
+            <li>Two different colors can never share a cell, and every single cell on the board must end up covered by some path.</li>
+          </ul>
+          <p>Click and drag with the mouse, or press and drag your finger, starting from one of a color's dots and moving across adjacent cells to draw its path; release to finish. Dragging back over your own path shortens it.</p>
+        </HowToPlay>
         <div className="game-meta">
           {hintUsed && <span className="hint-used">Hint used</span>}
           <span style={{ color: 'var(--muted)', marginLeft: '1rem', fontSize: '0.85rem' }}>

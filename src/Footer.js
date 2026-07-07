@@ -59,6 +59,7 @@ const Footer = () => {
             <button className="gs-footer-link" onClick={() => go("/about")}>About Us</button>
             <button className="gs-footer-link" onClick={() => go("/contact")}>Contact</button>
             <button className="gs-footer-link" onClick={() => go("/disclaimer")}>Terms &amp; Conditions</button>
+            <button className="gs-footer-link" onClick={() => go("/content-guidelines")}>Content Guidelines</button>
           </div>
 
           <div>

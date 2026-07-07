@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import HowToPlay from '../HowToPlay';
 
 // Kalah variant: 6 pits per side, 2 stores, 4 seeds per pit
 // Board layout (indices):
@@ -278,6 +279,18 @@ export default function Mancala({ mode, difficulty, onBack }) {
         <h1 className="game-title">Mancala</h1>
         <p className="game-subtitle">{mode === 'local' ? 'Pass & Play' : `vs Computer (${difficulty})`}</p>
       </div>
+
+      <HowToPlay>
+        <p>This is the Kalah variant: sow seeds around the board and collect more in your store than your opponent to win.</p>
+        <ul>
+          <li>Tap one of your own (non-empty) pits — the 6 pits on your side of the board.</li>
+          <li>Its seeds are sown one-by-one counter-clockwise into each following pit, including your own store but skipping your opponent's store.</li>
+          <li>If your very last seed lands in your own store, you get an extra turn.</li>
+          <li>If your very last seed lands in a pit on your side that was empty, you capture: that seed plus everything in the directly-opposite pit on your opponent's side both go into your store.</li>
+          <li>The game ends when one side's 6 pits are all empty; each player then sweeps any seeds remaining on their own side into their own store. Whoever has the most seeds in their store wins.</li>
+        </ul>
+        <p><strong>vs Computer</strong> gives you an easy, medium, or hard bot. <strong>Pass & Play</strong> lets two people take turns on this device.</p>
+      </HowToPlay>
 
       {gameOver ? (
         <div className={`game-msg ${winner === 0 ? 'info' : 'success'}`} style={{ marginBottom: 16 }}>

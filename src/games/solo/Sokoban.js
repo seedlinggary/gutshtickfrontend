@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiRequest from '../../ApiRequest';
 import { isLoggedIn } from '../../auth';
+import HowToPlay from '../HowToPlay';
 
 // Standard Sokoban cell characters:
 //   # = wall     (space) = floor    @ = player    + = player on target
@@ -354,6 +355,14 @@ export default function Sokoban() {
           <h1>Sokoban</h1>
           <span className={`diff-badge diff-${difficulty}`}>{difficulty}</span>
         </div>
+        <HowToPlay>
+          <p>Push every box (📦) onto a target square (●). You can only push boxes — never pull them — and a box can't be pushed through a wall or into another box.</p>
+          <ul>
+            <li>Walking into a box pushes it one square further in the direction you're moving, as long as the square beyond it is empty floor or an unoccupied target.</li>
+            <li>You win once a box is sitting on every target square.</li>
+          </ul>
+          <p>Use the arrow keys or WASD to move, or tap the on-screen ↑ ↓ ← → buttons. Press U (or tap Undo) to take back your last move, and Reset Level to start over. Hint suggests the first move(s) toward a solution.</p>
+        </HowToPlay>
         <div className="game-meta">
           <span>Level {levelIdx + 1}/{levels.length}</span>
           <span style={{ marginLeft: '1rem' }}>Moves: {moveCount}</span>
