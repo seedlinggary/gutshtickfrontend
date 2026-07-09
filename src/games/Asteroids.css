@@ -1,0 +1,47 @@
+/* ── Asteroids — authentic black vector-monitor look ── */
+.ast-canvas-wrapper { position: relative; display: inline-block; margin: 0 auto; }
+.ast-score-row {
+  display: flex; gap: 18px; align-items: center; flex-wrap: wrap;
+  font-size: 14px; font-weight: 700; color: #7dd3fc; margin-bottom: 8px;
+  font-variant-numeric: tabular-nums; letter-spacing: 0.04em;
+}
+.ast-canvas {
+  display: block;
+  border: 2px solid #1e3a5f;
+  border-radius: 10px;
+  background: #000000;
+  box-shadow: 0 0 22px rgba(56, 189, 248, 0.22), inset 0 0 40px rgba(0, 0, 0, 0.6);
+}
+.ast-overlay {
+  position: absolute; inset: 0;
+  background: rgba(0, 0, 0, 0.78);
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 10px;
+}
+.ast-overlay-inner { text-align: center; color: #e0f2fe; }
+.ast-overlay-inner h3 { font-size: 24px; font-weight: 800; margin-bottom: 8px; color: #fff; }
+.ast-overlay-inner p { margin: 4px 0; }
+
+.ast-win-flash {
+  position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+  color: #7dd3fc; font-weight: 800; font-size: 20px; letter-spacing: 0.18em;
+  text-shadow: 0 0 12px rgba(56, 189, 248, 0.9);
+  pointer-events: none;
+  animation: ast-flash 1.4s ease-out forwards;
+}
+@keyframes ast-flash {
+  0% { opacity: 0; transform: translateX(-50%) scale(0.8); }
+  20% { opacity: 1; transform: translateX(-50%) scale(1); }
+  100% { opacity: 0; transform: translateX(-50%) scale(1.1); }
+}
+
+/* Touch controls — a single row of 4 (rotate / thrust / fire) */
+.ast-touch .ast-touch-row {
+  display: flex; gap: 10px; justify-content: center;
+}
+.ast-touch .ast-touch-row button {
+  width: 60px; height: 52px; font-size: 22px;
+  background: #0b1220; color: #7dd3fc; border: 1.5px solid #1e3a5f;
+  border-radius: 10px; touch-action: none;
+}
+.ast-touch .ast-touch-row button:active { background: #1e3a5f; color: #fff; }

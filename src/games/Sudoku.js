@@ -199,9 +199,10 @@ export default function Sudoku() {
       )}
 
       {gameStatus === 'idle' && (
-        <div className="game-idle-state">
+        <div className="game-idle-state" onClick={startGame} style={{ cursor: 'pointer' }}>
           <div style={{ fontSize: 64 }}>🔢</div>
           <p>Select a difficulty and press <b>Start Game</b></p>
+          <p style={{ fontSize: 12, opacity: 0.55, marginTop: 4 }}>(or tap anywhere here)</p>
         </div>
       )}
 

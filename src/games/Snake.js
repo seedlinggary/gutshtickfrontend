@@ -250,10 +250,11 @@ export default function Snake() {
         />
 
         {gameStatus === 'idle' && (
-          <div className="snake-overlay">
+          <div className="snake-overlay" onClick={startGame} style={{ cursor: 'pointer' }}>
             <div className="snake-overlay-inner">
               <p>Press <b>Start Game</b> to play</p>
               <p style={{ fontSize: 13, opacity: 0.7 }}>Arrow keys or WASD · Walls wrap around</p>
+              <p style={{ fontSize: 12, opacity: 0.55, marginTop: 4 }}>(or tap anywhere here)</p>
             </div>
           </div>
         )}

@@ -74,6 +74,16 @@ const Nurikabe      = lazy(() => import('./games/solo/Nurikabe'));
 const Mastermind    = lazy(() => import('./games/solo/Mastermind'));
 
 // ── Relaxing games (lazy — no scores/leaderboards, just something to do) ──────
+const Tetris         = lazy(() => import('./games/Tetris'));
+const PacMan         = lazy(() => import('./games/PacMan'));
+const Frogger        = lazy(() => import('./games/Frogger'));
+const Pinball        = lazy(() => import('./games/Pinball'));
+const Breakout       = lazy(() => import('./games/Breakout'));
+const Asteroids      = lazy(() => import('./games/Asteroids'));
+const BubbleTrouble  = lazy(() => import('./games/BubbleTrouble'));
+const SpaceInvaders  = lazy(() => import('./games/SpaceInvaders'));
+const MissileCommand = lazy(() => import('./games/MissileCommand'));
+const TankDuel        = lazy(() => import('./games/TankDuel'));
 const ColorByNumber  = lazy(() => import('./games/relaxing/ColorByNumber'));
 const RoomDesigner   = lazy(() => import('./games/relaxing/RoomDesigner'));
 const JigsawPuzzle   = lazy(() => import('./games/relaxing/JigsawPuzzle'));
@@ -89,6 +99,7 @@ const FractalBloom   = lazy(() => import('./games/relaxing/FractalBloom'));
 const LightTrails    = lazy(() => import('./games/relaxing/LightTrails'));
 const StainedGlass   = lazy(() => import('./games/relaxing/StainedGlass'));
 const Constellation  = lazy(() => import('./games/relaxing/Constellation'));
+const DrawStudio     = lazy(() => import('./games/relaxing/DrawStudio'));
 
 import SoloGameShell from './games/SoloGameShell';
 import { isLoggedIn, isAdmin, isSuperAdmin } from './auth';
@@ -165,6 +176,18 @@ function App() {
               <Route path="/games/nurikabe"      element={<SoloGameShell><Nurikabe /></SoloGameShell>} />
               <Route path="/games/mastermind"    element={<SoloGameShell><Mastermind /></SoloGameShell>} />
 
+              {/* ── Nostalgic arcade ── */}
+              <Route path="/games/tetris"           element={<SoloGameShell><Tetris /></SoloGameShell>} />
+              <Route path="/games/pacman"           element={<SoloGameShell><PacMan /></SoloGameShell>} />
+              <Route path="/games/frogger"          element={<SoloGameShell><Frogger /></SoloGameShell>} />
+              <Route path="/games/pinball"          element={<SoloGameShell><Pinball /></SoloGameShell>} />
+              <Route path="/games/breakout"         element={<SoloGameShell><Breakout /></SoloGameShell>} />
+              <Route path="/games/asteroids"        element={<SoloGameShell><Asteroids /></SoloGameShell>} />
+              <Route path="/games/bubble-trouble"   element={<SoloGameShell><BubbleTrouble /></SoloGameShell>} />
+              <Route path="/games/space-invaders"   element={<SoloGameShell><SpaceInvaders /></SoloGameShell>} />
+              <Route path="/games/missile-command"  element={<SoloGameShell><MissileCommand /></SoloGameShell>} />
+              <Route path="/games/tank-duel"        element={<SoloGameShell><TankDuel /></SoloGameShell>} />
+
               {/* ── Relaxing games ── */}
               <Route path="/games/color-by-number"  element={<SoloGameShell><ColorByNumber /></SoloGameShell>} />
               <Route path="/games/room-designer"    element={<SoloGameShell><RoomDesigner /></SoloGameShell>} />
@@ -181,6 +204,7 @@ function App() {
               <Route path="/games/light-trails"     element={<SoloGameShell><LightTrails /></SoloGameShell>} />
               <Route path="/games/stained-glass"    element={<SoloGameShell><StainedGlass /></SoloGameShell>} />
               <Route path="/games/constellation"    element={<SoloGameShell><Constellation /></SoloGameShell>} />
+              <Route path="/games/draw-studio"      element={<SoloGameShell><DrawStudio /></SoloGameShell>} />
 
               {/* ── 1v1 games (lobby → game) ── */}
               <Route path="/games/versus/:gameId" element={<VersusWrapper />} />

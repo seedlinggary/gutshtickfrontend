@@ -33,6 +33,22 @@ const SOLO_GAMES = [
   { id: 'mastermind',   path: '/games/mastermind',     title: 'Mastermind',    icon: '🎯', color: '#4c0519', tags: ['Deduction','Classic'],'desc': 'Guess the secret color code from peg feedback.' },
 ];
 
+// Nostalgic 2000s-arcade games — kept in their own tab (separate from the
+// logic/puzzle-heavy Solo tab) so they're easy to browse as a set. Still
+// score-tracked and included in the Leaderboards dropdown like Solo games.
+const ARCADE_GAMES = [
+  { id: 'tetris',          path: '/games/tetris',          title: 'Tetris',          icon: '🧱', color: '#7c3aed', tags: ['Arcade','Classic'], desc: 'Stack falling blocks and clear lines. Speeds up every level.' },
+  { id: 'pacman',          path: '/games/pacman',          title: 'Pac-Man',         icon: '🟡', color: '#facc15', tags: ['Arcade','Classic'], desc: 'Clear the maze of pellets while dodging four ghosts.' },
+  { id: 'frogger',         path: '/games/frogger',         title: 'Frogger',         icon: '🐸', color: '#16a34a', tags: ['Arcade','Classic'], desc: 'Dodge traffic and ride logs to get every frog home.' },
+  { id: 'pinball',         path: '/games/pinball',         title: 'Pinball',         icon: '🕹️', color: '#db2777', tags: ['Arcade','Physics'], desc: 'Flip, bump, and rack up points on a classic vertical table.' },
+  { id: 'breakout',        path: '/games/breakout',        title: 'Breakout',        icon: '🧊', color: '#0ea5e9', tags: ['Arcade','Classic'], desc: 'Bounce the ball off your paddle and clear every brick — endless generated levels.' },
+  { id: 'asteroids',       path: '/games/asteroids',       title: 'Asteroids',       icon: '☄️', color: '#94a3b8', tags: ['Arcade','Classic'], desc: 'Rotate, thrust, and blast a field of drifting space rocks.' },
+  { id: 'bubble_trouble',  path: '/games/bubble-trouble',  title: 'Bubble Trouble',  icon: '🫧', color: '#0891b2', tags: ['Arcade','Classic'], desc: 'Harpoon bouncing bubbles before they pop you first — earn power-ups as you go.' },
+  { id: 'space_invaders',  path: '/games/space-invaders',  title: 'Space Invaders',  icon: '👾', color: '#22c55e', tags: ['Arcade','Classic'], desc: 'Hold the line against a descending alien invasion.' },
+  { id: 'missile_command', path: '/games/missile-command', title: 'Missile Command', icon: '🚀', color: '#f97316', tags: ['Arcade','Strategy'], desc: 'Intercept incoming missiles to defend your cities — unlock upgrades each wave.' },
+  { id: 'tank_duel',       path: '/games/tank-duel',       title: 'Tank Duel',       icon: '💥', color: '#78716c', tags: ['Arcade','Strategy'], desc: 'Turn-based artillery duel on destructible terrain. Aim, pick your weapon, fire.' },
+];
+
 const VERSUS_GAMES = [
   { id: 'chess',        path: '/games/versus/chess',         title: 'Chess',         icon: '♟️', color: '#1e293b', tags: ['Strategy','Classic'],   desc: 'Full chess with castling, en passant, and check detection.' },
   { id: 'checkers',     path: '/games/versus/checkers',      title: 'Checkers',      icon: '🔴', color: '#991b1b', tags: ['Strategy','Classic'],   desc: 'Diagonal moves, mandatory captures, multi-jump, kinging.' },
@@ -78,19 +94,33 @@ const RELAXING_GAMES = [
   { id: 'light_trails',    path: '/games/light-trails',    title: 'Light Trails',   icon: '✨', color: '#22d3ee', tags: ['Relaxing','Creative'], desc: 'Glowing trails follow your finger or cursor. Pure ambient fun.' },
   { id: 'stained_glass',   path: '/games/stained-glass',   title: 'Stained Glass',  icon: '🪟', color: '#f59e0b', tags: ['Relaxing','Creative'], desc: 'Tap to place colored glass shards and build a mosaic.' },
   { id: 'constellation',   path: '/games/constellation',   title: 'Constellation',  icon: '⭐', color: '#4338ca', tags: ['Relaxing','Creative'], desc: 'Place stars in a night sky — nearby ones connect automatically.' },
+  { id: 'draw_studio',     path: '/games/draw-studio',     title: 'Draw Studio',    icon: '🖌️', color: '#0ea5e9', tags: ['Relaxing','Creative'], desc: 'Pen, marker, and brush tools, mirror symmetry, and a select-and-duplicate stamp.' },
 ];
 
 const ALL_IDS = [
   ...SOLO_GAMES.map(g => g.id),
+  ...ARCADE_GAMES.map(g => g.id),
   ...VERSUS_GAMES.map(g => g.id),
   ...MULTI_GAMES.map(g => g.id),
 ];
 
-const ALL_GAMES = [...SOLO_GAMES, ...VERSUS_GAMES, ...MULTI_GAMES];
+const ALL_GAMES = [...SOLO_GAMES, ...ARCADE_GAMES, ...VERSUS_GAMES, ...MULTI_GAMES];
+
+// Every browsable game, tagged with which tab it lives in — used by the
+// cross-category search box (relaxing games included here even though they're
+// excluded from ALL_GAMES/leaderboards, since search should still find them).
+const SEARCHABLE_GAMES = [
+  ...SOLO_GAMES.map(g => ({ ...g, tab: 'solo' })),
+  ...ARCADE_GAMES.map(g => ({ ...g, tab: 'arcade' })),
+  ...RELAXING_GAMES.map(g => ({ ...g, tab: 'relaxing' })),
+  ...VERSUS_GAMES.map(g => ({ ...g, tab: 'versus' })),
+  ...MULTI_GAMES.map(g => ({ ...g, tab: 'multi' })),
+];
 
 const TABS = [
-  { key: 'solo',  label: '🎮 Solo',        sub: '25 games' },
-  { key: 'relaxing', label: '🌿 Relaxing', sub: '15 games' },
+  { key: 'solo',  label: '🎮 Solo',        sub: '24 games' },
+  { key: 'arcade', label: '🕹️ Arcade',    sub: '10 games' },
+  { key: 'relaxing', label: '🌿 Relaxing', sub: '16 games' },
   { key: 'versus',label: '⚔️  1v1',         sub: '10 games' },
   { key: 'multi', label: '👥 Multiplayer', sub: '10 games' },
   { key: 'leaderboards', label: '🏆 Leaderboards', sub: 'All games' },
@@ -240,9 +270,17 @@ function GameCard({ game, myStats, top3, onClick, locked }) {
   );
 }
 
+const LAST_TAB_KEY = 'games_last_tab';
+
 export default function Games() {
   const navigate = useNavigate();
-  const [tab, setTab] = useState('solo');
+  // Remembers the last tab across visits (e.g. Play → back button → still on
+  // the same genre instead of resetting to Solo) via localStorage.
+  const [tab, setTab] = useState(() => {
+    const saved = localStorage.getItem(LAST_TAB_KEY);
+    return TABS.some((t) => t.key === saved) ? saved : 'solo';
+  });
+  const [search, setSearch] = useState('');
   const [stats, setStats] = useState(null);
   const [leaderboard, setLeaderboard] = useState({});
 
@@ -256,10 +294,21 @@ export default function Games() {
     apiRequest('GET', null, '/game/leaderboards/top3').then(setLeaderboard).catch(() => {});
   }, []);
 
+  const changeTab = (key) => {
+    setTab(key);
+    localStorage.setItem(LAST_TAB_KEY, key);
+  };
+
   const activeGames = tab === 'solo' ? SOLO_GAMES
+    : tab === 'arcade' ? ARCADE_GAMES
     : tab === 'relaxing' ? RELAXING_GAMES
     : tab === 'versus' ? VERSUS_GAMES
     : MULTI_GAMES;
+
+  const searchQuery = search.trim().toLowerCase();
+  const searchResults = searchQuery
+    ? SEARCHABLE_GAMES.filter((g) => g.title.toLowerCase().includes(searchQuery))
+    : null;
 
   return (
     <div className="games-page">
@@ -272,36 +321,73 @@ export default function Games() {
         <AdSlot placement="games_hub" />
       </div>
 
-      <div className="games-tabs">
-        {TABS.map((t) => (
-          <button
-            key={t.key}
-            className={`games-tab-btn${tab === t.key ? ' active' : ''}`}
-            onClick={() => setTab(t.key)}
-          >
-            <span className="tab-label">{t.label}</span>
-            <span className="tab-sub">{t.sub}</span>
-          </button>
-        ))}
+      <div className="games-search-row">
+        <input
+          type="text"
+          className="auth-input games-search-input"
+          placeholder="🔎 Search any game by name…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+        {search && (
+          <button type="button" className="gs-btn gs-btn-outline gs-btn-sm" onClick={() => setSearch('')}>Clear</button>
+        )}
       </div>
 
-      {tab === 'relaxing' && (
+      {!searchResults && (
+        <div className="games-tabs">
+          {TABS.map((t) => (
+            <button
+              key={t.key}
+              className={`games-tab-btn${tab === t.key ? ' active' : ''}`}
+              onClick={() => changeTab(t.key)}
+            >
+              <span className="tab-label">{t.label}</span>
+              <span className="tab-sub">{t.sub}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {!searchResults && tab === 'arcade' && (
+        <div className="games-tab-notice">
+          🕹️ Nostalgic 2000s-style arcade games — pinball, shooters, and more. New personal-best? It's tracked on the leaderboard.
+        </div>
+      )}
+      {!searchResults && tab === 'relaxing' && (
         <div className="games-tab-notice">
           🌿 No scores, no timers, no losing — just something to do with your hands. Every game generates a fresh board, so it's never the same twice.
         </div>
       )}
-      {tab === 'versus' && (
+      {!searchResults && tab === 'versus' && (
         <div className="games-tab-notice">
           ⚔️ Challenge the computer or pass the screen to a friend. Bots have Easy, Medium, and Hard difficulty.
         </div>
       )}
-      {tab === 'multi' && (
+      {!searchResults && tab === 'multi' && (
         <div className="games-tab-notice">
           👥 2–4 players on one device. Absent seats can be filled by bots. Create a room or join by code (coming soon: online rooms).
         </div>
       )}
 
-      {tab === 'leaderboards' ? (
+      {searchResults ? (
+        searchResults.length === 0 ? (
+          <div className="admin-empty">No games match "{search}".</div>
+        ) : (
+          <div className="games-grid">
+            {searchResults.map((game) => (
+              <GameCard
+                key={game.id}
+                game={game}
+                myStats={stats?.[game.id]}
+                top3={leaderboard[game.id]?.slice(0, 3)}
+                onClick={() => navigate(game.path)}
+                locked={(game.tab === 'versus' || game.tab === 'multi') && !isAdmin()}
+              />
+            ))}
+          </div>
+        )
+      ) : tab === 'leaderboards' ? (
         <LeaderboardsPanel />
       ) : (
         <div className="games-grid">

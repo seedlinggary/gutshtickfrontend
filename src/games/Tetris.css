@@ -1,0 +1,98 @@
+.tetris-layout {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.snake-canvas {
+  box-shadow: 0 0 24px rgba(34, 211, 238, 0.18);
+}
+
+.tetris-side {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 120px;
+}
+
+.tetris-hud {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tetris-hud-item {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+
+.tetris-hud-item span {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.tetris-hud-item b {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text, #e2e8f0);
+}
+
+.tetris-next {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: #0f172a;
+}
+
+.tetris-next-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.tetris-next-canvas {
+  display: block;
+  margin: 0 auto;
+}
+
+/* Touch controls — 2 rows, wider buttons for the drop actions. */
+.tetris-touch {
+  gap: 8px;
+}
+
+.tetris-touch-row {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.tetris-touch-row button {
+  min-width: 56px;
+  width: auto;
+  padding: 0 10px;
+  white-space: nowrap;
+}
+
+@media (max-width: 520px) {
+  .tetris-side {
+    flex-direction: row;
+    width: 100%;
+    max-width: 280px;
+    min-width: 0;
+  }
+  .tetris-hud {
+    flex: 1;
+  }
+}

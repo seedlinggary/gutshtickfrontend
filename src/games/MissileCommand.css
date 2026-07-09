@@ -1,0 +1,103 @@
+/* ── Missile Command ── */
+.mc-wrapper { position: relative; display: inline-block; width: 100%; max-width: 760px; }
+.mc-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 2px solid #2a1e12;
+  border-radius: 12px;
+  background: #0a0710;
+  box-shadow: 0 0 24px rgba(251, 146, 60, 0.18), inset 0 0 40px rgba(0, 0, 0, 0.55);
+  touch-action: none;
+  cursor: crosshair;
+}
+.mc-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 7, 16, 0.88);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  text-align: center;
+  color: #fde68a;
+}
+.mc-overlay-inner { padding: 24px; max-width: 90%; }
+.mc-overlay-inner h3 { font-size: 26px; font-weight: 800; margin-bottom: 8px; color: #fff; }
+.mc-overlay-inner p { margin: 6px 0; font-size: 14px; opacity: 0.85; }
+.mc-overlay-emoji { font-size: 44px; margin-bottom: 6px; }
+.mc-toast {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(251, 146, 60, 0.95);
+  color: #160c04;
+  font-weight: 800;
+  font-size: 14px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  box-shadow: 0 4px 14px rgba(251, 146, 60, 0.4);
+  pointer-events: none;
+  white-space: nowrap;
+}
+.mc-hud-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 10px;
+}
+.mc-badge {
+  font-size: 12px;
+  font-weight: 800;
+  color: #7dfcd3;
+  background: rgba(125, 252, 211, 0.12);
+  border: 1px solid rgba(125, 252, 211, 0.45);
+  padding: 4px 10px;
+  border-radius: 999px;
+  letter-spacing: 0.3px;
+}
+.mc-special {
+  font-size: 14px;
+  font-weight: 800;
+  color: #160c04;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: transform 0.08s ease, box-shadow 0.12s ease;
+}
+.mc-special:active { transform: translateY(1px); }
+.mc-special:disabled {
+  background: rgba(148, 163, 184, 0.25) !important;
+  color: rgba(255, 255, 255, 0.4);
+  box-shadow: none !important;
+  cursor: not-allowed;
+}
+
+.mc-cluster {
+  background: #fcd34d;
+  box-shadow: 0 3px 10px rgba(252, 211, 77, 0.35);
+}
+.mc-smartbomb {
+  background: #fbbf24;
+  box-shadow: 0 3px 10px rgba(251, 191, 36, 0.35);
+}
+.mc-laser {
+  background: #fb7185;
+  color: #2a0410;
+  box-shadow: 0 3px 10px rgba(251, 113, 133, 0.4);
+}
+
+/* An armed special glows so the player knows the next click is special. */
+.mc-special.armed {
+  outline: 2px solid #fff;
+  box-shadow: 0 0 14px rgba(255, 255, 255, 0.7);
+  animation: mc-arm-pulse 0.9s ease-in-out infinite;
+}
+@keyframes mc-arm-pulse {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.25); }
+}

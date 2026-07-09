@@ -1,0 +1,93 @@
+/* ── Tank Duel — sky/dirt artillery duel ── */
+.td-canvas-wrapper { position: relative; display: inline-block; margin: 0 auto; max-width: 100%; }
+
+.td-hud {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; font-size: 14px; font-weight: 700; margin-bottom: 4px;
+  font-variant-numeric: tabular-nums; letter-spacing: 0.02em;
+  flex-wrap: wrap;
+}
+.td-hud-tank { color: #e5e7eb; }
+.td-hud-player b { color: #38bdf8; }
+.td-hud-enemy b { color: #f87171; }
+.td-turn {
+  padding: 3px 12px; border-radius: 14px; font-size: 12px; letter-spacing: 0.08em;
+  background: var(--surface); border: 1.5px solid var(--border); color: var(--muted);
+}
+.td-turn-player { border-color: #38bdf8; color: #38bdf8; }
+.td-turn-ai { border-color: #f87171; color: #f87171; }
+
+.td-hud-sub {
+  font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 8px;
+}
+
+.td-canvas {
+  display: block;
+  border: 2px solid #1e3a5f;
+  border-radius: 10px;
+  background: #1e3a5f;
+  box-shadow: 0 0 22px rgba(56, 189, 248, 0.15);
+}
+
+.td-overlay {
+  position: absolute; inset: 0;
+  background: rgba(10, 16, 28, 0.78);
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 10px;
+  top: 0;
+}
+.td-overlay-inner { text-align: center; color: #e0f2fe; padding: 12px; }
+.td-overlay-inner h3 { font-size: 24px; font-weight: 800; margin-bottom: 8px; color: #fff; }
+.td-overlay-inner p { margin: 4px 0; }
+
+/* ── Weapon selector + aim panel ── */
+.td-panel {
+  display: flex; flex-wrap: wrap; gap: 16px; margin-top: 16px;
+  align-items: flex-start; justify-content: center;
+}
+
+.td-weapons {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(56px, 1fr));
+  gap: 6px; max-width: 480px; flex: 1 1 340px;
+}
+.td-weapon {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 8px 4px; border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border); background: var(--surface);
+  cursor: pointer; transition: all var(--transition);
+  color: var(--fg, inherit);
+}
+.td-weapon:hover:not(:disabled) { border-color: var(--primary); }
+.td-weapon.active { border-color: var(--primary); background: var(--primary); color: #fff; }
+.td-weapon:disabled { opacity: 0.4; cursor: not-allowed; }
+.td-weapon-icon { font-size: 18px; line-height: 1; }
+.td-weapon-name { font-size: 10px; font-weight: 700; text-align: center; line-height: 1.15; }
+.td-weapon-ammo {
+  font-size: 11px; font-weight: 800; font-variant-numeric: tabular-nums;
+  opacity: 0.85;
+}
+
+.td-aim {
+  display: flex; flex-direction: column; gap: 8px;
+  flex: 1 1 260px; max-width: 360px;
+}
+.td-slider-row { display: flex; align-items: center; gap: 8px; }
+.td-slider {
+  flex: 1; display: flex; flex-direction: column; gap: 2px;
+  font-size: 12px; font-weight: 600; color: var(--muted);
+}
+.td-slider span { display: flex; justify-content: space-between; }
+.td-slider span b { color: var(--fg, #111); font-variant-numeric: tabular-nums; }
+.td-slider input[type='range'] { width: 100%; }
+.td-nudge {
+  width: 30px; height: 30px; flex: 0 0 auto;
+  border-radius: 50%; border: 1.5px solid var(--border); background: var(--surface);
+  font-size: 16px; font-weight: 800; cursor: pointer; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+}
+.td-nudge:disabled { opacity: 0.4; cursor: not-allowed; }
+.td-fire { margin-top: 4px; width: 100%; }
+
+@media (min-width: 640px) {
+  .td-panel { justify-content: flex-start; }
+}

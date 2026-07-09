@@ -1,0 +1,73 @@
+/* ── Pinball — CRT arcade cabinet look ── */
+.pb-canvas-wrapper { position: relative; display: inline-block; margin: 0 auto; }
+.pb-score-row {
+  display: flex; gap: 18px; align-items: center; flex-wrap: wrap;
+  font-size: 14px; font-weight: 700; color: #22d3ee; margin-bottom: 8px;
+  font-variant-numeric: tabular-nums; letter-spacing: 0.04em;
+}
+.pb-mult {
+  color: #fbbf24;
+  text-shadow: 0 0 8px rgba(251, 191, 36, 0.6);
+  border: 1px solid rgba(251, 191, 36, 0.5);
+  border-radius: 6px;
+  padding: 1px 8px;
+  letter-spacing: 0.06em;
+}
+.pb-canvas-shell {
+  position: relative; display: inline-block; width: 100%;
+  border-radius: 12px; overflow: hidden;
+  border: 2px solid #1e293b;
+  box-shadow: 0 0 26px rgba(34, 211, 238, 0.22), inset 0 0 60px rgba(0, 0, 0, 0.7);
+}
+.pb-canvas {
+  display: block;
+  background: #080b1f;
+}
+/* Subtle CRT scanline overlay — kept low-opacity so it never hurts readability */
+.pb-scanlines {
+  position: absolute; inset: 0; pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0) 0px,
+    rgba(0, 0, 0, 0) 2px,
+    rgba(0, 0, 0, 0.10) 3px,
+    rgba(0, 0, 0, 0) 4px
+  );
+  mix-blend-mode: multiply;
+}
+
+.pb-overlay {
+  position: absolute; inset: 0;
+  background: rgba(8, 11, 31, 0.85);
+  display: flex; align-items: center; justify-content: center;
+}
+.pb-overlay-inner { text-align: center; color: #e0f2fe; }
+.pb-overlay-inner h3 { font-size: 24px; font-weight: 800; margin-bottom: 8px; color: #fff; }
+.pb-overlay-inner p { margin: 4px 0; }
+
+.pb-win-banner {
+  position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+  background: rgba(236, 72, 153, 0.92); color: #fff;
+  padding: 8px 14px; border-radius: 8px; font-size: 12px; font-weight: 700;
+  text-align: center; max-width: 88%; pointer-events: none;
+  box-shadow: 0 0 18px rgba(236, 72, 153, 0.6);
+}
+
+/* Touch controls — big flipper pads + a launch button between them */
+.pb-touch .pb-touch-row {
+  display: flex; gap: 10px; justify-content: center; align-items: stretch; width: 100%;
+}
+.pb-touch .pb-flip-btn {
+  flex: 1; max-width: 150px; height: 64px !important; width: auto !important;
+  font-size: 16px !important; font-weight: 800;
+  background: #4c1d95; color: #ddd6fe; border: 1.5px solid #7c3aed !important;
+  border-radius: 12px; touch-action: none; letter-spacing: 0.04em;
+}
+.pb-touch .pb-flip-btn:active { background: #6d28d9; color: #fff; }
+.pb-touch .pb-launch-btn {
+  height: 64px !important; width: auto !important; padding: 0 16px;
+  font-size: 13px !important; font-weight: 800;
+  background: #0e7490; color: #cffafe; border: 1.5px solid #22d3ee !important;
+  border-radius: 12px; letter-spacing: 0.04em;
+}
+.pb-touch .pb-launch-btn:active { background: #155e75; color: #fff; }

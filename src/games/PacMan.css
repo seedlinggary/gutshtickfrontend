@@ -1,0 +1,9 @@
+.pacman-canvas {
+  background: #05070f;
+  box-shadow: 0 0 26px rgba(59, 130, 246, 0.28);
+}
+
+.pacman-canvas + .snake-overlay,
+.pacman-canvas ~ .snake-overlay {
+  background: rgba(5, 7, 15, 0.85);
+}
