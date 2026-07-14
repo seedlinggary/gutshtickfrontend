@@ -14,7 +14,9 @@ const rootReducer = (state = initialState, action) => {
     case 'FETCH_SUCCESS':
       return {
         ...state,
-        feed: action.payload.feed,
+        feed: action.payload.append && state.feed
+          ? [...state.feed, ...action.payload.feed]
+          : action.payload.feed,
         error: null,
         isLoading: false,
         isDataFetched: true,

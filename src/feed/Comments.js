@@ -1,18 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import apiRequest from '../ApiRequest';
 import { isLoggedIn, isAdmin } from '../auth';
-
-function formatDate(d) {
-  if (!d) return '';
-  const date = new Date(d);
-  const now = new Date();
-  const mins = Math.floor((now - date) / 60000);
-  if (mins < 1) return 'just now';
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-}
+import formatDate from '../utils/timeAgo';
 
 export default function Comments({ shtickId }) {
   const [comments, setComments] = useState([]);
@@ -79,6 +68,7 @@ export default function Comments({ shtickId }) {
                   <div className="comment-meta">
                     <span className="comment-author">{c.user?.profile_name || 'User'}</span>
                     <span className="comment-time">{formatDate(c.pub_date)}</span>
+                    <span style={{ fontSize: 11, color: 'var(--muted)' }} title="Comment ID">#{c.id}</span>
                     {(boss || c.user?.profile_name === myProfileName) && (
                       <button className="comment-delete" onClick={() => handleDelete(c.id)}>×</button>
                     )}

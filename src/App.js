@@ -26,6 +26,7 @@ import Contact from './Contact';
 import NotFound from './NotFound';
 import AppNavbar from './Navbar';
 import Footer from './Footer';
+import VisitorTracker from './analytics/VisitorTracker';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import Disclaimer from './Disclaimer';
 import ContentGuidelines from './ContentGuidelines';
@@ -39,6 +40,10 @@ import Games from './games/Games';
 const Profile             = lazy(() => import('./users/Profile'));
 const CreateShtick        = lazy(() => import('./shtick/CreateShtick'));
 const PostPage            = lazy(() => import('./feed/PostPage'));
+const Hock                = lazy(() => import('./hock/Hock'));
+const HockPostPage        = lazy(() => import('./hock/HockPostPage'));
+const Tachlis             = lazy(() => import('./tachlis/Tachlis'));
+const TachlisPostPage     = lazy(() => import('./tachlis/TachlisPostPage'));
 const AdminDashboard      = lazy(() => import('./admin/AdminDashboard'));
 const SuperAdminDashboard = lazy(() => import('./admin/SuperAdminDashboard'));
 const VersusWrapper       = lazy(() => import('./games/versus/VersusWrapper'));
@@ -124,6 +129,7 @@ function App() {
   return (
     <Router>
       <div className="App page-wrapper">
+        <VisitorTracker />
         <AppNavbar />
         <main className="main-content">
           <GameErrorBoundary>
@@ -132,6 +138,14 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/feed/:category_id" element={<Home />} />
               <Route path="/post/:id" element={<PostPage />} />
+
+              {/* ── Hock discussion forum (public to browse; posting/commenting gated server-side) ── */}
+              <Route path="/hock" element={<Hock />} />
+              <Route path="/hock/post/:id" element={<HockPostPage />} />
+
+              {/* ── Tachlis jobs/resumes/services board (public to browse; posting gated server-side) ── */}
+              <Route path="/tachlis" element={<Tachlis />} />
+              <Route path="/tachlis/post/:id" element={<TachlisPostPage />} />
               <Route path="/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/disclaimer" element={<Disclaimer />} />

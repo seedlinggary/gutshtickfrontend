@@ -372,7 +372,8 @@ iframe {
 .shtick-image {
   width: 100%;
   max-height: 420px;
-  object-fit: cover;
+  object-fit: contain;
+  background: var(--bg);
   border-radius: var(--radius-sm);
   margin: 10px 0;
   display: block;
@@ -1302,6 +1303,15 @@ iframe {
   outline: none; transition: border-color var(--transition);
 }
 .comment-input:focus { border-color: var(--accent); }
+
+/* ── Hock forum: small inline text actions (reply/edit/delete on comments & posts) ── */
+.comment-action-link {
+  background: none; border: none; color: var(--muted); cursor: pointer;
+  font-size: 12px; font-weight: 600; padding: 2px 4px; line-height: 1;
+  transition: color var(--transition);
+}
+.comment-action-link:hover { color: var(--accent); }
+.comment-action-link:disabled { opacity: 0.5; cursor: default; }
 
 /* ── Admin / Super-Admin ── */
 .admin-page {

@@ -3,7 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import apiRequest from './ApiRequest';
 import { isLoggedIn } from './auth';
 
-const POLL_MS = 45000;
+// Was 45s with no visibility gating -- polled the DB from every open tab,
+// on every page (including mid-game), forever, even backgrounded. Backed off
+// to 2 min and now pauses entirely while the tab is hidden.
+const POLL_MS = 120000;
 
 function formatRelative(dateStr) {
   const diffMins = Math.floor((Date.now() - new Date(dateStr)) / 60000);
@@ -27,9 +30,28 @@ export default function NotificationBell() {
 
   useEffect(() => {
     if (!loggedIn) return;
-    loadUnreadCount();
-    const interval = setInterval(loadUnreadCount, POLL_MS);
-    return () => clearInterval(interval);
+
+    let interval = null;
+    const start = () => {
+      if (interval) return;
+      loadUnreadCount();
+      interval = setInterval(loadUnreadCount, POLL_MS);
+    };
+    const stop = () => {
+      if (interval) { clearInterval(interval); interval = null; }
+    };
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') start();
+      else stop();
+    };
+
+    if (document.visibilityState === 'visible') start();
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    return () => {
+      stop();
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
   }, [loggedIn]);
 
   const toggleOpen = () => {

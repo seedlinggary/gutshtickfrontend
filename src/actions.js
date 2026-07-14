@@ -9,9 +9,12 @@ export const fetchData = () => async (dispatch, getState) => {
 
   dispatch({ type: 'FETCH_START' });
   try {
+    // limitsloaded is now a real 1-indexed page number (backend does true
+    // OFFSET/LIMIT paging) -- page 1 is a fresh load, anything after is a
+    // "Load more" click, which should append rather than replace the feed.
     const feedRes = await fetch(`${API}/shtick/${shtickgeneralc}/${limitsloaded}`, { method: 'GET', headers });
     const feed = await feedRes.json();
-    dispatch({ type: 'FETCH_SUCCESS', payload: { feed } });
+    dispatch({ type: 'FETCH_SUCCESS', payload: { feed, append: limitsloaded > 1 } });
   } catch (err) {
     dispatch({ type: 'FETCH_ERROR', payload: err.message });
   }

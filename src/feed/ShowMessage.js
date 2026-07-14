@@ -7,21 +7,7 @@ import Comments from './Comments';
 import ShareButton from '../ShareButton';
 import { fetchCategory, fetchData } from '../actions';
 import { isLoggedIn } from '../auth';
-
-function formatDate(dateStr) {
-  if (!dateStr) return '';
-  const date = new Date(dateStr);
-  const now = new Date();
-  const diffMins = Math.floor((now - date) / 60000);
-  if (diffMins < 1) return 'just now';
-  if (diffMins < 60) return `${diffMins}m ago`;
-  const diffHours = Math.floor(diffMins / 60);
-  if (diffHours < 24) return `${diffHours}h ago`;
-  const diffDays = Math.floor(diffHours / 24);
-  if (diffDays === 1) return 'yesterday';
-  if (diffDays < 7) return `${diffDays}d ago`;
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-}
+import formatDate from '../utils/timeAgo';
 
 function HeartIcon({ filled }) {
   return (
@@ -91,7 +77,10 @@ const ShowMessage = ({ message }) => {
               </button>
             ))}
           </div>
-          <span className="shtick-time">{formatDate(message.pub_date)}</span>
+          <span className="shtick-time">
+            {formatDate(message.pub_date)}
+            <span style={{ fontSize: 11, color: 'var(--muted)', marginLeft: 8 }} title="Post ID">#{message.id}</span>
+          </span>
         </div>
 
         {/* Caption */}

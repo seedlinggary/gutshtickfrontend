@@ -3,6 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import apiRequest from '../ApiRequest';
 import { isSuperAdmin } from '../auth';
 import UploadFile from '../Uploadfile';
+import AdminAiPosts from './AdminAiPosts';
+import AdminScrapers from './AdminScrapers';
+import AdminYoutubeChannels from './AdminYoutubeChannels';
+import AdminAnalytics from './AdminAnalytics';
 
 const ROLES = ['viewer', 'user', 'admin', 'super_admin'];
 const ROLE_LABELS = { viewer: 'Viewer', user: 'User', admin: 'Admin', super_admin: 'Super Admin' };
@@ -38,6 +42,14 @@ function formatDate(d) {
   return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
+function StatusBadgeInline({ v }) {
+  return (
+    <span className={`admin-badge ${v === true ? 'approved' : v === false ? 'rejected' : 'pending'}`}>
+      {v === true ? 'Approved' : v === false ? 'Rejected' : 'Pending'}
+    </span>
+  );
+}
+
 export default function SuperAdminDashboard() {
   const navigate = useNavigate();
   const [tab, setTab] = useState('overview');
@@ -50,10 +62,36 @@ export default function SuperAdminDashboard() {
   const [msg, setMsg] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
 
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState(null);
+  const [searching, setSearching] = useState(false);
+
   const [ads, setAds] = useState([]);
   const [adForm, setAdForm] = useState(null);
   const [editingAdId, setEditingAdId] = useState(null);
   const [adMsg, setAdMsg] = useState('');
+  const [expandedStatsAdId, setExpandedStatsAdId] = useState(null);
+  const [adStats, setAdStats] = useState(null);
+  const [adStatsLoading, setAdStatsLoading] = useState(false);
+
+  const toggleAdStats = async (adId) => {
+    if (expandedStatsAdId === adId) {
+      setExpandedStatsAdId(null);
+      setAdStats(null);
+      return;
+    }
+    setExpandedStatsAdId(adId);
+    setAdStats(null);
+    setAdStatsLoading(true);
+    try {
+      const data = await apiRequest('GET', null, `/ads/${adId}/stats`);
+      setAdStats(data);
+    } catch (e) {
+      setAdStats({ error: typeof e === 'string' ? e : 'Failed to load stats.' });
+    } finally {
+      setAdStatsLoading(false);
+    }
+  };
 
   const [categories, setCategories] = useState([]);
   const [newCategoryName, setNewCategoryName] = useState('');
@@ -63,6 +101,19 @@ export default function SuperAdminDashboard() {
     if (!isSuperAdmin()) { navigate('/'); return; }
     loadAll();
   }, []);
+
+  useEffect(() => {
+    const term = searchQuery.trim();
+    if (!term) { setSearchResults(null); setSearching(false); return; }
+    setSearching(true);
+    const t = setTimeout(() => {
+      apiRequest('GET', null, `/admin/search?q=${encodeURIComponent(term)}`)
+        .then(setSearchResults)
+        .catch(() => setSearchResults(null))
+        .finally(() => setSearching(false));
+    }, 350);
+    return () => clearTimeout(t);
+  }, [searchQuery]);
 
   async function loadAll() {
     setLoading(true);
@@ -84,6 +135,13 @@ export default function SuperAdminDashboard() {
     } finally {
       setLoading(false);
     }
+  }
+
+  async function unapproveShtick(id) {
+    if (!window.confirm('Send this post back to the pending queue?')) return;
+    await apiRequest('POST', null, `/admin/shtick/${id}/unapprove`);
+    setApprovals((a) => a.filter((s) => s.id !== id));
+    setMsg('Unapproved — back in the pending queue');
   }
 
   async function addCategory(e) {
@@ -226,10 +284,13 @@ export default function SuperAdminDashboard() {
       <div className="admin-tabs">
         {[
           ['overview', '📊 Overview'],
+          ['search', '🔎 Search'],
           ['users', `👥 Users (${users.length})`],
           ['approvals', '✅ Approval History'],
           ['ads', `📢 Ads (${ads.length})`],
           ['categories', `🏷️ Categories (${categories.length})`],
+          ['content_pipeline', '🤖 Content Pipeline'],
+          ['analytics', '📈 Analytics'],
           ['activity', selectedUser ? `🔍 ${selectedUser.profile_name}` : '🔍 Activity'],
         ].map(([key, label]) => (
           <button key={key} className={`admin-tab${tab === key ? ' active' : ''}`} onClick={() => setTab(key)}>
@@ -237,6 +298,148 @@ export default function SuperAdminDashboard() {
           </button>
         ))}
       </div>
+
+      {/* ── Search (checks id/title/body/category/submitted-by across every
+          table: Feed posts+comments, Hock posts+comments, Tachlis posts, Users) ── */}
+      {tab === 'search' && (
+        <div>
+          <input
+            type="text"
+            className="auth-input games-search-input"
+            style={{ marginBottom: 16, maxWidth: 480 }}
+            placeholder="🔎 Search everything by id, title, body, category, or submitted by…"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            autoFocus
+          />
+
+          {searching && <div className="gs-loading"><div className="gs-spinner" /></div>}
+
+          {!searching && !searchQuery.trim() && (
+            <div className="admin-empty">Type at least one character to search across every table.</div>
+          )}
+
+          {!searching && searchQuery.trim() && searchResults && (
+            <>
+              {Object.values(searchResults).every((arr) => arr.length === 0) && (
+                <div className="admin-empty">No matches for "{searchQuery.trim()}".</div>
+              )}
+
+              {searchResults.shticks.length > 0 && (
+                <div style={{ marginBottom: 24 }}>
+                  <h3>📰 Feed Posts ({searchResults.shticks.length})</h3>
+                  {searchResults.shticks.map((s) => (
+                    <div key={s.id} className="admin-card">
+                      <div className="admin-card-top">
+                        <StatusBadgeInline v={s.approved_to_publish} />
+                        <span className="admin-date">{new Date(s.pub_date).toLocaleDateString()} <span style={{ fontSize: 11 }}>#{s.id}</span></span>
+                      </div>
+                      <h3 className="admin-caption">{s.caption}</h3>
+                      <div className="admin-card-meta">
+                        <span>By: <b>{s.submitted_by || 'Unknown'}</b></span>
+                        {' · '}
+                        <a href={`/post/${s.id}`} target="_blank" rel="noreferrer">View on site ↗</a>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {searchResults.hock_posts.length > 0 && (
+                <div style={{ marginBottom: 24 }}>
+                  <h3>🗣 Hock Posts ({searchResults.hock_posts.length})</h3>
+                  {searchResults.hock_posts.map((p) => (
+                    <div key={p.id} className="admin-card" style={{ borderLeft: '4px solid #6366f1' }}>
+                      <div className="admin-card-top">
+                        <span className={`admin-badge ${p.approved_to_publish ? 'approved' : 'rejected'}`}>
+                          {p.approved_to_publish ? 'Visible' : 'Hidden'}
+                        </span>
+                        <span className="admin-date">{new Date(p.pub_date).toLocaleDateString()} <span style={{ fontSize: 11 }}>#{p.id}</span></span>
+                      </div>
+                      <h3 className="admin-caption">{p.title}</h3>
+                      <div className="admin-card-meta">
+                        <span>By: <b>{p.submitted_by || 'Unknown'}</b></span>
+                        {' · '}
+                        <a href={`/hock/post/${p.id}`} target="_blank" rel="noreferrer">View on site ↗</a>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {searchResults.hock_comments.length > 0 && (
+                <div style={{ marginBottom: 24 }}>
+                  <h3>💬 Hock Comments ({searchResults.hock_comments.length})</h3>
+                  {searchResults.hock_comments.map((c) => (
+                    <div key={c.id} className="admin-card comment-card">
+                      <div className="admin-card-top">
+                        <span><b>{c.submitted_by || 'Unknown'}</b></span>
+                        <span className="admin-date">{new Date(c.pub_date).toLocaleDateString()} <span style={{ fontSize: 11 }}>#{c.id}</span></span>
+                      </div>
+                      <p style={{ margin: '6px 0' }}>{c.text}</p>
+                      <a href={`/hock/post/${c.hock_post_id}`} target="_blank" rel="noreferrer">View post ↗</a>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {searchResults.tachlis_posts.length > 0 && (
+                <div style={{ marginBottom: 24 }}>
+                  <h3>💼 Tachlis Posts ({searchResults.tachlis_posts.length})</h3>
+                  {searchResults.tachlis_posts.map((t) => (
+                    <div key={t.id} className="admin-card" style={{ borderLeft: '4px solid #6366f1' }}>
+                      <div className="admin-card-top">
+                        <StatusBadgeInline v={t.approved_to_publish} />
+                        <span className="admin-date">{new Date(t.pub_date).toLocaleDateString()} <span style={{ fontSize: 11 }}>#{t.id}</span></span>
+                      </div>
+                      <h3 className="admin-caption">{t.title}</h3>
+                      <div className="admin-card-meta">
+                        <span>Type: <b>{t.post_type}</b> · By: <b>{t.submitted_by || 'Unknown'}</b></span>
+                        {' · '}
+                        <a href={`/tachlis/post/${t.id}`} target="_blank" rel="noreferrer">View on site ↗</a>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {searchResults.comments.length > 0 && (
+                <div style={{ marginBottom: 24 }}>
+                  <h3>💬 Feed Comments ({searchResults.comments.length})</h3>
+                  {searchResults.comments.map((c) => (
+                    <div key={c.id} className="admin-card comment-card">
+                      <div className="admin-card-top">
+                        <span><b>{c.submitted_by || 'Unknown'}</b></span>
+                        <span className="admin-date">{new Date(c.pub_date).toLocaleDateString()} <span style={{ fontSize: 11 }}>#{c.id}</span></span>
+                      </div>
+                      <p style={{ margin: '6px 0' }}>{c.text}</p>
+                      <a href={`/post/${c.shtick_id}`} target="_blank" rel="noreferrer">View post ↗</a>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {searchResults.users.length > 0 && (
+                <div style={{ marginBottom: 24 }}>
+                  <h3>👥 Users ({searchResults.users.length})</h3>
+                  {searchResults.users.map((u) => (
+                    <div key={u.id} className="admin-card" style={{ cursor: 'pointer' }} onClick={() => viewActivity(u)}>
+                      <div className="admin-card-top">
+                        <span style={{ color: ROLE_COLOR[u.role] || 'var(--muted)', fontWeight: 700 }}>
+                          {ROLE_LABELS[u.role] || u.role}
+                        </span>
+                        <span className="admin-date" style={{ fontSize: 11 }}>#{u.id}</span>
+                      </div>
+                      <h3 className="admin-caption">{u.profile_name}</h3>
+                      <div className="admin-card-meta">{u.email}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
 
       {loading && <div className="gs-loading"><div className="gs-spinner" /></div>}
 
@@ -327,12 +530,15 @@ export default function SuperAdminDashboard() {
                 <span className={`admin-badge ${s.approved_to_publish ? 'approved' : 'rejected'}`}>
                   {s.approved_to_publish ? '✓ Approved' : '✕ Rejected'}
                 </span>
-                <span className="admin-date">{formatDate(s.pub_date)}</span>
+                <span className="admin-date">{formatDate(s.pub_date)} <span style={{ fontSize: 11 }} title="Post ID">#{s.id}</span></span>
               </div>
               <h3 className="admin-caption">{s.caption}</h3>
               <div className="admin-card-meta">
                 <span>Submitted by: <b>{s.user?.profile_name || s.user_id}</b></span>
                 {s.approver && <span> · Decision by: <b>{s.approver.profile_name}</b></span>}
+              </div>
+              <div className="admin-actions">
+                <button className="gs-btn gs-btn-sm" onClick={() => unapproveShtick(s.id)}>↩ Unapprove</button>
               </div>
             </div>
           ))}
@@ -528,10 +734,76 @@ export default function SuperAdminDashboard() {
                   {ad.status === 'draft' && (
                     <button className="gs-btn gs-btn-danger gs-btn-sm" onClick={() => deleteAd(ad.id)}>🗑 Delete</button>
                   )}
+                  <button className="gs-btn gs-btn-outline gs-btn-sm" onClick={() => toggleAdStats(ad.id)}>
+                    📊 {expandedStatsAdId === ad.id ? 'Hide' : 'Detailed'} Stats
+                  </button>
                 </div>
+                {expandedStatsAdId === ad.id && (
+                  <div className="ad-stats-panel" style={{ width: '100%', marginTop: 12, padding: 12, background: 'var(--bg)', borderRadius: 8 }}>
+                    {adStatsLoading && <div>Loading stats…</div>}
+                    {adStats && adStats.error && <div className="gs-error-box">{adStats.error}</div>}
+                    {adStats && !adStats.error && (
+                      <>
+                        <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', marginBottom: 12 }}>
+                          <div><strong>{adStats.impressions}</strong> impressions</div>
+                          <div><strong>{adStats.clicks}</strong> clicks</div>
+                          <div><strong>{adStats.ctr_percent}%</strong> CTR</div>
+                          <div><strong>{adStats.unique_logged_in_viewers}</strong> unique logged-in viewers</div>
+                        </div>
+                        <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
+                          <div>
+                            <div className="shtick-caption" style={{ marginBottom: 6 }}>Top Countries</div>
+                            {adStats.top_countries.length === 0 && <div style={{ color: 'var(--muted)' }}>No geo data yet.</div>}
+                            {adStats.top_countries.map((c) => (
+                              <div key={c.country}>{c.country}: {c.impressions}</div>
+                            ))}
+                          </div>
+                          <div>
+                            <div className="shtick-caption" style={{ marginBottom: 6 }}>Last 30 Days</div>
+                            {adStats.daily_trend_30d.length === 0 && <div style={{ color: 'var(--muted)' }}>No activity yet.</div>}
+                            {adStats.daily_trend_30d.map((d) => (
+                              <div key={d.date}>{d.date}: {d.impressions}</div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* ── Content Pipeline (AI posts / news scrapers / YouTube channels) ──
+          Stays mounted once loaded (hidden via CSS, not unmounted) so a
+          generate/scrape/check run in progress keeps going — and its result
+          is still there — if the admin switches to another tab and back. */}
+      {!loading && (
+        <div
+          className="content-pipeline-panels"
+          style={{ display: tab === 'content_pipeline' ? 'block' : 'none' }}
+        >
+          <section style={{ marginBottom: 32 }}>
+            <h3 className="shtick-caption" style={{ marginBottom: 10 }}>🤖 AI-Generated Posts</h3>
+            <AdminAiPosts />
+          </section>
+          <section style={{ marginBottom: 32 }}>
+            <h3 className="shtick-caption" style={{ marginBottom: 10 }}>📰 News Scrapers</h3>
+            <AdminScrapers />
+          </section>
+          <section>
+            <h3 className="shtick-caption" style={{ marginBottom: 10 }}>▶️ YouTube Channels</h3>
+            <AdminYoutubeChannels />
+          </section>
+        </div>
+      )}
+
+      {/* ── Analytics (visitor tracking, same stays-mounted pattern) ── */}
+      {!loading && (
+        <div style={{ display: tab === 'analytics' ? 'block' : 'none' }}>
+          <AdminAnalytics />
         </div>
       )}
 
@@ -548,7 +820,7 @@ export default function SuperAdminDashboard() {
               className="gs-input"
               style={{ maxWidth: 260 }}
               placeholder="New category name…"
-              maxLength={20}
+              maxLength={100}
               value={newCategoryName}
               onChange={(e) => setNewCategoryName(e.target.value)}
             />
