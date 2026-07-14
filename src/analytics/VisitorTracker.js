@@ -3,11 +3,30 @@ import { useLocation } from 'react-router-dom';
 
 const API = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
 const LOCAL_HOSTNAMES = ['localhost', '127.0.0.1', '0.0.0.0'];
+const ANON_ID_KEY = 'anon_id';
+
+function getOrCreateAnonId() {
+  let id = localStorage.getItem(ANON_ID_KEY);
+  if (!id) {
+    id = (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    localStorage.setItem(ANON_ID_KEY, id);
+  }
+  return id;
+}
 
 /**
  * Renders nothing. Fires a beacon (POST /analytics/beacon) once on mount and
  * again on every client-side route change, so the backend can log page
- * views for both anonymous (cookie-based) and logged-in visitors.
+ * views for both anonymous and logged-in visitors.
+ *
+ * The anonymous id lives in localStorage, not a cookie -- frontend and
+ * backend are separate Vercel deployments (different origins), so a cookie
+ * set by the backend would be a cross-site/third-party cookie from the
+ * page's point of view, and a lot of real traffic (Safari ITP, Firefox ETP,
+ * and similar privacy features) silently blocks or drops those, making every
+ * single page view look like a brand-new anonymous visitor. localStorage is
+ * same-origin only, so it isn't subject to any of that -- same reason the
+ * JWT auth token already lives in localStorage instead of a cookie.
  *
  * Tracking is OFF by default on localhost/127.0.0.1/0.0.0.0 dev machines, so
  * local development never pollutes real visitor analytics reported to
@@ -39,15 +58,16 @@ export default function VisitorTracker() {
     // session to the logged-in user -- it's optional server-side, so a
     // missing/expired token never breaks the beacon.
     const token = localStorage.getItem('cookie');
+    const anonId = getOrCreateAnonId();
 
     fetch(`${API}/analytics/beacon`, {
       method: 'POST',
-      credentials: 'include', // required so the anon_id cookie is set/sent
       headers: {
         'Content-Type': 'application/json',
         ...(token ? { 'x-access-token': token } : {}),
       },
       body: JSON.stringify({
+        anon_id: anonId,
         path: location.pathname,
         force: forceAnalytics,
       }),

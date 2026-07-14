@@ -106,10 +106,16 @@ export default function AdminAnalytics() {
             <div className="sa-activity-section">
               <h4>New Visitors — Last 30 Days</h4>
               {trend.length === 0 && <div className="admin-empty">No visitor activity yet.</div>}
+              {trend.length > 0 && trend.length < 3 && (
+                <div className="admin-empty" style={{ marginBottom: 8 }}>
+                  Only {trend.length} day{trend.length === 1 ? '' : 's'} of tracked history so far —
+                  the trend will fill in as more days pass.
+                </div>
+              )}
               {trend.length > 0 && (
                 <div
                   style={{
-                    display: 'flex', alignItems: 'flex-end', gap: 3,
+                    display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-start', gap: 3,
                     height: 90, marginTop: 10, marginBottom: 6,
                   }}
                 >
@@ -118,7 +124,7 @@ export default function AdminAnalytics() {
                       key={i}
                       title={`${formatShortDate(d.date)}: ${d.count} new visitor${d.count === 1 ? '' : 's'}`}
                       style={{
-                        flex: 1,
+                        flex: '0 1 32px',
                         minWidth: 3,
                         height: `${Math.max(4, (d.count / maxTrend) * 100)}%`,
                         background: 'var(--accent, #3b82f6)',

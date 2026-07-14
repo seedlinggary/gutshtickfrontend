@@ -5,8 +5,6 @@ export const isLoggedIn = () => !!getEmail() && !!getToken();
 export const isAdmin = () => ['admin', 'super_admin'].includes(getRole());
 export const isSuperAdmin = () => getRole() === 'super_admin';
 
-const ANALYTICS_API = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
-
 export const clearAuth = () => {
   localStorage.removeItem('cookie');
   localStorage.removeItem('email');
@@ -15,11 +13,13 @@ export const clearAuth = () => {
   localStorage.removeItem('profile_name');
   localStorage.removeItem('public_id');
 
-  // Rotates the anon_id visitor-tracking cookie so post-logout browsing is
+  // Rotates the anon_id visitor-tracking id so post-logout browsing is
   // recorded as a fresh, genuinely anonymous session instead of staying
   // permanently linked to the account that just signed out (see
-  // backend/analytics/routes/visitor.py's beacon() docstring).
-  fetch(`${ANALYTICS_API}/analytics/logout`, { method: 'POST', credentials: 'include' }).catch(() => {});
+  // backend/analytics/routes/visitor.py's beacon() docstring). Lives in
+  // localStorage (see VisitorTracker.js), so this is just a local removal --
+  // no backend round-trip needed, unlike when this was cookie-based.
+  localStorage.removeItem('anon_id');
 };
 
 export const saveAuth = (data, email) => {
