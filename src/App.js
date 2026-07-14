@@ -26,6 +26,7 @@ import Contact from './Contact';
 import NotFound from './NotFound';
 import AppNavbar from './Navbar';
 import Footer from './Footer';
+import ScrollToTop from './ScrollToTop';
 import VisitorTracker from './analytics/VisitorTracker';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import Disclaimer from './Disclaimer';
@@ -129,6 +130,7 @@ function App() {
   return (
     <Router>
       <div className="App page-wrapper">
+        <ScrollToTop />
         <VisitorTracker />
         <AppNavbar />
         <main className="main-content">
