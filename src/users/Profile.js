@@ -316,7 +316,7 @@ const Profile = () => {
   return (
     <div className="auth-page">
       <div className="auth-card" style={{ maxWidth: 640 }}>
-        <span className="auth-brand">The Good Shtick</span>
+        <span className="auth-brand">Gut Shtick</span>
         <h2 className="auth-title">Your Profile</h2>
 
         <div className="admin-tabs" style={{ marginBottom: 20 }}>

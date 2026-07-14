@@ -31,7 +31,7 @@ const Home = () => {
         <div className="gs-hero">
           <div className="gs-container">
             <h1 className="gs-hero-title">
-              The Good <span>Shtick</span>
+              Gut <span>Shtick</span>
             </h1>
             <p className="gs-hero-sub">
               Curated content from across the web — filtered, approved, and ready for you.

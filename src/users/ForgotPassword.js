@@ -44,7 +44,7 @@ const ForgotPassword = () => {
   return (
     <div className="auth-page">
       <div className="auth-card">
-        <span className="auth-brand">The Good Shtick</span>
+        <span className="auth-brand">Gut Shtick</span>
         <h2 className="auth-title">Reset password</h2>
 
         {step === 'done' ? (

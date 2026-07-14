@@ -31,7 +31,7 @@ const Footer = () => {
         <div className="gs-footer-grid">
           <div>
             <div className="gs-footer-brand">
-              The Good <span>Shtick</span>
+              Gut <span>Shtick</span>
             </div>
             <p className="gs-footer-tagline">
               Curated content worth your time. No noise, just the good stuff.
@@ -77,7 +77,7 @@ const Footer = () => {
 
         <div className="gs-footer-bottom">
           <span className="gs-footer-copy">
-            &copy; {new Date().getFullYear()} The Good Shtick. All rights reserved.
+            &copy; {new Date().getFullYear()} Gut Shtick. All rights reserved.
           </span>
         </div>
       </div>

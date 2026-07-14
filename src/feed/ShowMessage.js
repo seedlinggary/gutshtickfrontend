@@ -129,7 +129,7 @@ const ShowMessage = ({ message }) => {
               {likeCount > 0 && <span>{likeCount}</span>}
             </button>
             <ShareButton
-              title="The Good Shtick"
+              title="Gut Shtick"
               text={message.caption}
               url={`${window.location.origin}/post/${message.id}`}
             />

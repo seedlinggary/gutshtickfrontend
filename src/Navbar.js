@@ -68,7 +68,7 @@ function AppNavbar() {
     <nav className="gs-navbar">
       <div className="navbar-inner">
         <button className="navbar-brand" onClick={() => go('/')}>
-          The Good <span>Shtick</span>
+          Gut <span>Shtick</span>
         </button>
         <button
           className="navbar-toggler"

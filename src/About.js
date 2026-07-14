@@ -6,7 +6,7 @@ const About = () => {
     <div className="about-page">
       <div className="gs-container">
         <div className="about-hero">
-          <h2>About The Good Shtick</h2>
+          <h2>About Gut Shtick</h2>
           <p>
             We scour the internet so you don't have to. Our team curates the best content
             from across the web — filtered, approved, and delivered in one clean feed.
@@ -16,7 +16,7 @@ const About = () => {
 
         <h3 style={{ marginBottom: 8 }}>What we do</h3>
         <p style={{ color: 'var(--muted)', marginBottom: 32, lineHeight: 1.75 }}>
-          The Good Shtick is a community-powered content platform. Members submit links,
+          Gut Shtick is a community-powered content platform. Members submit links,
           quotes, videos, and articles they love — our team reviews every post before it
           goes live to make sure it's actually worth your time. Think of it as a curated
           highlights reel for the internet.

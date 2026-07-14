@@ -11,21 +11,21 @@ const Disclaimer = () => {
 
           <h4>1. Use of Content</h4>
           <p>
-            The content published on The Good Shtick is curated from publicly available
+            The content published on Gut Shtick is curated from publicly available
             sources across the internet. We do not claim ownership of third-party content.
             All original posts and commentary are the property of their respective authors.
           </p>
 
           <h4>2. User Submissions</h4>
           <p>
-            By submitting content to The Good Shtick, you confirm that you have the right
+            By submitting content to Gut Shtick, you confirm that you have the right
             to share it, and you grant us a non-exclusive license to display it on this
             platform. All submissions are reviewed before publishing.
           </p>
 
           <h4>3. No Liability</h4>
           <p>
-            The Good Shtick is provided "as is." We make no warranties regarding the
+            Gut Shtick is provided "as is." We make no warranties regarding the
             accuracy, completeness, or suitability of any content on this site. We are
             not liable for any damages arising from your use of this platform.
           </p>
@@ -46,7 +46,7 @@ const Disclaimer = () => {
           <h4>6. Contact</h4>
           <p>
             Questions? Reach us at{' '}
-            <a href="mailto:seedling.gary@gmail.com">seedling.gary@gmail.com</a>
+            <a href="mailto:orders@kolstock.com">orders@kolstock.com</a>
             {' '}or via our <Link to="/contact">Contact page</Link>.
           </p>
         </div>

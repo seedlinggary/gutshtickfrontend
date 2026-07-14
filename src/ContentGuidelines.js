@@ -11,7 +11,7 @@ const ContentGuidelines = () => {
 
           <h4>1. Everything is reviewed before it goes live</h4>
           <p>
-            The Good Shtick is a curated feed, not an open firehose. Every submission is
+            Gut Shtick is a curated feed, not an open firehose. Every submission is
             reviewed by a moderator before it's approved and shown to the rest of the
             site. Posting something doesn't guarantee it will be published.
           </p>
@@ -50,7 +50,7 @@ const ContentGuidelines = () => {
           <p>
             If you think a post was rejected in error, or you just want to understand
             why, reach out at{' '}
-            <a href="mailto:seedling.gary@gmail.com">seedling.gary@gmail.com</a>
+            <a href="mailto:orders@kolstock.com">orders@kolstock.com</a>
             {' '}or via our <Link to="/contact">Contact page</Link>. These guidelines may
             be updated over time as the site grows.
           </p>

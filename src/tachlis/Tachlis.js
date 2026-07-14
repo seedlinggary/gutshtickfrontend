@@ -289,7 +289,7 @@ export default function Tachlis() {
           </button>
         </div>
         <p style={{ color: 'var(--muted)', marginTop: 0 }}>
-          The Good Shtick's classifieds board — post a job, a resume, or a service. Every post is contact-first: reach out directly.
+          Gut Shtick's classifieds board — post a job, a resume, or a service. Every post is contact-first: reach out directly.
         </p>
 
         {composing && loggedIn && (

@@ -216,8 +216,8 @@ function LeaderboardsPanel() {
                   {e.profile_name === myProfileName && (
                     <ShareButton
                       className="leaderboard-share"
-                      title="The Good Shtick"
-                      text={`I'm ranked #${i + 1} on ${game?.title} with ${e.best_score} pts on The Good Shtick! Can you beat me?`}
+                      title="Gut Shtick"
+                      text={`I'm ranked #${i + 1} on ${game?.title} with ${e.best_score} pts on Gut Shtick! Can you beat me?`}
                       url={`${window.location.origin}${game?.path || '/games'}`}
                     />
                   )}
@@ -313,7 +313,7 @@ export default function Games() {
   return (
     <div className="games-page">
       <div className="games-hero">
-        <h1>🎮 The Good Shtick Arcade</h1>
+        <h1>🎮 Gut Shtick Arcade</h1>
         <p>Solo puzzles, relaxing games, head-to-head duels, or multiplayer parties — all tracked for logged-in players.</p>
       </div>
 

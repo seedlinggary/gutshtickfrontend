@@ -238,7 +238,7 @@ export default function Hock() {
           </button>
         </div>
         <p style={{ color: 'var(--muted)', marginTop: 0 }}>
-          The Good Shtick's discussion forum — start a conversation, weigh in, and vote.
+          Gut Shtick's discussion forum — start a conversation, weigh in, and vote.
         </p>
 
         {composing && loggedIn && (

@@ -43,7 +43,7 @@ const SignUp = () => {
   return (
     <div className="auth-page">
       <div className="auth-card">
-        <span className="auth-brand">The Good Shtick</span>
+        <span className="auth-brand">Gut Shtick</span>
         <h2 className="auth-title">Create an account</h2>
         <p className="auth-subtitle">Join the community and start sharing good stuff.</p>
 

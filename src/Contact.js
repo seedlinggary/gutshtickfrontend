@@ -37,8 +37,8 @@ const Contact = () => {
           <p>
             Want to submit content? Notice something off? Just want to say hi?
             We read every message. You can also reach us directly at{' '}
-            <a href="mailto:seedling.gary@gmail.com" style={{ color: 'var(--accent)' }}>
-              seedling.gary@gmail.com
+            <a href="mailto:orders@kolstock.com" style={{ color: 'var(--accent)' }}>
+              orders@kolstock.com
             </a>
             .
           </p>

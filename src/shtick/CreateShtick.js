@@ -69,7 +69,7 @@ const CreateShtick = () => {
     <div className="create-page">
       <div className="gs-container">
         <div className="create-card">
-          <h2 className="create-title">Share Good Shtick</h2>
+          <h2 className="create-title">Share Gut Shtick</h2>
           <p className="create-subtitle">Post something worth sharing — a quote, link, image, or just a great caption.</p>
           <p className="create-subtitle" style={{ marginTop: -8, marginBottom: 18 }}>
             Every post is reviewed before it goes live — see our{' '}

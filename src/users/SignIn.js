@@ -49,7 +49,7 @@ const SignIn = () => {
     return (
       <div className="auth-page">
         <div className="auth-card" style={{ textAlign: 'center' }}>
-          <span className="auth-brand">The Good Shtick</span>
+          <span className="auth-brand">Gut Shtick</span>
           <h2 className="auth-title">You're signed in</h2>
           <p className="auth-subtitle">Signed in as <strong>{storedEmail}</strong></p>
           <div style={{ display: 'inline-block', padding: '4px 12px', background: 'var(--accent)', borderRadius: 20, fontSize: 13, color: '#fff', marginBottom: 16 }}>
@@ -69,7 +69,7 @@ const SignIn = () => {
   return (
     <div className="auth-page">
       <div className="auth-card">
-        <span className="auth-brand">The Good Shtick</span>
+        <span className="auth-brand">Gut Shtick</span>
         <h2 className="auth-title">Welcome back</h2>
         <p className="auth-subtitle">Sign in to your account to continue.</p>
 
