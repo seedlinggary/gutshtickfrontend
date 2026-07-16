@@ -26,20 +26,35 @@ const FeedHome = ({ feed, error, isLoading, fetchLimitsLoaded, fetchData }) => {
   // Slots are indexed by position and never removed on dismiss (only nulled
   // out), so earlier slots stay stable as later ones get appended.
   const [feedAds, setFeedAds] = useState([]);
+  const feedAdsRef = useRef(feedAds);
+  feedAdsRef.current = feedAds;
   const fetchingRef = useRef(false);
   const neededAdCount = feed ? Math.floor(feed.length / AD_EVERY_N_POSTS) : 0;
 
   useEffect(() => {
-    if (neededAdCount <= feedAds.length || fetchingRef.current) return;
-    const toFetch = neededAdCount - feedAds.length;
+    const current = feedAdsRef.current;
+    if (neededAdCount <= current.length || fetchingRef.current) return;
+    const toFetch = neededAdCount - current.length;
     fetchingRef.current = true;
-    const exclude = [...getDismissedIds(), ...feedAds.filter(Boolean).map((a) => a.id)].join(',');
+    const exclude = [...getDismissedIds(), ...current.filter(Boolean).map((a) => a.id)].join(',');
     const qs = `?placement=feed&count=${toFetch}${exclude ? `&exclude=${exclude}` : ''}`;
     apiRequest('GET', null, `/ads/serve_many${qs}`)
-      .then((data) => setFeedAds((prev) => [...prev, ...(Array.isArray(data) ? data : [])]))
+      .then((data) => {
+        // Only touch state (and thus feedAds) when there's genuinely
+        // something new. This effect depends on neededAdCount alone, not
+        // feedAds itself -- reacting to feedAds too used to mean an empty
+        // response (ad inventory exhausted for this placement/targeting)
+        // still produced a *new* array reference via the spread below,
+        // which re-triggered this same effect, which fetched again, forever
+        // -- an actual infinite request loop once a visitor's eligible ad
+        // pool ran dry, hammering /ads/serve_many and re-rendering non-stop.
+        if (Array.isArray(data) && data.length > 0) {
+          setFeedAds((prev) => [...prev, ...data]);
+        }
+      })
       .catch(() => {})
       .finally(() => { fetchingRef.current = false; });
-  }, [neededAdCount, feedAds]);
+  }, [neededAdCount]);
 
   const dismissFeedAd = (slotIdx) => {
     const ad = feedAds[slotIdx];
