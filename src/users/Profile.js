@@ -16,6 +16,45 @@ const StatusBadge = ({ v }) => (
   </span>
 );
 
+function PunchCard() {
+  const [streak, setStreak] = useState(null);
+
+  useEffect(() => {
+    apiRequest('GET', null, '/user/me/streak').then(setStreak).catch(() => {});
+  }, []);
+
+  if (!streak) return null;
+
+  const slots = Array.from({ length: 7 }, (_, i) => i < streak.current_streak);
+  const toNextStamp = Math.max(0, 5 - streak.current_streak);
+
+  return (
+    <div className="punch-card">
+      <div className="punch-card-head">
+        <span className="card-kind">Your ticket book</span>
+        {streak.is_regular && <span className="admin-badge approved">Regular</span>}
+      </div>
+      <h3 style={{ fontSize: 19, marginTop: 4 }}>
+        {streak.current_streak > 0
+          ? `${streak.current_streak}-day streak`
+          : "Start today's streak"}
+      </h3>
+      <p style={{ fontSize: 13, color: 'var(--muted)', marginTop: 2 }}>
+        {streak.is_regular
+          ? `${streak.distinct_days} days on the board, and counting.`
+          : toNextStamp > 0
+            ? `${toNextStamp} more day${toNextStamp === 1 ? '' : 's'} for Regular status.`
+            : 'Come back tomorrow to keep it going.'}
+      </p>
+      <div className="punch-row">
+        {slots.map((filled, i) => (
+          <div key={i} className={`punch${filled ? ' filled' : ''}`}>{filled ? '✓' : i + 1}</div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function MyActivity() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -40,6 +79,7 @@ function MyActivity() {
 
   return (
     <div className="profile-activity">
+      <PunchCard />
       <section style={{ marginBottom: 28 }}>
         <h3 className="shtick-caption">📰 Your Feed Posts ({shticks.length})</h3>
         {shticks.length === 0 && <p className="admin-empty">No feed posts yet.</p>}

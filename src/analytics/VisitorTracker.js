@@ -28,18 +28,13 @@ function getOrCreateAnonId() {
  * same-origin only, so it isn't subject to any of that -- same reason the
  * JWT auth token already lives in localStorage instead of a cookie.
  *
- * Tracking is OFF by default on localhost/127.0.0.1/0.0.0.0 dev machines, so
- * local development never pollutes real visitor analytics reported to
- * advertisers. To test tracking locally, open the browser console and run:
- *
- *   localStorage.setItem('force_analytics', 'true')
- *
- * then reload (localStorage.removeItem('force_analytics') to go back to
- * normal). That flips this component's own gate AND is sent through as
- * `force: true` in the beacon body, because the backend has its own
- * independent localhost check too (a deliberate belt-and-braces second
- * check -- see backend/analytics/routes/visitor.py) that would otherwise
- * silently no-op the DB write even if this component fired the request.
+ * Tracking is unconditionally OFF on localhost/127.0.0.1/0.0.0.0 dev
+ * machines -- no override, no escape hatch. (An earlier version had a
+ * `force_analytics` localStorage flag for exercising the write path from a
+ * dev machine; removed because that traffic was still landing in the
+ * production table even though the dashboard filtered it back out.) The
+ * backend has its own independent localhost check too (a deliberate
+ * belt-and-braces second gate -- see backend/analytics/routes/visitor.py).
  *
  * Mount once, high in the tree, inside the Router (needs useLocation()) --
  * e.g. inside <BrowserRouter> in App.js, alongside the route definitions.
@@ -49,9 +44,7 @@ export default function VisitorTracker() {
 
   useEffect(() => {
     const isLocalHost = LOCAL_HOSTNAMES.includes(window.location.hostname);
-    const forceAnalytics = localStorage.getItem('force_analytics') === 'true';
-    const trackingActive = !isLocalHost || forceAnalytics;
-    if (!trackingActive) return;
+    if (isLocalHost) return;
 
     // Same localStorage key ApiRequest.js uses for the logged-in-user JWT.
     // Sending it (when present) lets the backend link this anonymous
@@ -69,7 +62,6 @@ export default function VisitorTracker() {
       body: JSON.stringify({
         anon_id: anonId,
         path: location.pathname,
-        force: forceAnalytics,
       }),
     }).catch(() => {
       // Analytics must never break the app -- swallow network errors silently.

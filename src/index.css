@@ -1,22 +1,32 @@
 :root {
-  --bg: #f8fafc;
-  --surface: #ffffff;
-  --primary: #0f172a;
-  --accent: #f59e0b;
-  --accent-hover: #d97706;
-  --text: #1e293b;
-  --muted: #64748b;
-  --border: #e2e8f0;
+  /* The Daily Board palette -- warm kraft paper + deli mustard, not a
+     generic SaaS blue/white. --bg/--surface/--primary/--accent etc. keep
+     their original names on purpose so every existing var() reference
+     across the codebase repaints without a find-and-replace. */
+  --bg: #f5efdd;
+  --surface: #fbf7ea;
+  --surface-deep: #eae0c6;
+  --primary: #2b2318;
+  --accent: #de8a00;
+  --accent-hover: #b97300;
+  --text: #2b2318;
+  --muted: #7a6e58;
+  --muted-faint: #a89d84;
+  --border: rgba(43, 35, 24, 0.14);
   --success: #10b981;
   --danger: #ef4444;
   --info: #3b82f6;
-  --radius-sm: 6px;
-  --radius: 12px;
-  --radius-lg: 20px;
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.07), 0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
-  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.07);
+  --hot: #b3402a;
+  --fresh: #5b7a4c;
+  --radius-sm: 4px;
+  --radius: 8px;
+  --radius-lg: 16px;
+  --shadow-sm: 0 1px 2px rgba(43, 35, 24, 0.10), 0 1px 2px rgba(43, 35, 24, 0.06);
+  --shadow: 0 4px 12px rgba(43, 35, 24, 0.12), 0 2px 6px rgba(43, 35, 24, 0.06);
+  --shadow-lg: 0 12px 32px rgba(43, 35, 24, 0.16), 0 4px 12px rgba(43, 35, 24, 0.08);
   --transition: 180ms ease;
+  --font-serif: Georgia, "Iowan Old Style", "Palatino Linotype", Palatino, "Times New Roman", serif;
+  --font-mono: "Courier New", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
 *, *::before, *::after {
@@ -47,10 +57,12 @@ body {
 }
 
 h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-serif);
   font-weight: 700;
   line-height: 1.3;
   color: var(--text);
   margin: 0 0 0.5rem;
+  text-wrap: balance;
 }
 
 a {
@@ -87,6 +99,38 @@ iframe {
 .main-content {
   flex: 1;
   padding-top: 72px;
+}
+
+/* ── Mobile tab bar -- a ticket strip standing in for a hamburger menu on
+   small screens. Hidden entirely on desktop, where the top nav already
+   covers the same four destinations. ── */
+.mobile-tabbar {
+  display: none;
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 900;
+  background: var(--primary);
+  border-top: 3px solid var(--accent);
+  padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+}
+.mobile-tabbar-stop {
+  background: none; border: none; color: rgba(245,239,221,.55);
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: .03em;
+  padding: 6px 4px; cursor: pointer; flex: 1;
+}
+.mobile-tabbar-icon { font-size: 18px; line-height: 1; }
+.mobile-tabbar-stop.active { color: var(--accent); }
+@media (max-width: 768px) {
+  .mobile-tabbar { display: flex; }
+  .main-content { padding-bottom: 64px; }
+}
+
+/* ── UNO's hand row pins to the bottom of a full-height flex column
+   (marginTop: auto) -- on mobile that bottom edge lands right under the
+   fixed tab bar, clipping the cards you actually tap to play. Reserve the
+   tab bar's height so the hand always clears it. ── */
+.uno-game-page { min-height: 100vh; }
+@media (max-width: 768px) {
+  .uno-game-page { min-height: calc(100vh - 74px); padding-bottom: 74px; }
 }
 .gs-container {
   max-width: 720px;
@@ -197,6 +241,17 @@ iframe {
 }
 .gs-navbar .nav-link:hover {
   color: var(--accent);
+}
+.gs-navbar .nav-link-pin {
+  border: 1.5px dashed rgba(222,138,0,.6);
+  border-radius: 100px;
+  color: var(--accent);
+  font-weight: 700;
+  padding: 8px 14px;
+}
+.gs-navbar .nav-link-pin:hover {
+  background: rgba(222,138,0,.12);
+  border-style: solid;
 }
 .gs-navbar .navbar-notif {
   display: flex;
@@ -349,15 +404,93 @@ iframe {
   text-decoration: none;
 }
 .shtick-time {
-  font-size: 12px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
   color: var(--muted);
 }
 .shtick-caption {
-  font-size: 17px;
+  font-family: var(--font-serif);
+  font-size: 18px;
   font-weight: 700;
   color: var(--text);
   margin: 0 0 10px;
-  line-height: 1.4;
+  line-height: 1.35;
+}
+
+/* ── Card genres -- the same .gs-card shell, a different top treatment per
+   content type so a joke, a deal, a news item, and a forum thread never look
+   interchangeable. Applied via src/utils/cardGenre.js. ── */
+.gs-card.genre-joke { border-top: 3px solid var(--accent); }
+.gs-card.genre-deal {
+  border-style: dashed;
+  border-color: var(--fresh);
+  background-image: repeating-linear-gradient(135deg, transparent, transparent 10px, rgba(91,122,76,.05) 10px, rgba(91,122,76,.05) 20px);
+}
+.gs-card.genre-news { border-top: 3px double var(--muted-faint); }
+.gs-card.genre-forum { border-top: 3px solid var(--hot); border-radius: var(--radius) var(--radius) var(--radius) 3px; }
+.gs-card.genre-flyer {
+  border-style: dashed;
+  border-color: var(--muted-faint);
+}
+.gs-card.shtick-pinned {
+  border: 1.5px solid var(--accent);
+  box-shadow: var(--shadow);
+  background: var(--surface);
+}
+.gs-card.shtick-pinned .card-kind { color: var(--accent-hover); font-weight: 700; }
+.shtick-caption-pinned { font-size: 22px; }
+
+/* ── Cross-pollination strips (Hock highlight, Tachlis fresh) ── */
+.cross-strip {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 16px 18px; margin-bottom: 20px; box-shadow: var(--shadow-sm);
+}
+.cross-strip-head {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;
+}
+.cross-strip-head .card-kind { margin-bottom: 0; }
+.cross-strip-link { font-size: 12.5px; color: var(--accent-hover); font-weight: 600; text-decoration: none; }
+.cross-heat { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+.cross-heat-bar { width: 56px; height: 5px; border-radius: 3px; background: var(--border); overflow: hidden; }
+.cross-heat-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--hot)); }
+.cross-heat-label { font-family: var(--font-mono); font-size: 10.5px; color: var(--muted); text-transform: uppercase; }
+.tachlis-fresh-row { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 2px; }
+.tachlis-fresh-item {
+  flex: 0 0 auto; min-width: 180px; max-width: 220px; border: 1px dashed var(--muted-faint);
+  border-radius: var(--radius-sm); padding: 10px 12px; text-decoration: none; color: var(--text);
+}
+.tachlis-fresh-item:hover { border-color: var(--accent); }
+.tachlis-fresh-title { font-size: 13px; font-weight: 700; line-height: 1.3; }
+
+/* ── Punch card (Profile streak) ── */
+.punch-card {
+  background: var(--surface-deep, var(--surface)); border: 1px dashed var(--muted-faint);
+  border-radius: var(--radius); padding: 20px; margin-bottom: 26px;
+}
+.punch-card-head { display: flex; align-items: center; justify-content: space-between; }
+.punch-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+.punch {
+  width: 32px; height: 32px; border-radius: 50%; border: 1.5px solid var(--muted-faint);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono); font-size: 12px; color: var(--muted);
+}
+.punch.filled { background: var(--accent); border-color: var(--accent-hover); color: #241500; font-weight: 700; }
+.card-kind {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted-faint);
+  display: block;
+  margin-bottom: 6px;
+}
+
+/* ── Reaction tally -- replaces a bare heart-count with a hash-mark tally,
+   the same count data, reading as something the room is keeping, not a cold
+   little icon. ── */
+.tally-marks {
+  font-family: var(--font-mono);
+  letter-spacing: 1px;
 }
 .shtick-content-block {
   background: var(--bg);
@@ -756,34 +889,67 @@ iframe {
   }
 }
 
-/* ── Hero ── */
+/* ── Hero / board masthead ── */
 .gs-hero {
-  background: linear-gradient(135deg, var(--primary) 0%, #1e293b 100%);
-  padding: 56px 20px 64px;
-  text-align: center;
+  background: var(--primary);
+  background-image: radial-gradient(circle at 1px 1px, rgba(245,239,221,.07) 1px, transparent 0);
+  background-size: 20px 20px;
+  padding: 40px 20px 34px;
+  text-align: left;
+  border-bottom: 3px solid var(--accent);
+}
+.gs-hero .gs-container { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; flex-wrap: wrap; }
+.gs-hero-edition {
+  font-family: var(--font-mono); font-size: 12px; text-transform: uppercase; letter-spacing: .1em;
+  color: var(--accent); font-weight: 700; margin-bottom: 10px; display: block;
 }
 .gs-hero-title {
-  font-size: clamp(28px, 5vw, 48px);
+  font-size: clamp(26px, 4.4vw, 40px);
   font-weight: 800;
   color: white;
-  margin-bottom: 14px;
-  letter-spacing: -0.025em;
+  letter-spacing: -0.02em;
 }
 .gs-hero-title span {
   color: var(--accent);
 }
 .gs-hero-sub {
-  font-size: 17px;
-  color: rgba(255, 255, 255, 0.68);
+  font-size: 15px;
+  color: rgba(245,239,221,.68);
   max-width: 460px;
-  margin: 0 auto 32px;
-  line-height: 1.65;
+  margin: 10px 0 0;
+  line-height: 1.6;
+  font-family: var(--font-serif);
 }
 .gs-hero-actions {
   display: flex;
-  gap: 12px;
-  justify-content: center;
+  gap: 10px;
   flex-wrap: wrap;
+}
+.gs-hero-shake {
+  font-family: var(--font-mono); font-size: 12.5px; text-transform: uppercase; letter-spacing: .04em;
+  background: transparent; border: 1.5px dashed rgba(245,239,221,.4); color: var(--paper, #f5efdd);
+  border-radius: 100px; padding: 10px 18px; cursor: pointer; transition: border-color var(--transition), color var(--transition);
+}
+.gs-hero-shake:hover { border-color: var(--accent); color: var(--accent); }
+.gs-hero-shake:disabled { opacity: .5; cursor: default; }
+
+/* ── Pin Something card -- the site-wide invitation to contribute ── */
+.pin-something {
+  display: block; width: 100%; text-align: left; cursor: pointer;
+  background: var(--surface); font: inherit; padding: 0;
+  border: 1.5px dashed var(--muted-faint);
+}
+.pin-something:hover { border-color: var(--accent); }
+.pin-something-body { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 26px 22px; }
+.pin-something-mark {
+  font-family: var(--font-serif); font-size: 26px; color: var(--accent); line-height: 1;
+  width: 38px; height: 38px; border: 1.5px solid var(--accent); border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+}
+.pin-something-prompt { font-family: var(--font-serif); font-size: 16px; color: var(--text); line-height: 1.4; }
+.pin-something-cta {
+  font-family: var(--font-mono); font-size: 11.5px; text-transform: uppercase; letter-spacing: .06em;
+  color: var(--accent-hover); font-weight: 700;
 }
 
 /* ── Feed ── */
@@ -1278,18 +1444,29 @@ iframe {
 }
 .comments-toggle:hover { color: var(--primary); }
 .comments-body { margin-top: 10px; }
-.comment-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
-.comment-item { display: flex; gap: 10px; align-items: flex-start; }
+/* ── Stacked-note comments -- each reply reads as its own little note tacked
+   below the post, not a row in a list. Alternating rotation via nth-child is
+   the same trick a real corkboard's overlapping notes give you for free. ── */
+.comment-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+.comment-item {
+  display: flex; gap: 10px; align-items: flex-start;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 3px var(--radius) var(--radius) var(--radius);
+  box-shadow: var(--shadow-sm); padding: 10px 12px;
+}
+.comment-item:nth-child(3n+1) { transform: rotate(-0.6deg); }
+.comment-item:nth-child(3n+2) { transform: rotate(0.5deg); margin-left: 14px; }
+.comment-item:nth-child(3n+3) { transform: rotate(-0.3deg); margin-left: 6px; }
 .comment-avatar {
   width: 28px; height: 28px; min-width: 28px; border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent), #e879f9);
-  color: #fff; font-weight: 700; font-size: 12px;
+  background: var(--accent);
+  color: #241500; font-weight: 700; font-size: 12px; font-family: var(--font-serif);
   display: flex; align-items: center; justify-content: center;
 }
 .comment-content { flex: 1; }
 .comment-meta { display: flex; gap: 8px; align-items: center; margin-bottom: 2px; flex-wrap: wrap; }
-.comment-author { font-size: 13px; font-weight: 700; color: var(--primary); }
-.comment-time { font-size: 11px; color: var(--muted); }
+.comment-author { font-size: 13px; font-weight: 700; color: var(--primary); font-family: var(--font-serif); }
+.comment-time { font-size: 11px; color: var(--muted); font-family: var(--font-mono); }
 .comment-delete {
   background: none; border: none; color: var(--muted); cursor: pointer;
   font-size: 14px; padding: 0 4px; margin-left: auto; line-height: 1;
@@ -1496,12 +1673,15 @@ iframe {
 }
 .mp-player-dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; }
 .mp-player-name {
-  flex: 1; min-width: 100px; padding: 5px 10px; border: 1px solid var(--border);
+  flex: 1; min-width: 100px; min-height: 40px; padding: 8px 10px; border: 1px solid var(--border);
   border-radius: var(--radius-sm); font-size: 14px; background: var(--surface); color: var(--text);
 }
 .mp-player-name:disabled { opacity: 0.6; }
-.mp-bot-toggle { display: flex; align-items: center; gap: 5px; font-size: 13px; cursor: pointer; white-space: nowrap; }
-.mp-bot-toggle input { cursor: pointer; }
+.mp-bot-toggle {
+  display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer;
+  white-space: nowrap; min-height: 40px; padding: 4px 2px;
+}
+.mp-bot-toggle input { cursor: pointer; width: 20px; height: 20px; }
 .mp-bot-diff {
   padding: 4px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm);
   font-size: 12px; background: var(--surface); color: var(--text); cursor: pointer;
@@ -1515,6 +1695,15 @@ iframe {
 /* ── Game pages (shared layout) ── */
 .game-page { max-width: 860px; margin: 0 auto; padding: 24px 20px 80px; }
 .game-header { margin-bottom: 20px; }
+@media (max-width: 640px) {
+  /* Trims the stack above the canvas so on-screen D-pads (Snake, 2048) land
+     closer to the fold instead of requiring a scroll before the first move. */
+  .game-page { padding-top: 14px; }
+  .game-header { margin-bottom: 10px; }
+  .game-controls-bar { margin-bottom: 8px; }
+  .game-stats-bar { margin-bottom: 8px; padding: 6px 12px; }
+  .snake-score-row { margin-bottom: 4px; }
+}
 .game-back { font-size: 13px; color: var(--muted); text-decoration: none; font-weight: 600; }
 .game-back:hover { color: var(--primary); }
 .game-title { font-size: 28px; font-weight: 800; color: var(--primary); margin: 6px 0 2px; }

@@ -115,8 +115,8 @@ function AppNavbar() {
             </li>
 
             <li className="nav-item"><button className="nav-link" onClick={() => go('/hock')}>🗣️ Hock</button></li>
-            <li className="nav-item"><button className="nav-link" onClick={() => go('/tachlis')}>💼 Tachlis</button></li>
-            <li className="nav-item"><button className="nav-link" onClick={() => go('/games')}>🎮 Games</button></li>
+            <li className="nav-item"><button className="nav-link" onClick={() => go('/tachlis')}>📌 Tachlis</button></li>
+            <li className="nav-item"><button className="nav-link" onClick={() => go('/games')}>☕ Coffee Break</button></li>
 
             {boss && (
               <li className="nav-item dropdown" ref={adminRef}>
@@ -139,12 +139,18 @@ function AppNavbar() {
             {email ? (
               <>
                 <li className="nav-item navbar-notif"><NotificationBell /></li>
-                <li className="nav-item"><button className="nav-link" onClick={() => go('/CreateShtick')}>+ Post</button></li>
+                <li className="nav-item"><button className="nav-link nav-link-pin" onClick={() => go('/CreateShtick')}>＋ Pin Something</button></li>
                 <li className="nav-item"><button className="nav-link" onClick={() => go('/profile')}>Profile</button></li>
                 <li className="nav-item"><button className="nav-link" onClick={handleSignOut}>Sign Out</button></li>
               </>
             ) : (
               <>
+                {/* Visible logged-out too -- previously this whole button was hidden
+                    pre-login, so a visitor never saw an invitation to contribute
+                    anywhere on the site. */}
+                <li className="nav-item">
+                  <button className="nav-link nav-link-pin" onClick={() => go('/signup?next=%2FCreateShtick')}>＋ Pin Something</button>
+                </li>
                 <li className="nav-item"><button className="nav-link" onClick={() => go('/signin')}>Sign In</button></li>
                 <li className="nav-item"><button className="nav-link" onClick={() => go('/signup')}>Sign Up</button></li>
               </>

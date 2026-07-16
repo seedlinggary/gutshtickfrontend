@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link, useParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link, useParams } from 'react-router-dom';
 import apiRequest from '../ApiRequest';
 
 const SignUp = () => {
@@ -14,6 +14,8 @@ const SignUp = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { paymentcanceled } = useParams();
+  const [searchParams] = useSearchParams();
+  const next = searchParams.get('next');
 
   const set = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }));
 
@@ -32,7 +34,7 @@ const SignUp = () => {
     setLoading(true);
     try {
       await apiRequest('POST', form, '/user');
-      navigate('/signin');
+      navigate(next ? `/signin?next=${encodeURIComponent(next)}` : '/signin');
     } catch (err) {
       setError(typeof err === 'string' ? err : 'Sign-up failed. That email or profile name may already be taken.');
     } finally {

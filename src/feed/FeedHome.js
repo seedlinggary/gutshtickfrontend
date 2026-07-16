@@ -1,13 +1,20 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useParams } from 'react-router-dom';
 import ShowMessage from './ShowMessage';
+import BoardHockCard from './BoardHockCard';
+import BoardTachlisCard from './BoardTachlisCard';
 import { AdCard, getDismissedIds, dismissAdId } from '../ads/AdSlot';
 import apiRequest from '../ApiRequest';
 import { connect } from 'react-redux';
 import { fetchLimitsLoaded, fetchData } from '../actions';
+import PinSomethingCard from '../PinSomethingCard';
 
 const AD_EVERY_N_POSTS = 5;
 
 const FeedHome = ({ feed, error, isLoading, fetchLimitsLoaded, fetchData }) => {
+  const { category_id } = useParams();
+  const isRoot = !category_id;
+
   const handleLoadMore = () => {
     fetchLimitsLoaded();
     fetchData();
@@ -63,18 +70,51 @@ const FeedHome = ({ feed, error, isLoading, fetchLimitsLoaded, fetchData }) => {
       <div className="gs-empty">
         <p style={{ fontSize: 40, marginBottom: 8 }}>🤷</p>
         <p>Nothing here yet. Check back soon!</p>
+        {isRoot && (
+          <div style={{ maxWidth: 360, margin: '20px auto 0' }}>
+            <PinSomethingCard to="/CreateShtick" prompt="Be the first to pin something today." cta="Pin something" />
+          </div>
+        )}
       </div>
     );
   }
 
+  // The day's editorial pin: whatever's getting the most engagement on the
+  // page you already fetched -- no extra request, just a different
+  // treatment for the post that's clearly resonating right now. Only ever a
+  // Shtick (ShowMessage renders a Shtick's shape) -- the board feed also
+  // mixes in Hock/Tachlis items (kind: 'hock' | 'tachlis'), which aren't
+  // eligible for the pin slot.
+  const isShtick = (m) => !m.kind || m.kind === 'shtick';
+  const pinned = isRoot
+    ? feed.filter(isShtick).reduce((best, m) => {
+        const score = (m.likes?.length || 0) + (m.comments?.length || 0);
+        const bestScore = best ? (best.likes?.length || 0) + (best.comments?.length || 0) : -1;
+        return score > bestScore ? m : best;
+      }, null)
+    : null;
+
   return (
     <div>
+      {isRoot && pinned && <ShowMessage message={pinned} pinned />}
+      {isRoot && (
+        <div style={{ marginBottom: 20 }}>
+          <PinSomethingCard to="/CreateShtick" prompt="Got something good? Pin it to the board." cta="Pin something" />
+        </div>
+      )}
       {feed.map((message, idx) => {
+        if (isRoot && pinned && isShtick(message) && message.id === pinned.id) return null;
         const isAdSlot = (idx + 1) % AD_EVERY_N_POSTS === 0;
         const slotIdx = isAdSlot ? Math.floor(idx / AD_EVERY_N_POSTS) : null;
         return (
-          <React.Fragment key={message.id}>
-            <ShowMessage message={message} />
+          <React.Fragment key={`${message.kind || 'shtick'}-${message.id}`}>
+            {message.kind === 'hock' ? (
+              <BoardHockCard post={message} />
+            ) : message.kind === 'tachlis' ? (
+              <BoardTachlisCard post={message} />
+            ) : (
+              <ShowMessage message={message} />
+            )}
             {isAdSlot && (
               <AdCard ad={feedAds[slotIdx]} onDismiss={() => dismissFeedAd(slotIdx)} />
             )}

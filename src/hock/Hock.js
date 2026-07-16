@@ -5,6 +5,8 @@ import UploadFile from '../Uploadfile';
 import ShareButton from '../ShareButton';
 import { isLoggedIn } from '../auth';
 import timeAgo from '../utils/timeAgo';
+import { tallyMarks } from '../utils/tally';
+import PinSomethingCard from '../PinSomethingCard';
 
 const TITLE_MAX = 200;
 const BODY_MAX = 10000;
@@ -24,7 +26,18 @@ function HeartIcon({ filled }) {
   );
 }
 
-function PostCard({ post, onLikeChange }) {
+// Same shape as the existing server-side _hot_score in
+// backend/hock/routes/hock_post.py, reapplied client-side over whatever
+// page of posts is already on screen so every card can show a heat bar
+// without a second request.
+function heatPercent(post, maxScore) {
+  if (!maxScore) return 8;
+  const hours = Math.max(0, (Date.now() - new Date(post.pub_date).getTime()) / 3600000);
+  const score = ((post.like_count || 0) + (post.comment_count || 0) * 0.5) / Math.pow(hours + 2, 1.5);
+  return Math.max(8, Math.min(100, Math.round((score / maxScore) * 100)));
+}
+
+function PostCard({ post, onLikeChange, heat }) {
   const navigate = useNavigate();
   const [liked, setLiked] = useState(!!post.liked_by_me);
   const [likeCount, setLikeCount] = useState(post.like_count || 0);
@@ -51,8 +64,9 @@ function PostCard({ post, onLikeChange }) {
   const shareExcerpt = post.body?.length > 100 ? `${post.body.slice(0, 100)}…` : post.body;
 
   return (
-    <div className="gs-card">
+    <div className="gs-card genre-forum">
       <div className="gs-card-body">
+        <span className="card-kind">🗣 Hock thread</span>
         <div className="shtick-meta">
           <div className="shtick-author" style={{ flex: 1 }}>
             <div className="shtick-author-avatar">{authorInitial}</div>
@@ -64,6 +78,12 @@ function PostCard({ post, onLikeChange }) {
           </span>
           <span style={{ fontSize: 11, color: 'var(--muted)', marginLeft: 8 }} title="Post ID">#{post.id}</span>
         </div>
+        {typeof heat === 'number' && (
+          <div className="cross-heat" style={{ marginBottom: 10 }}>
+            <span className="cross-heat-bar"><span className="cross-heat-fill" style={{ width: `${heat}%` }} /></span>
+            <span className="cross-heat-label">{heat >= 60 ? '🔥 hot' : heat >= 25 ? 'warm' : 'new'}</span>
+          </div>
+        )}
 
         <Link to={`/hock/post/${post.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
           <h3 className="shtick-caption" style={{ cursor: 'pointer' }}>{post.title}</h3>
@@ -85,7 +105,7 @@ function PostCard({ post, onLikeChange }) {
             disabled={busy}
           >
             <HeartIcon filled={liked} />
-            {likeCount > 0 && <span>{likeCount}</span>}
+            {likeCount > 0 && <span className="tally-marks">{tallyMarks(likeCount)}</span>}
           </button>
           <Link to={`/hock/post/${post.id}`} className="like-btn" style={{ textDecoration: 'none' }}>
             💬 {post.comment_count || 0}
@@ -224,9 +244,15 @@ export default function Hock() {
   };
 
   const startCompose = () => {
-    if (!loggedIn) { navigate('/signin'); return; }
+    if (!loggedIn) { navigate(`/signin?next=${encodeURIComponent('/hock')}`); return; }
     setComposing((c) => !c);
   };
+
+  const maxHeatScore = posts.reduce((max, post) => {
+    const hours = Math.max(0, (Date.now() - new Date(post.pub_date).getTime()) / 3600000);
+    const score = ((post.like_count || 0) + (post.comment_count || 0) * 0.5) / Math.pow(hours + 2, 1.5);
+    return Math.max(max, score);
+  }, 0);
 
   return (
     <div className="feed-section">
@@ -283,8 +309,14 @@ export default function Hock() {
           </div>
         )}
 
+        {!loading && !error && posts.length > 0 && (
+          <div style={{ marginBottom: 20 }}>
+            <PinSomethingCard to="/hock" prompt="Got something to hock? Start a conversation." cta="Start talking" />
+          </div>
+        )}
+
         {!loading && !error && posts.map((post) => (
-          <PostCard key={post.id} post={post} />
+          <PostCard key={post.id} post={post} heat={heatPercent(post, maxHeatScore)} />
         ))}
 
         {!loading && !error && hasMore && (

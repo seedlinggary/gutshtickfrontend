@@ -35,6 +35,12 @@ const SITES = [
     blurb: 'Latest deals & posts feed.',
     defaultCount: 10,
   },
+  {
+    key: 'pzdeals',
+    name: 'PZ Deals',
+    blurb: 'Latest blog articles (title + picture only, no summary).',
+    defaultCount: 10,
+  },
 ];
 
 const STOP_LABELS = {

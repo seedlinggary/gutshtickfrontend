@@ -266,7 +266,7 @@ export default function UNO({ players, onBack }) {
 
   if (phase === 'gameEnd') {
     return (
-      <div style={s.container}>
+      <div className="uno-game-page" style={s.container}>
         <h2 style={s.title}>UNO!</h2>
         <h3 style={{ color: '#f39c12' }}>{players[winner].name} wins!</h3>
         <button style={s.btn} onClick={initGame}>Play Again</button>
@@ -278,7 +278,7 @@ export default function UNO({ players, onBack }) {
   const top = discardPile[discardPile.length - 1];
 
   return (
-    <div style={s.container}>
+    <div className="uno-game-page" style={s.container}>
       <div style={s.header}>
         <button style={s.backBtn} onClick={onBack}>← Back</button>
         <h2 style={s.title}>UNO</h2>
@@ -398,7 +398,7 @@ export default function UNO({ players, onBack }) {
 }
 
 const s = {
-  container: { background: '#1a2634', minHeight: '100vh', padding: 16, color: '#ecf0f1', fontFamily: 'Arial, sans-serif', display: 'flex', flexDirection: 'column' },
+  container: { background: '#1a2634', padding: 16, color: '#ecf0f1', fontFamily: 'Arial, sans-serif', display: 'flex', flexDirection: 'column' },
   header: { display: 'flex', alignItems: 'center', gap: 16, marginBottom: 12, flexWrap: 'wrap' },
   title: { margin: 0, fontSize: 24, color: '#f39c12', flex: 1 },
   backBtn: { background: '#7f8c8d', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: 6, cursor: 'pointer', minHeight: 40 },

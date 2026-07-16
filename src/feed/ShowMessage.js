@@ -8,6 +8,8 @@ import ShareButton from '../ShareButton';
 import { fetchCategory, fetchData } from '../actions';
 import { isLoggedIn } from '../auth';
 import formatDate from '../utils/timeAgo';
+import { cardGenre } from '../utils/cardGenre';
+import { tallyMarks } from '../utils/tally';
 
 function HeartIcon({ filled }) {
   return (
@@ -17,7 +19,7 @@ function HeartIcon({ filled }) {
   );
 }
 
-const ShowMessage = ({ message }) => {
+const ShowMessage = ({ message, pinned }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [isLikedId, setIsLikedId] = useState(false);
@@ -63,10 +65,14 @@ const ShowMessage = ({ message }) => {
 
   const authorInitial = message.user?.profile_name?.charAt(0).toUpperCase() || '?';
   const allCats = message.categories?.length ? message.categories : message.generalc ? [message.generalc] : [];
+  const genre = cardGenre(message);
 
   return (
-    <div className="gs-card">
+    <div className={`gs-card genre-${genre.genre}${pinned ? ' shtick-pinned' : ''}`}>
       <div className="gs-card-body">
+        <span className="card-kind">
+          {pinned ? '📌 Pinned by the editors' : `${genre.label} · ${allCats[0]?.name || 'Gut Shtick'}`}
+        </span>
         {/* Meta row */}
         <div className="shtick-meta">
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', flex: 1 }}>
@@ -84,7 +90,7 @@ const ShowMessage = ({ message }) => {
         </div>
 
         {/* Caption */}
-        <h3 className="shtick-caption">{message.caption}</h3>
+        <h3 className={pinned ? 'shtick-caption shtick-caption-pinned' : 'shtick-caption'}>{message.caption}</h3>
 
         {/* Content */}
         {message.content && (
@@ -126,7 +132,7 @@ const ShowMessage = ({ message }) => {
               title={isLikedId ? 'Unlike' : 'Like'}
             >
               <HeartIcon filled={!!isLikedId} />
-              {likeCount > 0 && <span>{likeCount}</span>}
+              {likeCount > 0 && <span className="tally-marks">{tallyMarks(likeCount)}</span>}
             </button>
             <ShareButton
               title="Gut Shtick"

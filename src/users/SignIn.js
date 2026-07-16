@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import base64 from 'base-64';
 import { getEmail, clearAuth, saveAuth } from '../auth';
 
@@ -9,6 +9,8 @@ const SignIn = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const next = searchParams.get('next');
 
   const storedEmail = getEmail();
 
@@ -35,7 +37,7 @@ const SignIn = () => {
         return;
       }
       saveAuth(data, email);
-      navigate('/');
+      navigate(next || '/');
     } catch (_) {
       setError('Unable to connect. Make sure the server is running.');
     } finally {
@@ -117,7 +119,7 @@ const SignIn = () => {
 
         <div className="auth-footer">
           Don't have an account?{' '}
-          <Link to="/signup">Sign Up</Link>
+          <Link to={next ? `/signup?next=${encodeURIComponent(next)}` : '/signup'}>Sign Up</Link>
         </div>
       </div>
     </div>

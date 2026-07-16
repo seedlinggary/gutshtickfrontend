@@ -25,6 +25,7 @@ import About from './About';
 import Contact from './Contact';
 import NotFound from './NotFound';
 import AppNavbar from './Navbar';
+import MobileTabBar from './MobileTabBar';
 import Footer from './Footer';
 import ScrollToTop from './ScrollToTop';
 import VisitorTracker from './analytics/VisitorTracker';
@@ -133,6 +134,7 @@ function App() {
         <ScrollToTop />
         <VisitorTracker />
         <AppNavbar />
+        <MobileTabBar />
         <main className="main-content">
           <GameErrorBoundary>
           <Suspense fallback={<GameFallback />}>

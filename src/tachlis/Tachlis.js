@@ -4,6 +4,7 @@ import apiRequest from '../ApiRequest';
 import ShareButton from '../ShareButton';
 import { isLoggedIn } from '../auth';
 import timeAgo from '../utils/timeAgo';
+import PinSomethingCard from '../PinSomethingCard';
 
 const TITLE_MAX = 150;
 const BODY_MAX = 8000;
@@ -52,8 +53,9 @@ function PostCard({ post }) {
 
   return (
     <Link to={`/tachlis/post/${post.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-      <div className="gs-card" style={{ marginBottom: 14 }}>
+      <div className="gs-card genre-flyer" style={{ marginBottom: 14 }}>
         <div className="gs-card-body">
+          <span className="card-kind">📌 Flyer · Tachlis</span>
           <div className="shtick-meta">
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
               <TypeBadge type={post.post_type} />
@@ -275,7 +277,7 @@ export default function Tachlis() {
   };
 
   const startCompose = () => {
-    if (!loggedIn) { navigate('/signin'); return; }
+    if (!loggedIn) { navigate(`/signin?next=${encodeURIComponent('/tachlis')}`); return; }
     setComposing((c) => !c);
   };
 
@@ -331,6 +333,12 @@ export default function Tachlis() {
           <div className="gs-empty">
             <p style={{ fontSize: 40, marginBottom: 8 }}>💼</p>
             <p>{debouncedSearch ? `No posts match "${debouncedSearch}".` : 'No posts here yet. Be the first!'}</p>
+          </div>
+        )}
+
+        {!loading && !error && posts.length > 0 && (
+          <div style={{ marginBottom: 20 }}>
+            <PinSomethingCard to="/tachlis" prompt="Hiring, looking for work, or offering a service? Post a flyer." cta="Post a flyer" />
           </div>
         )}
 
