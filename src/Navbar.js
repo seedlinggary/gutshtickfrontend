@@ -5,6 +5,7 @@ import useFetch from './UseFetch';
 import { fetchCategory, fetchData } from './actions';
 import { getEmail, getToken, isAdmin, isSuperAdmin, clearAuth } from './auth';
 import NotificationBell from './NotificationBell';
+import NavStreakChip from './NavStreakChip';
 
 function useOutsideClose(open, setOpen) {
   const ref = useRef(null);
@@ -138,6 +139,7 @@ function AppNavbar() {
           <ul className="navbar-nav navbar-nav-end">
             {email ? (
               <>
+                <li className="nav-item"><NavStreakChip /></li>
                 <li className="nav-item navbar-notif"><NotificationBell /></li>
                 <li className="nav-item"><button className="nav-link nav-link-pin" onClick={() => go('/CreateShtick')}>＋ Pin Something</button></li>
                 <li className="nav-item"><button className="nav-link" onClick={() => go('/profile')}>Profile</button></li>

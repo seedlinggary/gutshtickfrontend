@@ -15,7 +15,7 @@ export default function BoardHockCard({ post }) {
 
   return (
     <Link to={`/hock/post/${post.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-      <div className="gs-card genre-forum" style={{ marginBottom: 14 }}>
+      <div className="gs-card genre-forum cross-post" style={{ marginBottom: 14 }}>
         <div className="gs-card-body">
           <span className="card-kind">🗣 From Hock</span>
           <div className="shtick-meta">

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import apiRequest from '../ApiRequest';
+import { useDispatch } from 'react-redux';
+import { isLoggedIn } from '../auth';
+import { shakeBoard } from '../actions';
 
 // Edition number counts up once a day from a fixed anchor -- purely cosmetic
 // (no backend concept of an "edition"), but it's what makes the board read
@@ -18,14 +20,19 @@ function todayLabel() {
 
 export default function DailyBoardHero() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [shaking, setShaking] = useState(false);
 
   const shakeTheBoard = async () => {
     if (shaking) return;
     setShaking(true);
     try {
-      const pick = await apiRequest('GET', null, '/shtick/random');
-      if (pick?.id) navigate(`/post/${pick.id}`);
+      // Reshuffles the board you're already looking at (a fresh random
+      // order, new Hock/Tachlis picks) rather than jumping away to one
+      // unrelated post -- see actions.js's shakeBoard for why this needs
+      // its own action instead of reusing fetchData().
+      await dispatch(shakeBoard());
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (_) {
       // No luck this time -- the board just stays put, nothing to break.
     } finally {
@@ -37,18 +44,25 @@ export default function DailyBoardHero() {
     <div className="gs-hero">
       <div className="gs-container">
         <div>
-          <span className="gs-hero-edition">{todayLabel()} · Edition #{editionNumber()}</span>
+          <span className="gs-hero-edition">☀️ {todayLabel()} · The Daily Board #{editionNumber()}</span>
           <h1 className="gs-hero-title">
-            The Daily <span>Board</span>
+            What's <span>good</span> today?
           </h1>
           <p className="gs-hero-sub">
-            Curated content from across the web — filtered, approved, and pinned up fresh.
-            No noise. Just the good stuff.
+            A little humor, a few good deals, and whatever the community's talking about.
+            Grab a coffee and scroll.
           </p>
         </div>
         <div className="gs-hero-actions">
           <button type="button" className="gs-hero-shake" onClick={shakeTheBoard} disabled={shaking}>
-            {shaking ? 'shaking…' : '🎲 shake the board'}
+            {shaking ? 'shaking…' : '🎲 Shake the board'}
+          </button>
+          <button
+            type="button"
+            className="gs-hero-pin"
+            onClick={() => navigate(isLoggedIn() ? '/CreateShtick' : '/signup?next=%2FCreateShtick')}
+          >
+            ＋ Pin something
           </button>
         </div>
       </div>

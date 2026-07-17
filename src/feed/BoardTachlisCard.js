@@ -33,7 +33,7 @@ export default function BoardTachlisCard({ post }) {
 
   return (
     <Link to={`/tachlis/post/${post.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-      <div className="gs-card genre-flyer" style={{ marginBottom: 14 }}>
+      <div className="gs-card genre-flyer cross-post" style={{ marginBottom: 14 }}>
         <div className="gs-card-body">
           <span className="card-kind">📌 From Tachlis</span>
           <div className="shtick-meta">

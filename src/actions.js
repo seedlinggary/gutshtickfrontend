@@ -42,6 +42,24 @@ export const fetchLimitsLoaded = () => (dispatch) => {
   dispatch({ type: 'ADD_LIMIT' });
 };
 
+// "Shake the Board" -- re-rolls the Home board's feed in place with a fresh
+// random shuffle (see backend's /shtick/shake_board) instead of appending or
+// navigating away. Bypasses the isLoading/isDataFetched guards fetchData()
+// uses for pagination since this is a deliberate one-off user action, not a
+// dispatch that could race the bootstrap/mount fetches.
+export const shakeBoard = () => async (dispatch) => {
+  const cookie = localStorage.getItem('cookie');
+  const headers = { 'Content-Type': 'application/json', 'x-access-token': cookie };
+  dispatch({ type: 'FETCH_START' });
+  try {
+    const feedRes = await fetch(`${API}/shtick/shake_board`, { method: 'GET', headers });
+    const feed = await feedRes.json();
+    dispatch({ type: 'SHAKE_SUCCESS', payload: { feed } });
+  } catch (err) {
+    dispatch({ type: 'FETCH_ERROR', payload: err.message });
+  }
+};
+
 export const fetchCategory = (shtickgeneralc) => (dispatch) => {
   dispatch({ type: 'CHANGE_CATEGORY', payload: { shtickgeneralc } });
 };

@@ -117,25 +117,41 @@ const FeedHome = ({ feed, error, isLoading, fetchLimitsLoaded, fetchData }) => {
           <PinSomethingCard to="/CreateShtick" prompt="Got something good? Pin it to the board." cta="Pin something" />
         </div>
       )}
-      {feed.map((message, idx) => {
-        if (isRoot && pinned && isShtick(message) && message.id === pinned.id) return null;
-        const isAdSlot = (idx + 1) % AD_EVERY_N_POSTS === 0;
-        const slotIdx = isAdSlot ? Math.floor(idx / AD_EVERY_N_POSTS) : null;
-        return (
-          <React.Fragment key={`${message.kind || 'shtick'}-${message.id}`}>
-            {message.kind === 'hock' ? (
-              <BoardHockCard post={message} />
-            ) : message.kind === 'tachlis' ? (
-              <BoardTachlisCard post={message} />
-            ) : (
-              <ShowMessage message={message} />
-            )}
-            {isAdSlot && (
-              <AdCard ad={feedAds[slotIdx]} onDismiss={() => dismissFeedAd(slotIdx)} />
-            )}
-          </React.Fragment>
-        );
-      })}
+      {(() => {
+        // The first Hock pick in the whole session gets a one-time, friendly
+        // nudge right before it ("you're a few posts in, Hock's got
+        // something going") -- a gentle pull deeper into the scroll rather
+        // than letting it go flat. Only once per load: repeating this on
+        // every page would turn a nudge into nagging.
+        let nudgeShown = false;
+        return feed.map((message, idx) => {
+          if (isRoot && pinned && isShtick(message) && message.id === pinned.id) return null;
+          const isAdSlot = (idx + 1) % AD_EVERY_N_POSTS === 0;
+          const slotIdx = isAdSlot ? Math.floor(idx / AD_EVERY_N_POSTS) : null;
+          const showNudge = isRoot && !nudgeShown && message.kind === 'hock';
+          if (showNudge) nudgeShown = true;
+          return (
+            <React.Fragment key={`${message.kind || 'shtick'}-${message.id}`}>
+              {showNudge && (
+                <div className="feed-nudge">
+                  <span className="feed-nudge-emoji">👀</span>
+                  <p>Hock's got a live conversation going — take a peek?</p>
+                </div>
+              )}
+              {message.kind === 'hock' ? (
+                <BoardHockCard post={message} />
+              ) : message.kind === 'tachlis' ? (
+                <BoardTachlisCard post={message} />
+              ) : (
+                <ShowMessage message={message} />
+              )}
+              {isAdSlot && (
+                <AdCard ad={feedAds[slotIdx]} onDismiss={() => dismissFeedAd(slotIdx)} />
+              )}
+            </React.Fragment>
+          );
+        });
+      })()}
       <div style={{ textAlign: 'center', paddingTop: 8, paddingBottom: 24 }}>
         <button className="gs-btn gs-btn-outline" onClick={handleLoadMore} disabled={isLoading}>
           {isLoading ? 'Loading…' : 'Load more'}
