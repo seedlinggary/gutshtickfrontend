@@ -52,6 +52,8 @@ const VersusWrapper       = lazy(() => import('./games/versus/VersusWrapper'));
 const MultiWrapper        = lazy(() => import('./games/multi/MultiWrapper'));
 
 // ── Original solo games (lazy — same treatment as the newer ones below) ───────
+const Categories       = lazy(() => import('./games/Categories'));
+const TriviaRush       = lazy(() => import('./games/TriviaRush'));
 const Hangman         = lazy(() => import('./games/Hangman'));
 const Snake           = lazy(() => import('./games/Snake'));
 const Sudoku          = lazy(() => import('./games/Sudoku'));
@@ -81,6 +83,7 @@ const Nurikabe      = lazy(() => import('./games/solo/Nurikabe'));
 const Mastermind    = lazy(() => import('./games/solo/Mastermind'));
 
 // ── Relaxing games (lazy — no scores/leaderboards, just something to do) ──────
+const BagelFlight     = lazy(() => import('./games/BagelFlight'));
 const Tetris         = lazy(() => import('./games/Tetris'));
 const PacMan         = lazy(() => import('./games/PacMan'));
 const Frogger        = lazy(() => import('./games/Frogger'));
@@ -107,6 +110,9 @@ const LightTrails    = lazy(() => import('./games/relaxing/LightTrails'));
 const StainedGlass   = lazy(() => import('./games/relaxing/StainedGlass'));
 const Constellation  = lazy(() => import('./games/relaxing/Constellation'));
 const DrawStudio     = lazy(() => import('./games/relaxing/DrawStudio'));
+
+// ── Survival (lazy — infinite deckbuilder roguelikes, scored by level reached) ──
+const TheAscent      = lazy(() => import('./games/TheAscent'));
 
 import SoloGameShell from './games/SoloGameShell';
 import { isLoggedIn, isAdmin, isSuperAdmin } from './auth';
@@ -166,6 +172,8 @@ function App() {
               <Route path="/games" element={<Games />} />
 
               {/* ── Original solo games ── */}
+              <Route path="/games/categories"   element={<SoloGameShell><Categories /></SoloGameShell>} />
+              <Route path="/games/trivia-rush"  element={<SoloGameShell><TriviaRush /></SoloGameShell>} />
               <Route path="/games/hangman"      element={<SoloGameShell><Hangman /></SoloGameShell>} />
               <Route path="/games/snake"        element={<SoloGameShell><Snake /></SoloGameShell>} />
               <Route path="/games/sudoku"       element={<SoloGameShell><Sudoku /></SoloGameShell>} />
@@ -193,8 +201,10 @@ function App() {
               <Route path="/games/hashi"         element={<SoloGameShell><Hashi /></SoloGameShell>} />
               <Route path="/games/nurikabe"      element={<SoloGameShell><Nurikabe /></SoloGameShell>} />
               <Route path="/games/mastermind"    element={<SoloGameShell><Mastermind /></SoloGameShell>} />
+              <Route path="/games/the-ascent"    element={<SoloGameShell><TheAscent /></SoloGameShell>} />
 
               {/* ── Nostalgic arcade ── */}
+              <Route path="/games/bagel-flight"     element={<SoloGameShell><BagelFlight /></SoloGameShell>} />
               <Route path="/games/tetris"           element={<SoloGameShell><Tetris /></SoloGameShell>} />
               <Route path="/games/pacman"           element={<SoloGameShell><PacMan /></SoloGameShell>} />
               <Route path="/games/frogger"          element={<SoloGameShell><Frogger /></SoloGameShell>} />

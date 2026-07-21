@@ -104,7 +104,13 @@ export default function AdminAiPosts() {
               onChange={(e) => setIncludeImage(e.target.checked)}
               disabled={loading}
             />
-            <span>Include AI-generated images <em style={{ opacity: 0.7 }}>(slower &amp; costs more)</em></span>
+            <span>
+              Include images <em style={{ opacity: 0.7 }}>(slower &amp; costs more)</em>
+              <br />
+              <span style={{ fontSize: 12.5, opacity: 0.7, fontWeight: 400 }}>
+                A real photo from Pexels when one matches the post, otherwise an AI-generated illustration.
+              </span>
+            </span>
           </label>
 
           <button

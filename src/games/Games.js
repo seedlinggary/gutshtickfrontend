@@ -6,6 +6,8 @@ import AdSlot from '../ads/AdSlot';
 import ShareButton from '../ShareButton';
 
 const SOLO_GAMES = [
+  { id: 'categories',   path: '/games/categories',     title: 'Categories',    icon: '🧠', color: '#f26d3d', tags: ['Word','Daily'],       desc: 'Sort 16 words into 4 hidden groups. A new puzzle every day.' },
+  { id: 'trivia_rush',  path: '/games/trivia-rush',    title: 'Trivia Rush',   icon: '❓', color: '#0ea5e9', tags: ['Trivia','Daily'],     desc: '10 timed questions, same for everyone, every day.' },
   { id: 'hangman',      path: '/games/hangman',        title: 'Hangman',       icon: '🪄', color: '#f59e0b', tags: ['Word','Classic'],    desc: 'Guess the hidden word one letter at a time.' },
   { id: 'snake',        path: '/games/snake',          title: 'Snake',         icon: '🐍', color: '#10b981', tags: ['Arcade','Endless'],   desc: 'Eat apples, grow longer, don\'t bite yourself.' },
   { id: 'sudoku',       path: '/games/sudoku',         title: 'Sudoku',        icon: '🔢', color: '#3b82f6', tags: ['Puzzle','Logic'],     desc: 'Fill the 9×9 grid so every row, column, and box contains 1–9.' },
@@ -37,6 +39,7 @@ const SOLO_GAMES = [
 // logic/puzzle-heavy Solo tab) so they're easy to browse as a set. Still
 // score-tracked and included in the Leaderboards dropdown like Solo games.
 const ARCADE_GAMES = [
+  { id: 'bagel_flight',    path: '/games/bagel-flight',    title: 'Bagel Flight',    icon: '🥯', color: '#f26d3d', tags: ['Arcade','Endless'], desc: 'One-button endless flyer — thread the gaps, beat your high score.' },
   { id: 'tetris',          path: '/games/tetris',          title: 'Tetris',          icon: '🧱', color: '#7c3aed', tags: ['Arcade','Classic'], desc: 'Stack falling blocks and clear lines. Speeds up every level.' },
   { id: 'pacman',          path: '/games/pacman',          title: 'Pac-Man',         icon: '🟡', color: '#facc15', tags: ['Arcade','Classic'], desc: 'Clear the maze of pellets while dodging four ghosts.' },
   { id: 'frogger',         path: '/games/frogger',         title: 'Frogger',         icon: '🐸', color: '#16a34a', tags: ['Arcade','Classic'], desc: 'Dodge traffic and ride logs to get every frog home.' },
@@ -47,6 +50,10 @@ const ARCADE_GAMES = [
   { id: 'space_invaders',  path: '/games/space-invaders',  title: 'Space Invaders',  icon: '👾', color: '#22c55e', tags: ['Arcade','Classic'], desc: 'Hold the line against a descending alien invasion.' },
   { id: 'missile_command', path: '/games/missile-command', title: 'Missile Command', icon: '🚀', color: '#f97316', tags: ['Arcade','Strategy'], desc: 'Intercept incoming missiles to defend your cities — unlock upgrades each wave.' },
   { id: 'tank_duel',       path: '/games/tank-duel',       title: 'Tank Duel',       icon: '💥', color: '#78716c', tags: ['Arcade','Strategy'], desc: 'Turn-based artillery duel on destructible terrain. Aim, pick your weapon, fire.' },
+];
+
+const SURVIVAL_GAMES = [
+  { id: 'the_ascent', path: '/games/the-ascent', title: 'The Ascent', icon: '🗡️', color: '#4c1d95', tags: ['Roguelike','Strategy'], desc: 'Turn-based deckbuilder. Fight one scaling enemy per level, pick your rewards, climb as far as your build can carry you.' },
 ];
 
 const VERSUS_GAMES = [
@@ -100,11 +107,12 @@ const RELAXING_GAMES = [
 const ALL_IDS = [
   ...SOLO_GAMES.map(g => g.id),
   ...ARCADE_GAMES.map(g => g.id),
+  ...SURVIVAL_GAMES.map(g => g.id),
   ...VERSUS_GAMES.map(g => g.id),
   ...MULTI_GAMES.map(g => g.id),
 ];
 
-const ALL_GAMES = [...SOLO_GAMES, ...ARCADE_GAMES, ...VERSUS_GAMES, ...MULTI_GAMES];
+const ALL_GAMES = [...SOLO_GAMES, ...ARCADE_GAMES, ...SURVIVAL_GAMES, ...VERSUS_GAMES, ...MULTI_GAMES];
 
 // Every browsable game, tagged with which tab it lives in — used by the
 // cross-category search box (relaxing games included here even though they're
@@ -113,14 +121,16 @@ const SEARCHABLE_GAMES = [
   ...SOLO_GAMES.map(g => ({ ...g, tab: 'solo' })),
   ...ARCADE_GAMES.map(g => ({ ...g, tab: 'arcade' })),
   ...RELAXING_GAMES.map(g => ({ ...g, tab: 'relaxing' })),
+  ...SURVIVAL_GAMES.map(g => ({ ...g, tab: 'survival' })),
   ...VERSUS_GAMES.map(g => ({ ...g, tab: 'versus' })),
   ...MULTI_GAMES.map(g => ({ ...g, tab: 'multi' })),
 ];
 
 const TABS = [
-  { key: 'solo',  label: '🎮 Solo',        sub: '24 games' },
-  { key: 'arcade', label: '🕹️ Arcade',    sub: '10 games' },
+  { key: 'solo',  label: '🎮 Solo',        sub: '26 games' },
+  { key: 'arcade', label: '🕹️ Arcade',    sub: '11 games' },
   { key: 'relaxing', label: '🌿 Relaxing', sub: '16 games' },
+  { key: 'survival', label: '🏔️ Survival', sub: '1 game' },
   { key: 'versus',label: '⚔️  1v1',         sub: '10 games' },
   { key: 'multi', label: '👥 Multiplayer', sub: '10 games' },
   { key: 'leaderboards', label: '🏆 Leaderboards', sub: 'All games' },
@@ -302,6 +312,7 @@ export default function Games() {
   const activeGames = tab === 'solo' ? SOLO_GAMES
     : tab === 'arcade' ? ARCADE_GAMES
     : tab === 'relaxing' ? RELAXING_GAMES
+    : tab === 'survival' ? SURVIVAL_GAMES
     : tab === 'versus' ? VERSUS_GAMES
     : MULTI_GAMES;
 
@@ -357,6 +368,11 @@ export default function Games() {
       {!searchResults && tab === 'relaxing' && (
         <div className="games-tab-notice">
           🌿 No scores, no timers, no losing — just something to do with your hands. Every game generates a fresh board, so it's never the same twice.
+        </div>
+      )}
+      {!searchResults && tab === 'survival' && (
+        <div className="games-tab-notice">
+          🏔️ No reflexes required — just choices. Fight scaling enemies one level at a time, pick your rewards, and see how far a well-built deck can carry you.
         </div>
       )}
       {!searchResults && tab === 'versus' && (

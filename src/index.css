@@ -1036,6 +1036,17 @@ iframe {
   border: none;
 }
 
+/* ── TikTok embed -- portrait, not 16:9, so no aspect-ratio padding trick
+   like .yt-wrapper; TikTok's own embed.js sizes the blockquote it's given. ── */
+.tiktok-wrapper {
+  display: flex;
+  justify-content: center;
+  margin: 10px 0;
+}
+.tiktok-wrapper blockquote.tiktok-embed {
+  margin: 0;
+}
+
 /* ── X / Twitter link card ── */
 .x-card {
   display: flex;
@@ -1861,6 +1872,18 @@ iframe {
 }
 .snake-overlay-inner { text-align: center; color: #fff; }
 .snake-overlay-inner h3 { font-size: 24px; font-weight: 800; margin-bottom: 8px; }
+
+/* ── Bagel Flight ── */
+.bagel-flight-wrapper { position: relative; display: inline-block; margin: 0 auto; }
+.bagel-flight-canvas { display: block; border-radius: var(--radius); box-shadow: var(--shadow-sm); }
+.bagel-flight-overlay {
+  position: absolute; inset: 0; background: rgba(74,63,53,0.55); cursor: pointer;
+  display: flex; align-items: center; justify-content: center; border-radius: var(--radius);
+}
+.bagel-flight-overlay-inner { text-align: center; color: #fff; padding: 20px; }
+.bagel-flight-overlay-inner h3 { font-size: 22px; font-weight: 800; margin: 0 0 6px; color: #fff; }
+.bagel-flight-overlay-inner p { margin: 4px 0; }
+
 .game-touch-controls {
   display: flex; flex-direction: column; align-items: center; gap: 6px; margin-top: 16px;
 }
@@ -1869,6 +1892,32 @@ iframe {
   background: var(--surface); font-size: 18px; cursor: pointer;
 }
 @media (min-width: 640px) { .game-touch-controls { display: none; } }
+/* Shared by 10 arcade games (Snake, Tetris, PacMan, ...) -- on a short phone
+   viewport (confirmed on real device heights like iPhone SE's 667px/568px,
+   not a generic desktop-ish test height) the board + header content above
+   this leaves no room for it above the fold, so it renders right where the
+   fixed .mobile-tabbar sits (z-index: 900) -- the bottom button row ends up
+   both visually covered AND unclickable (taps land on the tab bar instead).
+   A margin doesn't fix this -- the element's own position never moves, only
+   the footer beneath it shifts. position: sticky was tried and does NOT
+   work here -- html/body's overflow-x: hidden (above, kept intentionally
+   for its own horizontal-scroll fix) breaks sticky's bottom-clamping in
+   Chromium, confirmed via an isolated repro with/without that rule. Pinning
+   it as fixed instead sidesteps that: the D-pad floats just above the tab
+   bar at a constant screen position, which also matches how a touch D-pad
+   normally behaves in mobile games (always reachable without scrolling).
+   On the shortest screens (checked at 375x667 and 320x568) there still
+   isn't enough combined height for header + board + D-pad + tab bar, so
+   the floating D-pad ends up overlapping the board itself -- translucency
+   + blur keeps the board readable underneath instead of fully hiding it. */
+@media (max-width: 768px) {
+  .game-touch-controls {
+    position: fixed; left: 50%; transform: translateX(-50%);
+    bottom: calc(70px + env(safe-area-inset-bottom)); margin-top: 0;
+    z-index: 901; background: rgba(255,255,255,0.82); backdrop-filter: blur(6px);
+    padding: 8px 10px; border-radius: var(--radius); box-shadow: var(--shadow-lg); border: 1px solid var(--border);
+  }
+}
 
 /* ── Sudoku ── */
 .sudoku-timer { font-size: 15px; font-weight: 700; color: var(--primary); font-variant-numeric: tabular-nums; }
@@ -1984,6 +2033,76 @@ iframe {
 .wordle-key.present { background: #f59e0b; color: #fff; border-color: #f59e0b; }
 .wordle-key.absent  { background: #64748b; color: #fff; border-color: #64748b; }
 
+/* ── Categories (daily word-grouping puzzle) ── */
+.categories-menu { display: flex; flex-direction: column; gap: 12px; max-width: 360px; margin: 32px auto 0; }
+.categories-menu-btn { width: 100%; }
+.categories-board { display: flex; flex-direction: column; gap: 8px; margin: 16px auto; max-width: 560px; }
+.categories-solved-row {
+  border-radius: var(--radius-sm); padding: 14px 16px; text-align: center;
+  animation: categories-reveal 0.25s ease;
+}
+.categories-solved-title { font-weight: 800; font-size: 14px; letter-spacing: 0.02em; margin-bottom: 3px; }
+.categories-solved-words { font-size: 13px; opacity: 0.85; }
+.categories-yellow { background: var(--tag-joke-bg); color: var(--tag-joke-text); }
+.categories-green  { background: var(--tag-deal-bg); color: var(--tag-deal-text); }
+.categories-blue   { background: var(--tag-news-bg); color: var(--tag-news-text); }
+.categories-purple { background: var(--tag-flyer-bg); color: var(--tag-flyer-text); }
+@keyframes categories-reveal {
+  from { transform: scale(0.94); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+.categories-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+}
+.categories-grid.shake { animation: categories-shake 0.4s; }
+@keyframes categories-shake {
+  10%, 90% { transform: translateX(-2px); }
+  20%, 80% { transform: translateX(3px); }
+  30%, 50%, 70% { transform: translateX(-5px); }
+  40%, 60% { transform: translateX(5px); }
+}
+.categories-tile {
+  aspect-ratio: 1.5 / 1; min-height: 64px; border-radius: var(--radius-sm);
+  background: var(--surface); border: 1.5px solid var(--border); color: var(--text);
+  font-size: 13px; font-weight: 800; text-align: center; letter-spacing: 0.01em;
+  display: flex; align-items: center; justify-content: center; padding: 4px;
+  cursor: pointer; transition: transform 0.1s, background 0.15s, border-color 0.15s;
+  text-transform: uppercase;
+}
+.categories-tile:hover { border-color: var(--accent); }
+.categories-tile.selected { background: var(--text); color: var(--surface); border-color: var(--text); transform: scale(0.96); }
+.categories-share-row { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; margin-top: 16px; }
+.categories-comeback { font-size: 13.5px; color: var(--muted); }
+@media (max-width: 480px) {
+  .categories-tile { font-size: 11.5px; min-height: 56px; }
+}
+
+/* ── Trivia Rush ── */
+.trivia-timer-bar { height: 6px; border-radius: 999px; background: var(--border); overflow: hidden; margin: 4px 0 18px; }
+.trivia-timer-fill { height: 100%; background: var(--accent); transition: width 1s linear; }
+.trivia-question-card {
+  background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);
+  padding: 22px 20px; text-align: center; margin-bottom: 18px;
+}
+.trivia-question-card h3 { margin: 8px 0 0; font-size: 19px; line-height: 1.4; }
+.trivia-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; max-width: 560px; margin: 0 auto; }
+.trivia-option {
+  padding: 16px 14px; border-radius: var(--radius); border: 1.5px solid var(--border);
+  background: var(--surface); color: var(--text); font-size: 14.5px; font-weight: 600;
+  cursor: pointer; transition: border-color 0.15s, background 0.15s, transform 0.1s;
+  text-align: center;
+}
+.trivia-option:hover:not(:disabled) { border-color: var(--accent); }
+.trivia-option.selected { border-color: var(--accent); background: var(--surface-deep); }
+.trivia-option.correct { border-color: var(--fresh); background: var(--tag-deal-bg); color: var(--tag-deal-text); }
+.trivia-option.wrong { border-color: var(--danger); background: #fee2e2; color: #991b1b; }
+.trivia-option:disabled { cursor: default; }
+.trivia-result-score { text-align: center; font-size: 18px; font-weight: 800; margin: 10px 0 14px; }
+.trivia-result-grid { display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; font-size: 22px; margin-bottom: 8px; }
+@media (max-width: 480px) {
+  .trivia-options { grid-template-columns: 1fr; }
+}
+
 /* ── Word Scramble ── */
 .scramble-word {
   display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin: 24px auto;
@@ -2077,6 +2196,93 @@ iframe {
 }
 .arrow-row-2048 { display: flex; gap: 4px; }
 @media (min-width: 640px) { .arrow-controls-2048 { display: none; } }
+/* Same fixed-tab-bar occlusion as .game-touch-controls above (see its
+   comment) -- confirmed on real device heights (375x667, 320x568): the
+   bottom row sat right under .mobile-tabbar and was untappable there.
+   Same translucency rationale too -- on the shortest screens the floating
+   D-pad overlaps the board itself for lack of room, so keep it see-through. */
+@media (max-width: 768px) {
+  .arrow-controls-2048 {
+    position: fixed; left: 50%; transform: translateX(-50%);
+    bottom: calc(70px + env(safe-area-inset-bottom)); margin-top: 0;
+    z-index: 901; background: rgba(255,255,255,0.82); backdrop-filter: blur(6px);
+    padding: 8px 10px; border-radius: var(--radius); box-shadow: var(--shadow-lg); border: 1px solid var(--border);
+  }
+}
+
+/* ── The Ascent (Survival deckbuilder) ── */
+.ascent-combat { display: flex; flex-direction: column; gap: 12px; }
+.ascent-enemy-panel {
+  display: flex; align-items: center; gap: 14px; background: var(--surface);
+  border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; box-shadow: var(--shadow-sm);
+}
+.ascent-enemy-sprite { font-size: 40px; line-height: 1; }
+.ascent-enemy-info { flex: 1; min-width: 0; }
+.ascent-enemy-name { font-weight: 700; font-size: 15px; display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.ascent-weak-tag { font-size: 10px; text-transform: uppercase; letter-spacing: .04em; background: rgba(239,68,68,.12); color: var(--danger); padding: 2px 7px; border-radius: 999px; }
+.ascent-intent { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 48px; }
+.ascent-intent-icon { font-size: 22px; line-height: 1; }
+.ascent-intent-value { font-size: 12px; font-weight: 700; color: var(--muted); }
+.ascent-block-tag { display: inline-block; font-size: 12px; font-weight: 600; color: var(--info); margin-top: 2px; }
+.ascent-bar-row { width: 100%; }
+.ascent-bar-label { font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 3px; }
+.ascent-bar-track { height: 10px; border-radius: 999px; background: var(--surface-deep); overflow: hidden; }
+.ascent-bar-fill { height: 100%; border-radius: 999px; transition: width 300ms ease; }
+.ascent-log {
+  background: var(--surface-deep); border-radius: var(--radius-sm); padding: 8px 12px;
+  font-size: 12px; color: var(--muted); min-height: 62px; display: flex; flex-direction: column; justify-content: flex-end; gap: 2px;
+}
+.ascent-player-panel {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; box-shadow: var(--shadow-sm);
+}
+.ascent-player-meta { display: flex; align-items: center; gap: 14px; margin-top: 8px; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
+.ascent-energy-pips { display: flex; gap: 4px; }
+.ascent-pip { width: 12px; height: 12px; border-radius: 50%; background: var(--surface-deep); border: 1.5px solid var(--border); }
+.ascent-pip.filled { background: var(--accent); border-color: var(--accent-hover); }
+.ascent-hand { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; padding: 4px 0 8px; }
+.ascent-card {
+  position: relative; width: 128px; min-height: 148px; border-radius: var(--radius-sm);
+  background: var(--surface); border: 2px solid var(--border); padding: 10px 8px 8px;
+  display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px;
+  cursor: pointer; transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
+  box-shadow: var(--shadow-sm);
+}
+.ascent-card:hover:not(.disabled) { transform: translateY(-4px); box-shadow: var(--shadow); }
+.ascent-card.disabled { opacity: .45; cursor: not-allowed; }
+.ascent-card-attack { border-color: rgba(239,68,68,.35); }
+.ascent-card-skill { border-color: rgba(79,193,217,.4); }
+.ascent-card-power { border-color: rgba(217,180,79,.5); background: linear-gradient(180deg, rgba(217,180,79,.08), var(--surface)); }
+.ascent-card-cost {
+  position: absolute; top: -8px; left: -8px; width: 26px; height: 26px; border-radius: 50%;
+  background: var(--primary); color: #fff; font-weight: 700; font-size: 13px;
+  display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-sm);
+}
+.ascent-card-icon { font-size: 26px; margin-top: 4px; }
+.ascent-card-name { font-weight: 700; font-size: 13px; }
+.ascent-card-desc { font-size: 11px; color: var(--muted); line-height: 1.35; }
+.ascent-reward { text-align: center; padding-top: 12px; }
+.ascent-stage-title { margin-bottom: 4px; }
+.ascent-stage-sub { color: var(--muted); margin-bottom: 20px; }
+.ascent-card-row { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; margin-bottom: 20px; }
+.ascent-relic-card { width: 150px; min-height: 150px; }
+.ascent-relic-card .ascent-card-icon { font-size: 32px; }
+.ascent-rest-options { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+.ascent-rest-options .gs-btn { min-width: 160px; line-height: 1.5; padding: 14px 16px; }
+.ascent-rest-sub { font-size: 11px; font-weight: 400; opacity: .85; }
+.ascent-deck-modal {
+  position: fixed; inset: 0; background: rgba(74,63,53,.45); z-index: 950;
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+.ascent-deck-modal-inner {
+  background: var(--surface); border-radius: var(--radius); padding: 20px; max-width: 420px; width: 100%;
+  max-height: 80vh; overflow-y: auto; box-shadow: var(--shadow-lg);
+}
+.ascent-relic-row { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0; }
+.ascent-relic-icon { font-size: 22px; cursor: help; }
+.ascent-deck-list { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.ascent-deck-row { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 8px; background: var(--surface-deep); font-size: 13px; }
+.ascent-deck-row-name { flex: 1; }
+.ascent-deck-row-cost { color: var(--muted); font-weight: 600; }
 
 /* ── Lights Out ── */
 .lights-grid { display: inline-grid; gap: 7px; margin: 20px auto; }
