@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import StarRating from './StarRating';
 import { CATEGORY_LABELS, CATEGORY_ICONS, CATEGORY_TINTS, LOCATION_TYPE_META } from './categories';
 import { isOpenNow } from './hours';
+import TypeTags from './TypeTags';
 
 function locationBlurb(loc) {
   if (!loc) return null;
@@ -46,8 +47,9 @@ export default function BusinessCard({ business, onHover, active }) {
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
               <StarRating value={business.rating_avg} count={business.rating_count} />
               {open === true && <span className="biz-badge biz-badge-open">● Open now</span>}
-              {loc?.kashrut && <span className="biz-badge biz-badge-kashrut">✡️ Kosher</span>}
+              {loc?.kashrut && <span className="biz-badge biz-badge-kashrut">✡️ {loc.kashrut}</span>}
             </div>
+            <TypeTags types={business.types} />
           </div>
         </div>
       </div>

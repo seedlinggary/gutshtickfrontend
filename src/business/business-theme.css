@@ -191,6 +191,74 @@
   color: #1c2438;
 }
 
+.biz-back-link {
+  display: inline-block;
+  margin-bottom: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+  text-decoration: none;
+}
+.biz-back-link:hover {
+  color: var(--accent);
+}
+
+/* ── Map-selection preview panel (BusinessDirectory swaps this in for the
+   results list when a pin is clicked) -- reuses the .gs-card/.biz-card-media
+   language rather than inventing a new visual style. ── */
+.biz-preview-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+}
+.biz-preview-back {
+  margin-bottom: 0;
+}
+
+/* ── Type tags: small read-only pills (BusinessCard/Profile/PreviewPanel)
+   showing a business's subtype(s), e.g. "Dairy", "Fine Dining". Same shape
+   language as .biz-chip but never interactive. ── */
+.biz-type-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+.biz-type-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 11.5px;
+  font-weight: 700;
+}
+
+/* ── TypeTagPicker: the editable version used in BusinessForm -- reuses
+   .biz-chip for the suggestion/selected chips, adds a small custom-entry row. ── */
+.biz-type-picker-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.biz-type-picker-custom {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+.biz-type-picker-custom input {
+  flex: 1;
+  min-width: 140px;
+}
+.biz-chip-remove {
+  margin-left: 2px;
+  font-weight: 800;
+  opacity: 0.8;
+}
+
 /* ── Sticky filter bar shell (Deals feed; Directory uses .biz-topbar below) ── */
 .biz-filter-bar {
   position: sticky;
@@ -609,24 +677,52 @@
 .biz-map-search-area:hover {
   transform: translateX(-50%) translateY(-1px);
 }
-.biz-map-popup {
-  font-size: 13px;
-  min-width: 140px;
-}
-.biz-map-popup strong {
-  display: block;
-  margin-bottom: 2px;
-  color: var(--text);
-}
-.biz-map-popup a {
-  color: var(--accent);
-  font-weight: 700;
-}
-.maplibregl-popup-content {
-  border-radius: 10px !important;
-  box-shadow: var(--shadow-lg) !important;
-  padding: 12px 14px !important;
-}
 .maplibregl-ctrl-attrib {
   font-size: 10.5px !important;
+}
+
+/* ── "Find nearby": click-a-point + radius search ── */
+.biz-map-nearby-toggle {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 5;
+  background: var(--surface);
+  color: var(--accent);
+  border: none;
+  border-radius: 999px;
+  padding: 9px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+}
+.biz-map-nearby-toggle.active {
+  background: var(--accent);
+  color: #fff;
+}
+.biz-map-nearby-picker {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface);
+  border-radius: 999px;
+  padding: 8px 14px;
+  box-shadow: var(--shadow-lg);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+}
+.biz-map-nearby-cancel {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-weight: 800;
+  cursor: pointer;
+  padding: 2px 4px;
 }

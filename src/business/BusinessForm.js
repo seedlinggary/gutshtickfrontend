@@ -4,6 +4,7 @@ import apiRequest from '../ApiRequest';
 import UploadFile from '../Uploadfile';
 import HoursEditor from './HoursEditor';
 import AddressAutocomplete from './AddressAutocomplete';
+import TypeTagPicker from './TypeTagPicker';
 import { CATEGORY_LABELS, FOOD_CATEGORIES, LOCATION_TYPE_META } from './categories';
 
 const NAME_MAX = 150;
@@ -118,6 +119,11 @@ export default function BusinessForm() {
   const [about, setAbout] = useState('');
   const [website, setWebsite] = useState('');
   const [logo, setLogo] = useState(null);
+  const [types, setTypes] = useState([]);
+  // Whatever else might already live in Business.attributes -- preserved
+  // on save (spread first) so writing `types` never clobbers other fields
+  // that may be stored there.
+  const [existingAttributes, setExistingAttributes] = useState(null);
   const [businessId, setBusinessId] = useState(null);
   const [locations, setLocations] = useState([blankLocation()]);
   const [loading, setLoading] = useState(editing);
@@ -134,6 +140,8 @@ export default function BusinessForm() {
         setAbout(b.about || '');
         setWebsite(b.website || '');
         setLogo(null);
+        setTypes((b.attributes && b.attributes.types) || []);
+        setExistingAttributes(b.attributes || null);
         setLocations((b.locations || []).map((l) => ({ ...l, tempId: `existing-${l.id}` })));
       })
       .catch(() => setError('Could not load this business.'))
@@ -169,17 +177,20 @@ export default function BusinessForm() {
     setError('');
     setSaving(true);
 
+    const attributesPayload = { ...(existingAttributes || {}), types };
+
     try {
       if (!editing) {
         const created = await apiRequest('POST', {
           name: name.trim(), category, about: about.trim(), logo, website: website.trim(),
+          attributes: attributesPayload,
           locations: locations.map(locationToPayload),
         }, '/business/businesses');
         navigate(`/business/${created.slug}`);
         return;
       }
 
-      await apiRequest('PATCH', { name: name.trim(), category, about: about.trim(), logo, website: website.trim() }, `/business/businesses/${businessId}`);
+      await apiRequest('PATCH', { name: name.trim(), category, about: about.trim(), logo, website: website.trim(), attributes: attributesPayload }, `/business/businesses/${businessId}`);
       for (const loc of locations) {
         const payload = locationToPayload(loc);
         if (loc.id) {
@@ -211,6 +222,10 @@ export default function BusinessForm() {
             <select className="gs-input" value={category} onChange={(e) => setCategory(e.target.value)}>
               {Object.entries(CATEGORY_LABELS).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
             </select>
+          </div>
+          <div className="gs-field">
+            <div className="gs-label">Type (optional) — e.g. Dairy, Fine Dining, Pizza…</div>
+            <TypeTagPicker category={category} value={types} onChange={setTypes} />
           </div>
           <div className="gs-field">
             <textarea className="gs-input gs-textarea" placeholder="About this business…" rows={4} value={about} maxLength={ABOUT_MAX} onChange={(e) => setAbout(e.target.value)} />

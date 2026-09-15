@@ -6,6 +6,7 @@ import { isLoggedIn } from '../auth';
 import StarRating from './StarRating';
 import { CATEGORY_LABELS, POST_TYPE_META, WEEKDAYS, LOCATION_TYPE_META } from './categories';
 import { hoursToday, isOpenNow } from './hours';
+import TypeTags from './TypeTags';
 
 function LocationCard({ loc }) {
   const today = hoursToday(loc);
@@ -169,6 +170,7 @@ export default function BusinessProfile() {
   return (
     <div className="feed-section">
       <div className="gs-container" style={{ maxWidth: 680 }}>
+        <Link to="/" className="biz-back-link">← Back to Directory</Link>
         <div className="biz-hero">
           <div className="biz-hero-top">
             <div className="biz-hero-logo">
@@ -177,6 +179,7 @@ export default function BusinessProfile() {
             <div style={{ flex: 1 }}>
               <h1>{business.name} {business.is_claimed && <span className="biz-badge biz-badge-claimed" title="Claimed by verified owner">✓ Claimed</span>}</h1>
               <div className="biz-hero-category">{CATEGORY_LABELS[business.category] || business.category}</div>
+              <TypeTags types={business.attributes?.types} />
               <div style={{ marginTop: 6 }}>
                 <StarRating value={business.rating_avg} count={business.rating_count} />
               </div>

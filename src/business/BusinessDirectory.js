@@ -4,6 +4,7 @@ import PinSomethingCard from '../PinSomethingCard';
 import AdSlot from '../ads/AdSlot';
 import ErrorBoundary from '../ErrorBoundary';
 import BusinessCard from './BusinessCard';
+import BusinessPreviewPanel from './BusinessPreviewPanel';
 import StatsBar from './StatsBar';
 import DataDisclaimer from './DataDisclaimer';
 import detectNearbyCity from './geolocation';
@@ -35,6 +36,29 @@ function SkeletonCard() {
 
 const DESKTOP_QUERY = '(min-width: 960px)';
 
+// Filters/search/sort survive a trip to a business's full profile page and
+// back -- sessionStorage rather than URL params, kept simple since nothing
+// here needs to be a shareable/bookmarkable link. Cleared automatically
+// when the tab closes (sessionStorage, not localStorage) so it never goes
+// stale across visits.
+const SAVED_STATE_KEY = 'biz_directory_filters';
+// Bump whenever the saved shape changes -- guards against a stale snapshot
+// from an older version of this code (e.g. one saved before `nearbySelection`
+// existed, or before the pin-click nearby fix) being silently reused and
+// looking inconsistent with what the current code expects.
+const SAVED_STATE_VERSION = 2;
+
+function loadSavedFilters() {
+  try {
+    const raw = sessionStorage.getItem(SAVED_STATE_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    return parsed.version === SAVED_STATE_VERSION ? parsed : {};
+  } catch (_) {
+    return {};
+  }
+}
+
 /** Tracks whether the split (desktop) layout is active, so the caller can
  * ensure exactly one <BusinessMap> is ever mounted -- otherwise a resize
  * across the breakpoint could leave both the mobile toggle's map slot and
@@ -64,29 +88,41 @@ function MapErrorFallback(error, retry) {
 }
 
 export default function BusinessDirectory() {
-  const [q, setQ] = useState('');
-  const [debouncedQ, setDebouncedQ] = useState('');
-  const [category, setCategory] = useState('');
-  const [city, setCity] = useState('');
-  const [debouncedCity, setDebouncedCity] = useState('');
-  const [cityAuto, setCityAuto] = useState(false);
-  const [locationType, setLocationType] = useState('');
-  const [foodOnly, setFoodOnly] = useState(false);
-  const [kashrutOnly, setKashrutOnly] = useState(false);
-  const [openNow, setOpenNow] = useState(false);
-  const [sort, setSort] = useState('random');
+  const saved = loadSavedFilters();
+  const [q, setQ] = useState(saved.q || '');
+  const [debouncedQ, setDebouncedQ] = useState(saved.q || '');
+  const [category, setCategory] = useState(saved.category || '');
+  const [city, setCity] = useState(saved.city || '');
+  const [debouncedCity, setDebouncedCity] = useState(saved.city || '');
+  const [cityAuto, setCityAuto] = useState(saved.cityAuto || false);
+  const [locationType, setLocationType] = useState(saved.locationType || '');
+  const [foodOnly, setFoodOnly] = useState(saved.foodOnly || false);
+  const [kashrutOnly, setKashrutOnly] = useState(saved.kashrutOnly || false);
+  const [openNow, setOpenNow] = useState(saved.openNow || false);
+  const [sort, setSort] = useState(saved.sort || 'random');
   const [shakeSeed, setShakeSeed] = useState(0);
   const [mobileView, setMobileView] = useState('list');
-  const [bbox, setBbox] = useState(null);
+  const [bbox, setBbox] = useState(saved.bbox || null);
+  // The exact point+radius behind a "find nearby" bbox (not set for a plain
+  // "search this area" box) -- kept so the map can redraw the same pin and
+  // circle after remounting, e.g. returning from a business's profile page.
+  const [nearbySelection, setNearbySelection] = useState(saved.nearbySelection || null);
   const [filterOpen, setFilterOpen] = useState(false);
   const [hoveredId, setHoveredId] = useState(null);
+  const [selectedId, setSelectedId] = useState(null);
   const filterRef = useRef(null);
   const isDesktop = useIsDesktop();
 
-  const [businesses, setBusinesses] = useState([]);
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(false);
-  const [loading, setLoading] = useState(true);
+  // Restoring the actual previous result list (not just the filters) matters
+  // because the default sort is random -- re-running the same search with
+  // identical filters still comes back as a different random sample/order
+  // each time, which would make "go back" look different even though
+  // nothing the user chose had changed.
+  const hasSavedResults = Array.isArray(saved.businesses);
+  const [businesses, setBusinesses] = useState(saved.businesses || []);
+  const [page, setPage] = useState(saved.page || 1);
+  const [hasMore, setHasMore] = useState(saved.hasMore || false);
+  const [loading, setLoading] = useState(!hasSavedResults);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState(false);
   const [shaking, setShaking] = useState(false);
@@ -117,6 +153,16 @@ export default function BusinessDirectory() {
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(SAVED_STATE_KEY, JSON.stringify({
+        version: SAVED_STATE_VERSION,
+        q, category, city, cityAuto, locationType, foodOnly, kashrutOnly, openNow, sort, bbox, nearbySelection,
+        businesses, page, hasMore,
+      }));
+    } catch (_) { /* private browsing / storage disabled -- fine to just skip persisting */ }
+  }, [q, category, city, cityAuto, locationType, foodOnly, kashrutOnly, openNow, sort, bbox, nearbySelection, businesses, page, hasMore]);
 
   useEffect(() => {
     if (!filterOpen) return undefined;
@@ -152,13 +198,46 @@ export default function BusinessDirectory() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedQ, category, debouncedCity, locationType, foodOnly, kashrutOnly, openNow, sort, shakeSeed, bbox]);
 
-  useEffect(() => { load(1, false); }, [load]);
+  // Skip fetching when the current filters exactly match what was already
+  // restored/fetched -- comparing against a stored signature, NOT a
+  // "have I run yet" flag. A one-shot ref flag looks right in isolation but
+  // breaks under React.StrictMode (active in this app's index.js): StrictMode
+  // deliberately invokes every effect twice right after mount to catch
+  // exactly this kind of assumption, and a flag that's already been
+  // consumed by the first of those two passes does nothing to stop the
+  // second one from firing "for real" and immediately refetching over the
+  // just-restored snapshot. Comparing signatures is idempotent regardless of
+  // how many times the effect body actually runs.
+  const lastLoadSignatureRef = useRef(hasSavedResults
+    ? JSON.stringify([debouncedQ, category, debouncedCity, locationType, foodOnly, kashrutOnly, openNow, sort, bbox])
+    : null);
+  useEffect(() => {
+    const signature = JSON.stringify([debouncedQ, category, debouncedCity, locationType, foodOnly, kashrutOnly, openNow, sort, bbox]);
+    if (lastLoadSignatureRef.current === signature) return;
+    lastLoadSignatureRef.current = signature;
+    load(1, false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [load]);
 
   // Typing a new search/city, or shaking the board, implies the user wants
   // a fresh area rather than staying boxed into an earlier map "search this
   // area" click — but refining category/sort/etc. within that same map
   // viewport should keep it, so those are deliberately left out here.
-  useEffect(() => { setBbox(null); }, [debouncedQ, debouncedCity, shakeSeed]);
+  // Same signature-comparison approach as above, for the same StrictMode
+  // reason -- a "skip the first run" ref flag would wipe a `bbox` just
+  // restored from sessionStorage the moment StrictMode's second pass hits.
+  const lastQCityShakeRef = useRef(JSON.stringify([debouncedQ, debouncedCity, shakeSeed]));
+  useEffect(() => {
+    const signature = JSON.stringify([debouncedQ, debouncedCity, shakeSeed]);
+    if (lastQCityShakeRef.current === signature) return;
+    lastQCityShakeRef.current = signature;
+    setBbox(null);
+    setNearbySelection(null);
+  }, [debouncedQ, debouncedCity, shakeSeed]);
+
+  // A selected pin's preview panel shouldn't linger once the underlying
+  // list has changed out from under it (different filters/search/sort/area).
+  useEffect(() => { setSelectedId(null); }, [debouncedQ, category, debouncedCity, locationType, foodOnly, kashrutOnly, openNow, sort, shakeSeed, bbox]);
 
   const shake = () => {
     if (shaking) return;
@@ -200,10 +279,22 @@ export default function BusinessDirectory() {
     </>
   );
 
+  const selectedBusiness = selectedId ? businesses.find((b) => b.id === selectedId) : null;
+
   const mapView = (
     <ErrorBoundary fallback={MapErrorFallback}>
       <Suspense fallback={<div className="gs-loading"><div className="gs-spinner" /> Loading map…</div>}>
-        <BusinessMap businesses={businesses} onBoundsSearch={setBbox} hoveredId={hoveredId} />
+        <BusinessMap
+          businesses={businesses}
+          onBoundsSearch={(box) => { setBbox(box); setNearbySelection(null); }}
+          onNearbySearch={({ bbox: box, point, radius }) => { setBbox(box); setNearbySelection({ point, radius }); }}
+          initialNearby={nearbySelection}
+          hoveredId={hoveredId}
+          onSelectBusiness={(id) => {
+            setSelectedId(id);
+            if (!isDesktop) setMobileView('list'); // the preview only ever renders in the list column
+          }}
+        />
       </Suspense>
     </ErrorBoundary>
   );
@@ -324,7 +415,11 @@ export default function BusinessDirectory() {
               </div>
             )}
 
-            {!isDesktop && mobileView === 'map' ? mapView : resultsList}
+            {!isDesktop && mobileView === 'map' ? mapView : (
+              selectedBusiness
+                ? <BusinessPreviewPanel business={selectedBusiness} onBack={() => setSelectedId(null)} />
+                : resultsList
+            )}
           </div>
 
           {isDesktop && (

@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
@@ -8,7 +7,43 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 const STYLE_URL = 'https://tiles.openfreemap.org/styles/liberty';
 const DEFAULT_CENTER = [-74.006, 40.7128]; // [lng, lat] -- NYC, until pins load
 const DEFAULT_ZOOM = 10;
+const STREET_ZOOM = 16;
+// Below this zoom, a 0.5-10 mile radius isn't visually meaningful (could be
+// a few pixels on screen) and a click's real-world position is imprecise --
+// see dropNearbyPoint below.
+const NEARBY_MIN_ZOOM = 11;
 const SOURCE_ID = 'gs-businesses';
+const NEARBY_SOURCE_ID = 'gs-nearby-circle';
+const NEARBY_RADII = [0.5, 1, 5, 10];
+// Shared with the bbox math below so the drawn circle's N/S/E/W extent
+// visually matches the actual search area sent to the backend.
+const MILES_PER_DEGREE_LAT = 69;
+
+function radiusToBbox(point, miles) {
+  const latDelta = miles / MILES_PER_DEGREE_LAT;
+  const lngDelta = miles / (MILES_PER_DEGREE_LAT * Math.cos((point.lat * Math.PI) / 180));
+  return {
+    north: point.lat + latDelta, south: point.lat - latDelta,
+    east: point.lng + lngDelta, west: point.lng - lngDelta,
+  };
+}
+
+// A polygon approximation of a circle (GL styles have no native circle-by-
+// real-world-radius geometry) -- purely a visual reference for the area the
+// bbox above actually searches, not sent anywhere itself.
+function circlePolygon(point, miles) {
+  const latDelta = miles / MILES_PER_DEGREE_LAT;
+  const lngDelta = miles / (MILES_PER_DEGREE_LAT * Math.cos((point.lat * Math.PI) / 180));
+  const steps = 64;
+  const coords = [];
+  for (let i = 0; i <= steps; i += 1) {
+    const theta = (i / steps) * 2 * Math.PI;
+    coords.push([point.lng + lngDelta * Math.cos(theta), point.lat + latDelta * Math.sin(theta)]);
+  }
+  return { type: 'FeatureCollection', features: [{ type: 'Feature', geometry: { type: 'Polygon', coordinates: [coords] }, properties: {} }] };
+}
+
+const EMPTY_FC = { type: 'FeatureCollection', features: [] };
 
 // OpenFreeMap's "liberty" style is built on the OpenMapTiles schema:
 // - Its `boundary` source-layer tags disputed borders (the Green Line /
@@ -76,43 +111,40 @@ function boundsOfFeatures(fc) {
   return bounds;
 }
 
-/** Renders a "view profile" popup that navigates via react-router (not a
- * hard page load), since the popup's DOM lives outside the React tree. */
-function popupNode(props, navigate) {
-  const el = document.createElement('div');
-  el.className = 'biz-map-popup';
-  const strong = document.createElement('strong');
-  strong.textContent = props.name;
-  const cityLine = document.createElement('div');
-  cityLine.textContent = props.city || '';
-  cityLine.style.color = 'var(--muted)';
-  const link = document.createElement('a');
-  link.href = `/business/${props.slug}`;
-  link.textContent = 'View profile →';
-  link.addEventListener('click', (e) => {
-    e.preventDefault();
-    navigate(`/business/${props.slug}`);
-  });
-  el.append(strong, cityLine, link);
-  return el;
-}
-
 /** Plots one pin per (business, location) pair with lat/lng set, clustered
  * when there are many. `onBoundsSearch(bbox)` — if given — enables a
- * "search this area" button once the user pans/zooms manually.
+ * "search this area" button once the user pans/zooms manually, and also
+ * powers the "find nearby" radius search below.
  * `hoveredId` — if given — highlights that business's pin gold, for the
- * split-view Directory hovering a card in the list. */
-export default function BusinessMap({ businesses, onBoundsSearch, hoveredId }) {
-  const navigate = useNavigate();
+ * split-view Directory hovering a card in the list.
+ * `onSelectBusiness(id)` — if given, clicking a pin flies the map to street
+ * level at that pin and reports the id back up (the Directory shows a
+ * preview panel for it) instead of this component navigating anywhere
+ * itself.
+ * `onNearbySearch({bbox, point, radius})` — called instead of
+ * `onBoundsSearch` when the area comes from "find nearby" rather than
+ * "search this area", so the Directory can remember the exact point+radius
+ * (not just the resulting box) and hand it back via `initialNearby` to
+ * redraw the same pin+circle after remounting -- e.g. after visiting a
+ * business's profile page and clicking back, per an explicit user request
+ * that this look identical to how they left it.
+ * `initialNearby` — `{point:{lat,lng}, radius}` to redraw on mount, when
+ * resuming a previous "find nearby" search rather than starting fresh. */
+export default function BusinessMap({ businesses, onBoundsSearch, hoveredId, onSelectBusiness, onNearbySearch, initialNearby }) {
   const containerRef = useRef(null);
   const mapRef = useRef(null);
   const loadedRef = useRef(false);
   const businessesRef = useRef(businesses);
   const skipNextFitRef = useRef(false);
+  const nearbyModeRef = useRef(false);
+  const nearbyMarkerRef = useRef(null);
   const [showSearchArea, setShowSearchArea] = useState(false);
   const [styleError, setStyleError] = useState(false);
+  const [nearbyMode, setNearbyMode] = useState(false);
+  const [nearbyPoint, setNearbyPoint] = useState(null);
 
   useEffect(() => { businessesRef.current = businesses; }, [businesses]);
+  useEffect(() => { nearbyModeRef.current = nearbyMode; }, [nearbyMode]);
 
   // Mount the map once.
   useEffect(() => {
@@ -175,6 +207,18 @@ export default function BusinessMap({ businesses, onBoundsSearch, hoveredId }) {
           },
         });
 
+        // "Find nearby" radius circle -- purely visual, empty until a
+        // center point + radius are picked below.
+        map.addSource(NEARBY_SOURCE_ID, { type: 'geojson', data: EMPTY_FC });
+        map.addLayer({
+          id: 'gs-nearby-fill', type: 'fill', source: NEARBY_SOURCE_ID,
+          paint: { 'fill-color': '#d4a24c', 'fill-opacity': 0.12 },
+        });
+        map.addLayer({
+          id: 'gs-nearby-line', type: 'line', source: NEARBY_SOURCE_ID,
+          paint: { 'line-color': '#d4a24c', 'line-width': 2, 'line-dasharray': [2, 2] },
+        });
+
         map.on('mouseenter', 'gs-clusters', () => { map.getCanvas().style.cursor = 'pointer'; });
         map.on('mouseleave', 'gs-clusters', () => { map.getCanvas().style.cursor = ''; });
         map.on('mouseenter', 'gs-unclustered', () => { map.getCanvas().style.cursor = 'pointer'; });
@@ -189,13 +233,41 @@ export default function BusinessMap({ businesses, onBoundsSearch, hoveredId }) {
           }).catch(() => {});
         });
 
+        // A radius of a few miles is meaningless -- and effectively
+        // unclickable -- at a zoomed-out view (the directory's default view
+        // fits bounds to every business worldwide, which can mean a whole
+        // continent on screen). Dropping a nearby-search point always zooms
+        // in to at least this level first, so the pick lands where the user
+        // can actually see it and the radius circle is a real, visible size.
+        const dropNearbyPoint = (point) => {
+          setNearbyPoint(point);
+          if (map.getZoom() < NEARBY_MIN_ZOOM) {
+            map.flyTo({ center: [point.lng, point.lat], zoom: NEARBY_MIN_ZOOM });
+          }
+        };
+
         map.on('click', 'gs-unclustered', (e) => {
           const [feature] = e.features || [];
           if (!feature) return;
-          new maplibregl.Popup({ closeButton: true, maxWidth: '220px' })
-            .setLngLat(feature.geometry.coordinates)
-            .setDOMContent(popupNode(feature.properties, navigate))
-            .addTo(map);
+          if (nearbyModeRef.current) {
+            // In "find nearby" mode, clicking an existing pin uses that
+            // business's own location as the search center -- just as valid
+            // a thing to click as empty map space.
+            dropNearbyPoint({ lng: feature.geometry.coordinates[0], lat: feature.geometry.coordinates[1] });
+            return;
+          }
+          map.flyTo({ center: feature.geometry.coordinates, zoom: STREET_ZOOM });
+          if (onSelectBusiness) onSelectBusiness(feature.properties.id);
+        });
+
+        // "Find nearby": while armed, a click anywhere on the map that
+        // didn't land on a pin (handled above, which sets the point itself
+        // in that case) drops a center point for the radius picker below.
+        map.on('click', (e) => {
+          if (!nearbyModeRef.current) return;
+          const hits = map.queryRenderedFeatures(e.point, { layers: ['gs-unclustered'] });
+          if (hits.length > 0) return;
+          dropNearbyPoint({ lng: e.lngLat.lng, lat: e.lngLat.lat });
         });
 
         // Only user-driven moves (drag/scroll/pinch) carry an
@@ -209,7 +281,23 @@ export default function BusinessMap({ businesses, onBoundsSearch, hoveredId }) {
         loadedRef.current = true;
         const fc = toFeatureCollection(businessesRef.current);
         const bounds = boundsOfFeatures(fc);
-        if (bounds) map.fitBounds(bounds, { padding: 40, maxZoom: 14, duration: 0 });
+        // Guarded the same way as the [businesses]-effect's fitBounds below:
+        // the map's style can take a while to finish loading (slow network,
+        // cold cache), and the business list can easily have already
+        // arrived by then. If the user has since armed "find nearby" (and
+        // possibly already been flown to their own location) while waiting
+        // on this, this call must not undo that with an instant snap back
+        // out to a worldwide view -- that's exactly what was happening.
+        if (bounds && !nearbyModeRef.current) map.fitBounds(bounds, { padding: 40, maxZoom: 14, duration: 0 });
+
+        // Resuming a previous "find nearby" search (see initialNearby doc
+        // above) -- redraw its pin + circle immediately, without arming
+        // nearbyMode, so it reads as an already-committed result rather
+        // than an in-progress pick.
+        if (initialNearby?.point) {
+          setNearbyPoint(initialNearby.point);
+          map.getSource(NEARBY_SOURCE_ID).setData(circlePolygon(initialNearby.point, initialNearby.radius));
+        }
       } catch (err) {
         // eslint-disable-next-line no-console
         console.error('BusinessMap load-time error:', err);
@@ -250,6 +338,16 @@ export default function BusinessMap({ businesses, onBoundsSearch, hoveredId }) {
       skipNextFitRef.current = false;
       return;
     }
+    if (nearbyModeRef.current) {
+      // A businesses refresh landing mid-pick (e.g. the initial full-list
+      // fetch resolving late, right as the user armed "find nearby" and got
+      // flown to their own location) must not yank the camera back out to
+      // fit the whole list -- that discarded an in-progress pick in
+      // practice. Once a radius is actually chosen, nearbyMode is already
+      // off by the time the filtered results come back, so that refit still
+      // happens normally.
+      return;
+    }
     const bounds = boundsOfFeatures(fc);
     if (bounds) map.fitBounds(bounds, { padding: 40, maxZoom: 14, duration: 400 });
   }, [businesses]);
@@ -263,12 +361,99 @@ export default function BusinessMap({ businesses, onBoundsSearch, hoveredId }) {
     onBoundsSearch({ north: b.getNorth(), south: b.getSouth(), east: b.getEast(), west: b.getWest() });
   };
 
+  // Drop/move a marker at the picked center point; cleared entirely once
+  // nearby mode is turned off or re-armed for a new pick.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !loadedRef.current) return;
+    if (nearbyMarkerRef.current) { nearbyMarkerRef.current.remove(); nearbyMarkerRef.current = null; }
+    if (nearbyPoint) {
+      nearbyMarkerRef.current = new maplibregl.Marker({ color: '#d4a24c' })
+        .setLngLat([nearbyPoint.lng, nearbyPoint.lat])
+        .addTo(map);
+    }
+  }, [nearbyPoint]);
+
+  const clearNearbyOverlay = () => {
+    const map = mapRef.current;
+    const source = map && map.getSource(NEARBY_SOURCE_ID);
+    if (source) source.setData(EMPTY_FC);
+  };
+
+  const toggleNearbyMode = () => {
+    const map = mapRef.current;
+    if (nearbyMode) {
+      nearbyModeRef.current = false; // synchronous -- see note below on why this can't wait for the effect
+      setNearbyMode(false);
+      setNearbyPoint(null);
+      if (map) map.getCanvas().style.cursor = '';
+      clearNearbyOverlay();
+      return;
+    }
+    setNearbyPoint(null);
+    clearNearbyOverlay();
+    if (map) map.getCanvas().style.cursor = 'crosshair';
+    // Set synchronously, not just via the `nearbyMode` state (which the
+    // separate sync effect below only reflects into the ref after React's
+    // *next* render/commit). The geolocation callback right after this can
+    // resolve before that render happens -- with a mocked/instant location
+    // this isn't hypothetical, it reliably raced and silently ate the
+    // fly-to. Reading a ref updated in the same tick sidesteps that.
+    nearbyModeRef.current = true;
+    setNearbyMode(true);
+
+    // The directory's default view fits bounds to every business worldwide
+    // now that listings span multiple countries -- that leaves nothing
+    // sensible to click on. Jump to the user's own location first (same
+    // best-effort, never-blocks pattern as the city auto-fill elsewhere in
+    // this app) so there's a real starting point; if it's denied/unavailable
+    // this just silently does nothing; the user can still pan/zoom manually.
+    if (map && 'geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          if (nearbyModeRef.current) {
+            map.flyTo({ center: [pos.coords.longitude, pos.coords.latitude], zoom: NEARBY_MIN_ZOOM });
+          }
+        },
+        () => {},
+        { timeout: 6000, maximumAge: 10 * 60 * 1000 }
+      );
+    }
+  };
+
+  const pickRadius = (miles) => {
+    const map = mapRef.current;
+    if (!nearbyPoint || !onNearbySearch) return;
+    const source = map && map.getSource(NEARBY_SOURCE_ID);
+    if (source) source.setData(circlePolygon(nearbyPoint, miles));
+    if (map) map.getCanvas().style.cursor = '';
+    onNearbySearch({ bbox: radiusToBbox(nearbyPoint, miles), point: nearbyPoint, radius: miles });
+    setNearbyMode(false);
+  };
+
   const hasPins = businesses.some((b) =>
     (b.locations || (b.primary_location ? [b.primary_location] : [])).some((l) => l && l.lat != null && l.lng != null));
 
   return (
     <div className="biz-map-wrap">
       <div ref={containerRef} className="biz-map-canvas" />
+      <button
+        type="button"
+        className={`biz-map-nearby-toggle${nearbyMode ? ' active' : ''}`}
+        onClick={toggleNearbyMode}
+        title="Click a point on the map, then pick a radius to find businesses around it"
+      >
+        📍 {nearbyMode ? 'Click the map…' : 'Find nearby'}
+      </button>
+      {nearbyMode && nearbyPoint && (
+        <div className="biz-map-nearby-picker">
+          <span>Within</span>
+          {NEARBY_RADII.map((mi) => (
+            <button key={mi} type="button" className="biz-chip" onClick={() => pickRadius(mi)}>{mi} mi</button>
+          ))}
+          <button type="button" className="biz-map-nearby-cancel" onClick={toggleNearbyMode}>✕</button>
+        </div>
+      )}
       {showSearchArea && (
         <button type="button" className="biz-map-search-area" onClick={searchThisArea}>
           🔎 Search this area
