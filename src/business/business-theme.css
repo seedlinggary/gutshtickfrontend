@@ -305,6 +305,15 @@
   font-size: 11px;
   font-weight: 800;
 }
+/* Anchored to .biz-topbar (position: sticky, which is itself a valid
+   containing block for absolute descendants) rather than to the toggle
+   button's own wrapper -- the topbar is a wrapping flex row, so on narrow
+   screens the button can drop to its own line starting at the row's left
+   edge; anchoring there instead of to the row pushed this panel off the
+   left edge of the viewport, which html/body's overflow-x:hidden then
+   clipped. The topbar's right edge is always on-screen, so anchoring here
+   is safe at every width. Don't add `position: relative` back onto the
+   button's wrapper div in BusinessDirectory.js -- that reintroduces the bug. */
 .biz-filter-panel {
   position: absolute;
   top: calc(100% + 8px);

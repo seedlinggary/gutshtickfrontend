@@ -75,7 +75,6 @@ export default function CreateDealPost() {
           <div className="gs-field">
             <div className="gs-label">Image (optional)</div>
             <UploadFile setInvestors={(name_) => setImage(name_)} apiextension="/business/posts/upload" />
-            {image && <span style={{ fontSize: 12, color: 'var(--muted)' }}>Uploaded ✓</span>}
           </div>
           <button type="submit" className="gs-btn gs-btn-primary" disabled={submitting}>
             {submitting ? 'Posting…' : 'Post deal'}

@@ -221,7 +221,6 @@ export default function BusinessForm() {
           <div className="gs-field">
             <div className="gs-label">Logo</div>
             <UploadFile setInvestors={(name_) => setLogo(name_)} apiextension="/business/upload" />
-            {logo && <span style={{ fontSize: 12, color: 'var(--muted)' }}>Uploaded ✓</span>}
           </div>
 
           <h3>Locations</h3>

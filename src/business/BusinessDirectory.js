@@ -238,7 +238,7 @@ export default function BusinessDirectory() {
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
               />
-              <div ref={filterRef} style={{ position: 'relative' }}>
+              <div ref={filterRef}>
                 <button
                   type="button"
                   className={`biz-filter-toggle${activeFilterCount ? ' has-active' : ''}`}
