@@ -21,6 +21,7 @@ export default function AdminDashboard() {
   const [tachlisPending, setTachlisPending] = useState([]);
   const [tachlisAll, setTachlisAll] = useState([]);
   const [hockAll, setHockAll] = useState([]);
+  const [businessClaims, setBusinessClaims] = useState([]);
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState('');
   const [selectedIds, setSelectedIds] = useState([]);
@@ -55,6 +56,7 @@ export default function AdminDashboard() {
         if (isSuperAdmin()) setTachlisAll(await apiRequest('GET', null, '/tachlis/admin/posts'));
       }
       if (t === 'hock' && isSuperAdmin()) setHockAll(await apiRequest('GET', null, '/hock/admin/posts'));
+      if (t === 'business') setBusinessClaims(await apiRequest('GET', null, '/business/admin/claims/pending'));
     } catch (e) {
       setMsg(typeof e === 'string' ? e : 'Failed to load');
     } finally {
@@ -131,6 +133,22 @@ export default function AdminDashboard() {
     setMsg('Hock post restored');
   }
 
+  async function approveClaim(id) {
+    try {
+      await apiRequest('POST', null, `/business/admin/claims/${id}/approve`);
+      setBusinessClaims((c) => c.filter((x) => x.id !== id));
+      setMsg('Claim approved — business ownership transferred ✓');
+    } catch (e) {
+      setMsg(typeof e === 'string' ? e : 'Could not approve claim');
+    }
+  }
+
+  async function rejectClaim(id) {
+    await apiRequest('POST', null, `/business/admin/claims/${id}/reject`);
+    setBusinessClaims((c) => c.filter((x) => x.id !== id));
+    setMsg('Claim rejected');
+  }
+
   async function unapprove(id) {
     if (!window.confirm('Send this post back to the pending queue?')) return;
     await apiRequest('POST', null, `/admin/shtick/${id}/unapprove`);
@@ -195,6 +213,7 @@ export default function AdminDashboard() {
           ['all', '📋 All Posts'],
           ['rejected', `🗑 Rejected (${rejected.length})`],
           ['comments', '💬 Comments'],
+          ['business', `🏪 Business Claims (${businessClaims.length})`],
           ...(isSuperAdmin() ? [['hock', '🗣 Hock Moderation']] : []),
         ].map(([key, label]) => (
           <button key={key} className={`admin-tab${tab === key ? ' active' : ''}`} onClick={() => setTab(key)}>
@@ -441,6 +460,33 @@ export default function AdminDashboard() {
                   <button className="gs-btn gs-btn-success gs-btn-sm" onClick={() => approveComment(c.id, c.source)}>✓ Approve</button>
                 )}
                 <button className="gs-btn gs-btn-danger gs-btn-sm" onClick={() => deleteComment(c.id, c.source)}>🗑 Delete</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ── Business Claims -- approving one transfers Business.owner_user_id
+          to the claimant and auto-rejects any other pending claims on the
+          same business (see backend/business/routes/business.py). Creating
+          a business itself needs no approval; this is the only gate. ── */}
+      {tab === 'business' && !loading && (
+        <div className="admin-list">
+          {businessClaims.length === 0 && <div className="admin-empty">No pending business claims — all clear! ✓</div>}
+          {businessClaims.map((c) => (
+            <div key={c.id} className="admin-card" style={{ borderLeft: '4px solid var(--accent)' }}>
+              <div className="admin-card-top">
+                <span className="admin-badge pending">Pending</span>
+                <span className="admin-date">{timeAgo(c.created_at)} <span style={{ fontSize: 11 }} title="Claim ID">#{c.id}</span></span>
+              </div>
+              <h3 className="admin-caption">{c.business?.name}</h3>
+              {c.message && <p style={{ marginTop: 8, whiteSpace: 'pre-wrap' }}>“{c.message}”</p>}
+              <div className="admin-card-meta">
+                <span>Claimed by: <b>{c.user?.profile_name || c.user_id}</b></span>
+              </div>
+              <div className="admin-actions">
+                <button className="gs-btn gs-btn-success gs-btn-sm" onClick={() => approveClaim(c.id)}>✓ Approve</button>
+                <button className="gs-btn gs-btn-danger gs-btn-sm" onClick={() => rejectClaim(c.id)}>✕ Reject</button>
               </div>
             </div>
           ))}

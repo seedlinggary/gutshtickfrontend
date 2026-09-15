@@ -1,5 +1,5 @@
 import './App.css';
-import React, { lazy, Suspense } from 'react';
+import React, { lazy, Suspense, useEffect } from 'react';
 
 class GameErrorBoundary extends React.Component {
   constructor(props) { super(props); this.state = { error: null }; }
@@ -29,7 +29,7 @@ import MobileTabBar from './MobileTabBar';
 import Footer from './Footer';
 import ScrollToTop from './ScrollToTop';
 import VisitorTracker from './analytics/VisitorTracker';
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Disclaimer from './Disclaimer';
 import ContentGuidelines from './ContentGuidelines';
 import SignIn from './users/SignIn';
@@ -116,11 +116,10 @@ const TheAscent      = lazy(() => import('./games/TheAscent'));
 
 import SoloGameShell from './games/SoloGameShell';
 import { isLoggedIn, isAdmin, isSuperAdmin } from './auth';
-
-function RequireAuth({ check, children }) {
-  if (!check()) return <Navigate to="/signin" replace />;
-  return children;
-}
+import { getCurrentSite } from './siteMode';
+import { SITES } from './sites/registry';
+import SsoBootstrap from './SsoBootstrap';
+import RequireAuth from './RequireAuth';
 
 function GameFallback() {
   return (
@@ -134,28 +133,49 @@ function GameFallback() {
 }
 
 function App() {
+  const site = getCurrentSite();
+  useEffect(() => {
+    // Only one site's theme class is ever active at a time -- clear every
+    // registered site's class first so switching (via the ?site= dev
+    // toggle) never leaves a stale one behind, then apply the current one.
+    SITES.forEach((s) => document.body.classList.remove(s.themeClass));
+    if (site) document.body.classList.add(site.themeClass);
+  }, [site]);
   return (
     <Router>
       <div className="App page-wrapper">
         <ScrollToTop />
         <VisitorTracker />
-        <AppNavbar />
-        <MobileTabBar />
+        <SsoBootstrap />
+        {site ? <site.Navbar /> : <><AppNavbar /><MobileTabBar /></>}
         <main className="main-content">
           <GameErrorBoundary>
           <Suspense fallback={<GameFallback />}>
             <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/feed/:category_id" element={<Home />} />
-              <Route path="/post/:id" element={<PostPage />} />
+              {site ? (
+                site.routes.map((r) => <Route key={r.path} path={r.path} element={r.element} />)
+              ) : (
+                <>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/feed/:category_id" element={<Home />} />
+                  <Route path="/post/:id" element={<PostPage />} />
 
-              {/* ── Hock discussion forum (public to browse; posting/commenting gated server-side) ── */}
-              <Route path="/hock" element={<Hock />} />
-              <Route path="/hock/post/:id" element={<HockPostPage />} />
+                  {/* ── Hock discussion forum (public to browse; posting/commenting gated server-side) ── */}
+                  <Route path="/hock" element={<Hock />} />
+                  <Route path="/hock/post/:id" element={<HockPostPage />} />
 
-              {/* ── Tachlis jobs/resumes/services board (public to browse; posting gated server-side) ── */}
-              <Route path="/tachlis" element={<Tachlis />} />
-              <Route path="/tachlis/post/:id" element={<TachlisPostPage />} />
+                  {/* ── Tachlis jobs/resumes/services board (public to browse; posting gated server-side) ── */}
+                  <Route path="/tachlis" element={<Tachlis />} />
+                  <Route path="/tachlis/post/:id" element={<TachlisPostPage />} />
+
+                  {/* ── Auth-gated ── */}
+                  <Route path="/CreateShtick" element={
+                    <RequireAuth check={isLoggedIn}><CreateShtick /></RequireAuth>
+                  } />
+                </>
+              )}
+
+              {/* ── Shared across both sites ── */}
               <Route path="/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/disclaimer" element={<Disclaimer />} />
@@ -167,9 +187,15 @@ function App() {
               <Route path="/profile" element={
                 <RequireAuth check={isLoggedIn}><Profile /></RequireAuth>
               } />
+              <Route path="/admin" element={
+                <RequireAuth check={isAdmin}><AdminDashboard /></RequireAuth>
+              } />
+              <Route path="/superadmin" element={
+                <RequireAuth check={isSuperAdmin}><SuperAdminDashboard /></RequireAuth>
+              } />
 
-              {/* ── Games Hub ── */}
-              <Route path="/games" element={<Games />} />
+              {/* ── Games Hub (consumer site only, but harmless to leave reachable by direct link) ── */}
+              {!site && <Route path="/games" element={<Games />} />}
 
               {/* ── Original solo games ── */}
               <Route path="/games/categories"   element={<SoloGameShell><Categories /></SoloGameShell>} />
@@ -239,17 +265,6 @@ function App() {
 
               {/* ── Multiplayer games (lobby → game) ── */}
               <Route path="/games/multi/:gameId" element={<MultiWrapper />} />
-
-              {/* ── Auth-gated routes ── */}
-              <Route path="/CreateShtick" element={
-                <RequireAuth check={isLoggedIn}><CreateShtick /></RequireAuth>
-              } />
-              <Route path="/admin" element={
-                <RequireAuth check={isAdmin}><AdminDashboard /></RequireAuth>
-              } />
-              <Route path="/superadmin" element={
-                <RequireAuth check={isSuperAdmin}><SuperAdminDashboard /></RequireAuth>
-              } />
 
               <Route path="*" element={<NotFound />} />
             </Routes>

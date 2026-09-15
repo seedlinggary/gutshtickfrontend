@@ -1,10 +1,13 @@
-﻿import React from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { fetchCategory, fetchData } from "./actions";
 import { clearAuth } from "./auth";
+import CrossSiteLink from "./CrossSiteLink";
+import { isBusinessSite } from "./siteMode";
 
 const Footer = () => {
+  const business = isBusinessSite();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const email = localStorage.getItem("email");
@@ -31,28 +34,42 @@ const Footer = () => {
         <div className="gs-footer-grid">
           <div>
             <div className="gs-footer-brand">
-              Gut <span>Shtick</span>
+              {business ? <>Good Shtick <span>Business</span></> : <>Gut <span>Shtick</span></>}
             </div>
             <p className="gs-footer-tagline">
-              Curated content worth your time. No noise, just the good stuff.
+              {business
+                ? "The local business directory & deals board, powered by Gut Shtick."
+                : "Curated content worth your time. No noise, just the good stuff."}
             </p>
           </div>
 
-          <div>
-            <div className="gs-footer-col-title">Navigate</div>
-            <button className="gs-footer-link" onClick={() => go("/")}>Home</button>
-            <button className="gs-footer-link" onClick={() => goToFeed("/feed/all", "all")}>All Posts</button>
-            {email && (
-              <button className="gs-footer-link" onClick={() => goToFeed("/feed/liked", "liked")}>
-                Liked Posts
-              </button>
-            )}
-            {email && (
-              <button className="gs-footer-link" onClick={() => go("/CreateShtick")}>
-                Post Shtick
-              </button>
-            )}
-          </div>
+          {business ? (
+            <div>
+              <div className="gs-footer-col-title">Navigate</div>
+              <button className="gs-footer-link" onClick={() => go("/")}>Directory</button>
+              <button className="gs-footer-link" onClick={() => go("/deals")}>Deals</button>
+              <button className="gs-footer-link" onClick={() => go("/business/new")}>List Your Business</button>
+              {email && (
+                <button className="gs-footer-link" onClick={() => go("/my-businesses")}>My Businesses</button>
+              )}
+            </div>
+          ) : (
+            <div>
+              <div className="gs-footer-col-title">Navigate</div>
+              <button className="gs-footer-link" onClick={() => go("/")}>Home</button>
+              <button className="gs-footer-link" onClick={() => goToFeed("/feed/all", "all")}>All Posts</button>
+              {email && (
+                <button className="gs-footer-link" onClick={() => goToFeed("/feed/liked", "liked")}>
+                  Liked Posts
+                </button>
+              )}
+              {email && (
+                <button className="gs-footer-link" onClick={() => go("/CreateShtick")}>
+                  Post Shtick
+                </button>
+              )}
+            </div>
+          )}
 
           <div>
             <div className="gs-footer-col-title">Company</div>
@@ -77,10 +94,11 @@ const Footer = () => {
 
         <div className="gs-footer-bottom">
           <span className="gs-footer-copy">
-            &copy; {new Date().getFullYear()} Gut Shtick. All rights reserved.
+            &copy; {new Date().getFullYear()} {business ? "Good Shtick Business" : "Gut Shtick"}. All rights reserved.
           </span>
         </div>
       </div>
+      <CrossSiteLink />
     </footer>
   );
 };

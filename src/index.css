@@ -135,6 +135,33 @@ iframe {
   .main-content { padding-bottom: 64px; }
 }
 
+/* ── Cross-site link -- the *only* way to jump between the consumer site and
+   the business site, deliberately a small icon rather than a nav item. ── */
+.cross-site-link {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 902;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0.85;
+  transition: opacity .15s, transform .15s;
+}
+.cross-site-link:hover { opacity: 1; transform: scale(1.06); }
+.cross-site-link:disabled { cursor: wait; opacity: 0.6; }
+@media (max-width: 768px) {
+  .cross-site-link { bottom: calc(64px + 12px + env(safe-area-inset-bottom)); right: 12px; width: 36px; height: 36px; font-size: 16px; }
+}
+
 /* ── UNO's hand row pins to the bottom of a full-height flex column
    (marginTop: auto) -- on mobile that bottom edge lands right under the
    fixed tab bar, clipping the cards you actually tap to play. Reserve the

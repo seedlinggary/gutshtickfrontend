@@ -1,0 +1,623 @@
+/* ── "Storefront Navy & Gold" — Good Shtick Business's own identity ──
+   Scoped entirely under `.business-theme` (toggled on <body> by App.js via
+   isBusinessSite()), so none of this can ever leak onto the consumer
+   ("Gut Shtick") site. Re-defining the *same* custom-property names the
+   shared gs-* classes already read (--bg/--surface/--accent/etc., all
+   originally set in src/index.css) means every existing structural class
+   (.gs-card, .gs-btn, .auth-input, .gs-navbar, .gs-spinner, ...) re-themes
+   for free with zero per-component overrides. New surface-level UI (chips,
+   badges, skeletons, the map's own controls) gets its own .biz-* classes
+   below so nothing here can collide with a shared gs-* class name. */
+
+.business-theme {
+  --bg: #f7f8fb;
+  --surface: #ffffff;
+  --surface-deep: #eef1f7;
+  --primary: #1c2438;
+  --accent: #1c2438;
+  --accent-hover: #131829;
+  --text: #1c2438;
+  --muted: #5b6472;
+  --muted-faint: #98a1b0;
+  --border: rgba(28, 36, 56, 0.10);
+  --success: #1f8a5f;
+  --shadow-sm: 0 1px 2px rgba(28, 36, 56, 0.06), 0 3px 10px rgba(28, 36, 56, 0.05);
+  --shadow: 0 2px 4px rgba(28, 36, 56, 0.05), 0 10px 26px rgba(28, 36, 56, 0.08);
+  --shadow-lg: 0 4px 10px rgba(28, 36, 56, 0.07), 0 18px 44px rgba(28, 36, 56, 0.12);
+
+  /* New tokens the shared stylesheet doesn't define -- gold is the CTA/
+     highlight color, layered on top of the navy chrome. */
+  --gold: #d4a24c;
+  --gold-hover: #b98a3a;
+  --gold-wash: rgba(212, 162, 76, 0.14);
+  --navy-wash: rgba(28, 36, 56, 0.06);
+
+  background: var(--bg);
+}
+
+/* ── Navbar: a solid navy band instead of a white bar, since --surface stays
+   white for cards/content and the navbar needs its own identity. ── */
+.business-theme .gs-navbar {
+  background: var(--accent);
+  box-shadow: 0 2px 12px rgba(28, 36, 56, 0.18);
+}
+.business-theme .gs-navbar .navbar-brand {
+  color: #fff;
+}
+.business-theme .gs-navbar .navbar-brand span {
+  color: var(--gold);
+}
+.business-theme .gs-navbar .nav-link {
+  color: rgba(255, 255, 255, 0.72);
+}
+.business-theme .gs-navbar .nav-link:hover {
+  color: #fff;
+}
+.business-theme .gs-navbar .nav-link-pin {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: #1c2438;
+}
+.business-theme .gs-navbar .nav-link-pin:hover {
+  background: var(--gold-hover);
+  border-color: var(--gold-hover);
+  color: #1c2438;
+}
+.business-theme .gs-navbar .navbar-toggler {
+  border-color: rgba(255, 255, 255, 0.3);
+}
+.business-theme .gs-navbar .navbar-toggler:focus {
+  box-shadow: 0 0 0 2px rgba(212, 162, 76, 0.45);
+}
+.business-theme .gs-navbar .navbar-toggler-icon,
+.business-theme .gs-navbar .navbar-toggler-icon::before,
+.business-theme .gs-navbar .navbar-toggler-icon::after {
+  background: #fff;
+}
+.business-theme .gs-navbar .navbar-collapse.show {
+  background: var(--accent);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+.business-theme .gs-navbar .dropdown-item {
+  color: var(--text);
+}
+
+/* ── Buttons: keep the existing pill shape/markup, just give the theme its
+   own weight -- a lift on hover, and gold (not navy) for primary CTAs so
+   "the action color" reads consistently everywhere (List a Business, Post a
+   Deal, Claim, Submit...). ── */
+.business-theme .gs-btn {
+  transition: transform 140ms ease, box-shadow 140ms ease, background 140ms ease, border-color 140ms ease;
+}
+.business-theme .gs-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+.business-theme .gs-btn-primary {
+  background: var(--gold);
+  color: #1c2438;
+  box-shadow: 0 2px 8px rgba(212, 162, 76, 0.35);
+}
+.business-theme .gs-btn-primary:hover {
+  background: var(--gold-hover);
+  color: #1c2438;
+  box-shadow: 0 4px 14px rgba(212, 162, 76, 0.4);
+}
+.business-theme .gs-btn-outline {
+  border-color: var(--border);
+  color: var(--text);
+}
+.business-theme .gs-btn-outline:hover {
+  background: var(--navy-wash);
+  border-color: var(--muted-faint);
+}
+.business-theme .gs-btn-outline.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+/* ── Segmented control (sort / list-vs-map toggles) ── */
+.biz-segmented {
+  display: inline-flex;
+  background: var(--surface-deep);
+  border-radius: 999px;
+  padding: 3px;
+  gap: 2px;
+}
+.biz-segmented-btn {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+  padding: 7px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 140ms ease;
+}
+.biz-segmented-btn:hover {
+  color: var(--text);
+}
+.biz-segmented-btn.active {
+  background: var(--surface);
+  color: var(--accent);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ── Filter chips (category / open-now / kashrut) ── */
+.biz-chip-row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: thin;
+}
+.biz-chip-row::-webkit-scrollbar {
+  height: 5px;
+}
+.biz-chip-row::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 999px;
+}
+.biz-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  padding: 8px 15px;
+  border-radius: 999px;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 140ms ease;
+}
+.biz-chip:hover {
+  border-color: var(--muted-faint);
+  color: var(--text);
+}
+.biz-chip.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.biz-chip.gold-active.active {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: #1c2438;
+}
+
+/* ── Sticky filter bar shell (Deals feed; Directory uses .biz-topbar below) ── */
+.biz-filter-bar {
+  position: sticky;
+  top: 64px;
+  z-index: 40;
+  background: var(--bg);
+  padding: 10px 0 12px;
+  margin-bottom: 4px;
+}
+@media (max-width: 991.98px) {
+  .biz-filter-bar { top: 0; }
+}
+
+/* ── Directory split view: scrolling list + sticky map, side by side on
+   desktop; the map only fits alongside a narrower list column, so it
+   collapses to a single column with a List/Map segmented toggle below
+   960px. ── */
+.biz-directory-split {
+  display: block;
+}
+@media (min-width: 960px) {
+  .biz-directory-split {
+    display: grid;
+    grid-template-columns: minmax(360px, 440px) 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+}
+.biz-directory-list {
+  min-width: 0;
+}
+.biz-directory-mappane {
+  display: none;
+}
+@media (min-width: 960px) {
+  .biz-directory-mappane {
+    display: block;
+    position: sticky;
+    top: 80px;
+    height: calc(100vh - 100px);
+    min-height: 420px;
+  }
+  .biz-directory-mappane .biz-map-wrap,
+  .biz-directory-mappane .biz-map-canvas {
+    height: 100%;
+  }
+}
+/* Below 960px the map only renders when the mobile List/Map toggle picks it,
+   as its own full-width block (not inside .biz-directory-mappane). */
+.biz-mobile-toggle {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+@media (min-width: 960px) {
+  .biz-mobile-toggle { display: none; }
+}
+
+/* ── Compact top bar: search + a "Filters" button that opens a dropdown
+   panel, instead of a permanent wall of chips. ── */
+.biz-topbar {
+  position: sticky;
+  top: 64px;
+  z-index: 45;
+  background: var(--bg);
+  padding: 10px 0 12px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+@media (max-width: 767.98px) {
+  .biz-topbar { top: 0; }
+}
+.biz-topbar-search {
+  flex: 1;
+  min-width: 160px;
+}
+.biz-filter-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  border-radius: 999px;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 140ms ease;
+}
+.biz-filter-toggle:hover {
+  border-color: var(--muted-faint);
+}
+.biz-filter-toggle.has-active {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.biz-filter-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--gold);
+  color: #1c2438;
+  font-size: 11px;
+  font-weight: 800;
+}
+.biz-filter-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 60;
+  width: min(360px, 88vw);
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border);
+  padding: 16px;
+}
+.biz-filter-panel-section {
+  margin-bottom: 14px;
+}
+.biz-filter-panel-section:last-child {
+  margin-bottom: 0;
+}
+.biz-filter-panel-label {
+  font-size: 11.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted-faint);
+  margin-bottom: 8px;
+}
+.biz-filter-panel-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+/* ── Status badges (open now / kashrut / claimed) ── */
+.biz-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.biz-badge-open {
+  background: rgba(31, 138, 95, 0.12);
+  color: var(--success);
+}
+.biz-badge-closed {
+  background: var(--navy-wash);
+  color: var(--muted);
+}
+.biz-badge-kashrut {
+  background: var(--gold-wash);
+  color: var(--gold-hover);
+}
+.biz-badge-claimed {
+  background: var(--gold-wash);
+  color: var(--gold-hover);
+}
+
+/* ── Stats bar (StatsBar.js) -- a small "trust bar" of directory-wide
+   counts, navy background so it reads as a banner distinct from cards. ── */
+.biz-stats-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  background: linear-gradient(135deg, var(--accent) 0%, #2a3654 100%);
+  border-radius: var(--radius-lg);
+  padding: 16px 8px;
+  margin-bottom: 16px;
+}
+.biz-stats-tile {
+  flex: 1;
+  min-width: 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 6px;
+  text-align: center;
+}
+.biz-stats-value {
+  font-size: 19px;
+  font-weight: 800;
+  color: #fff;
+  white-space: nowrap;
+}
+.biz-stats-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* ── Data accuracy disclaimer ── */
+.biz-disclaimer {
+  font-size: 12.5px;
+  color: var(--muted-faint);
+  text-align: center;
+  padding: 16px 8px 8px;
+  border-top: 1px solid var(--border);
+  margin-top: 8px;
+}
+.biz-disclaimer a {
+  color: var(--muted);
+  text-decoration: underline;
+}
+
+/* ── Result count ── */
+.biz-result-count {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+/* ── Skeleton loading placeholders ── */
+.biz-skeleton {
+  background: linear-gradient(90deg, var(--surface-deep) 25%, #f6f8fc 37%, var(--surface-deep) 63%);
+  background-size: 400% 100%;
+  animation: biz-shimmer 1.4s ease infinite;
+  border-radius: 8px;
+}
+@keyframes biz-shimmer {
+  0% { background-position: 100% 50%; }
+  100% { background-position: 0 50%; }
+}
+.biz-skeleton-card {
+  display: flex;
+  gap: 12px;
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 20px 24px;
+  margin-bottom: 14px;
+}
+
+/* ── Business card hover lift (applied alongside .gs-card) ── */
+.biz-card-hover {
+  cursor: pointer;
+}
+.biz-card-hover:hover,
+.biz-card-hover.biz-card-active {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+}
+
+/* ── Card media tile: the business's logo when it has one, otherwise a
+   category-tinted gradient with its icon watermarked -- richer than a flat
+   placeholder square without fabricating a stock photo. `--media-tint` is
+   set inline per-card from CATEGORY_TINTS (categories.js). ── */
+.biz-card-media {
+  width: 84px;
+  height: 84px;
+  border-radius: 16px;
+  flex-shrink: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  background: linear-gradient(135deg, var(--media-tint, var(--accent)) 0%, var(--surface-deep) 150%);
+}
+.biz-card-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ── Business profile hero ── */
+.biz-hero {
+  background: linear-gradient(135deg, var(--accent) 0%, #2a3654 100%);
+  border-radius: var(--radius-lg);
+  padding: 28px 24px;
+  margin-bottom: 16px;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+}
+.biz-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 100% 0%, rgba(212, 162, 76, 0.25), transparent 55%);
+  pointer-events: none;
+}
+.biz-hero-top {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  position: relative;
+}
+.biz-hero-logo {
+  width: 76px;
+  height: 76px;
+  border-radius: 14px;
+  flex-shrink: 0;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 34px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+.biz-hero-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.biz-hero h1 {
+  margin: 0;
+  color: #fff;
+}
+.biz-hero-category {
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.biz-hero-website {
+  color: var(--gold);
+}
+.biz-hero-website:hover {
+  color: #e8c98a;
+}
+
+/* ── Profile tab strip ── */
+.biz-tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 16px;
+  overflow-x: auto;
+}
+.biz-tab {
+  border: none;
+  background: none;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--muted);
+  cursor: pointer;
+  white-space: nowrap;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: color 140ms ease, border-color 140ms ease;
+}
+.biz-tab:hover {
+  color: var(--text);
+}
+.biz-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--gold);
+}
+
+/* ── Deals feed: colored left-edge stripe by post type ── */
+.biz-deal-card {
+  border-left: 4px solid var(--deal-color, var(--gold));
+}
+
+/* ── Map ── */
+.biz-map-wrap {
+  position: relative;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 16px;
+}
+.biz-map-canvas {
+  height: 480px;
+  width: 100%;
+}
+.biz-map-search-area {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  background: var(--surface);
+  color: var(--accent);
+  border: none;
+  border-radius: 999px;
+  padding: 9px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: transform 140ms ease;
+}
+.biz-map-search-area:hover {
+  transform: translateX(-50%) translateY(-1px);
+}
+.biz-map-popup {
+  font-size: 13px;
+  min-width: 140px;
+}
+.biz-map-popup strong {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--text);
+}
+.biz-map-popup a {
+  color: var(--accent);
+  font-weight: 700;
+}
+.maplibregl-popup-content {
+  border-radius: 10px !important;
+  box-shadow: var(--shadow-lg) !important;
+  padding: 12px 14px !important;
+}
+.maplibregl-ctrl-attrib {
+  font-size: 10.5px !important;
+}
