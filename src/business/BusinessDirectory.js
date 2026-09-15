@@ -118,7 +118,14 @@ export default function BusinessDirectory() {
   // identical filters still comes back as a different random sample/order
   // each time, which would make "go back" look different even though
   // nothing the user chose had changed.
-  const hasSavedResults = Array.isArray(saved.businesses);
+  // An empty saved list isn't a meaningful snapshot to trust as "the
+  // definitive answer" -- it could be a genuinely empty result from an
+  // earlier search, or just never-populated leftover state. Either way,
+  // treating it as authoritative meant a fresh visit that happened to reuse
+  // a tab with one of those saved could show "No businesses match" forever,
+  // with nothing to ever trigger a real fetch. Only a non-empty list is
+  // worth skipping the initial fetch for.
+  const hasSavedResults = Array.isArray(saved.businesses) && saved.businesses.length > 0;
   const [businesses, setBusinesses] = useState(saved.businesses || []);
   const [page, setPage] = useState(saved.page || 1);
   const [hasMore, setHasMore] = useState(saved.hasMore || false);
