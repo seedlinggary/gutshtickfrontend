@@ -631,6 +631,15 @@
   border-color: rgba(255, 255, 255, 0.5);
 }
 .biz-shake-btn:disabled { opacity: 0.75; cursor: default; }
+.biz-shake-btn.active {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: #1c2438;
+}
+.biz-shake-btn.active:hover:not(:disabled) {
+  background: var(--gold-hover);
+  border-color: var(--gold-hover);
+}
 .biz-shake-spin { animation: biz-shake-spin 500ms ease; }
 @keyframes biz-shake-spin {
   0% { transform: rotate(0deg); }

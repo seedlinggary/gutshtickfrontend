@@ -6,7 +6,6 @@ import ShareButton from '../ShareButton';
 import AdSlot from '../ads/AdSlot';
 import timeAgo from '../utils/timeAgo';
 import DataDisclaimer from './DataDisclaimer';
-import detectNearbyCity from './geolocation';
 import { POST_TYPE_META, CATEGORY_TINTS } from './categories';
 import PostTypeIcon from './PostTypeIcon';
 import CategoryIcon from './CategoryIcon';
@@ -74,7 +73,6 @@ export default function DealsFeed() {
   const [debouncedQ, setDebouncedQ] = useState('');
   const [city, setCity] = useState('');
   const [debouncedCity, setDebouncedCity] = useState('');
-  const [cityAuto, setCityAuto] = useState(false);
   const [sort, setSort] = useState('recent');
   const [posts, setPosts] = useState([]);
   const [page, setPage] = useState(1);
@@ -92,21 +90,13 @@ export default function DealsFeed() {
     return () => clearTimeout(t);
   }, [city]);
 
-  // Default to "near me" on first load, same as the Directory -- only ever
-  // sets an initial value, never overwrites something the user typed.
-  useEffect(() => {
-    let cancelled = false;
-    detectNearbyCity().then((found) => {
-      if (found && !cancelled) {
-        setCity((current) => {
-          if (current) return current;
-          setCityAuto(true);
-          return found;
-        });
-      }
-    });
-    return () => { cancelled = true; };
-  }, []);
+  // There used to be an effect here that silently called the browser's
+  // geolocation API on every page load to default this city field -- see
+  // BusinessDirectory.js's own removal of the same pattern for why: it
+  // quietly burns the one permission prompt a browser gives an origin,
+  // which left the Directory's explicit "Near me" button unable to get its
+  // own prompt for anyone who'd already (often unknowingly) answered this
+  // silent one first.
 
   const load = useCallback((pageNum, append) => {
     if (append) setLoadingMore(true); else setLoading(true);
@@ -159,12 +149,9 @@ export default function DealsFeed() {
               className="auth-input"
               placeholder="City"
               value={city}
-              onChange={(e) => { setCity(e.target.value); setCityAuto(false); }}
+              onChange={(e) => setCity(e.target.value)}
             />
           </div>
-          {cityAuto && city && (
-            <span className="biz-badge biz-badge-open" title="Defaulted to your location — edit or clear the city field to change it"><MapPin size={11} /> Near you</span>
-          )}
           <select className="auth-input" style={{ maxWidth: 190 }} value={type} onChange={(e) => setType(e.target.value)}>
             {TYPES.map((t) => <option key={t.key} value={t.key}>{t.label}</option>)}
           </select>

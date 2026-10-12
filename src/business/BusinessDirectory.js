@@ -7,9 +7,7 @@ import BusinessCard from './BusinessCard';
 import BusinessPreviewPanel from './BusinessPreviewPanel';
 import StatsBar from './StatsBar';
 import DataDisclaimer from './DataDisclaimer';
-import detectNearbyCity, {
-  getBrowserCoordsDetailed, radiusToBbox, GEO_PERMISSION_DENIED, GEO_UNSUPPORTED,
-} from './geolocation';
+import { getBrowserCoordsDetailed, radiusToBbox, GEO_PERMISSION_DENIED, GEO_UNSUPPORTED } from './geolocation';
 import { CATEGORY_LABELS, FOOD_CATEGORIES, LOCATION_TYPE_META } from './categories';
 import CategoryIcon from './CategoryIcon';
 import CompareTray, { useCompareTray } from './CompareTray';
@@ -29,7 +27,7 @@ const COMMUNITY_SUBTITLE = 'Shuls and chessed organizations, in their own area r
 // chips). See list_businesses()'s categories/exclude_categories params.
 const COMMUNITY_CATEGORIES = ['shul', 'nonprofit'];
 
-// Default radius for the one-click "Near me" filter-panel chip.
+// Default radius for the one-click "Near me" masthead button.
 const NEAR_ME_RADIUS_MILES = 10;
 
 // Lazy so maplibre-gl (a sizeable library) only downloads once the map is
@@ -120,7 +118,6 @@ export default function BusinessDirectory({ mode = 'business' }) {
   const [category, setCategory] = useState(saved.category || '');
   const [city, setCity] = useState(saved.city || '');
   const [debouncedCity, setDebouncedCity] = useState(saved.city || '');
-  const [cityAuto, setCityAuto] = useState(saved.cityAuto || false);
   const [locationType, setLocationType] = useState(saved.locationType || '');
   const [foodOnly, setFoodOnly] = useState(saved.foodOnly || false);
   const [kashrutOnly, setKashrutOnly] = useState(saved.kashrutOnly || false);
@@ -178,33 +175,26 @@ export default function BusinessDirectory({ mode = 'business' }) {
     return () => clearTimeout(t);
   }, [city]);
 
-  // Default the city filter to "near me" on first load, if the browser
-  // will share a location and the user hasn't already typed one -- they can
-  // always clear/change it afterward, this only ever sets an initial value.
-  useEffect(() => {
-    let cancelled = false;
-    detectNearbyCity().then((found) => {
-      if (found && !cancelled) {
-        setCity((current) => {
-          if (current) return current;
-          setCityAuto(true);
-          return found;
-        });
-      }
-    });
-    return () => { cancelled = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
+  // There used to be an effect here that silently called the browser's
+  // geolocation API on every page load to auto-fill this city field --
+  // removed because it was quietly burning the ONE permission prompt a
+  // browser gives an origin: a visitor who ignored/dismissed that silent
+  // background prompt (easy to do, since nothing on screen explained why a
+  // location permission bar had appeared) left the permission decided
+  // before "Near me" ever got a chance to ask for itself, so the explicit
+  // button below just silently failed with no prompt at all. Asking for
+  // location only when the user deliberately clicks something that needs
+  // it (Near me, the map's Find nearby) is the only way to guarantee that
+  // action gets its own real shot at the permission prompt.
   useEffect(() => {
     try {
       sessionStorage.setItem(savedStateKey(mode), JSON.stringify({
         version: SAVED_STATE_VERSION,
-        q, category, city, cityAuto, locationType, foodOnly, kashrutOnly, openNow, sort, bbox, nearbySelection, nearCoords,
+        q, category, city, locationType, foodOnly, kashrutOnly, openNow, sort, bbox, nearbySelection, nearCoords,
         businesses, page, hasMore, total,
       }));
     } catch (_) { /* private browsing / storage disabled -- fine to just skip persisting */ }
-  }, [mode, q, category, city, cityAuto, locationType, foodOnly, kashrutOnly, openNow, sort, bbox, nearbySelection, nearCoords, businesses, page, hasMore, total]);
+  }, [mode, q, category, city, locationType, foodOnly, kashrutOnly, openNow, sort, bbox, nearbySelection, nearCoords, businesses, page, hasMore, total]);
 
   useEffect(() => {
     if (!filterOpen) return undefined;
@@ -272,9 +262,16 @@ export default function BusinessDirectory({ mode = 'business' }) {
         // "no position available" (no GPS/WiFi signal to triangulate from),
         // not an actual block -- a blanket "check your permission" message
         // was wrong more often than right and sent people to the wrong
-        // settings screen. Only a real PERMISSION_DENIED points there now.
+        // settings screen. Only a real PERMISSION_DENIED points there now --
+        // though even that code name is misleading: on Windows/macOS,
+        // Chrome/Edge/Safari all report this exact same error when the
+        // OPERATING SYSTEM's own location toggle is off, even if the site's
+        // own per-site permission was never touched (the browser can't even
+        // ask the OS for a position, so it reports it as denied). That's at
+        // least as common a cause as an actual site-level block, so the
+        // message has to send people to both places, not just one.
         if (error === GEO_PERMISSION_DENIED) {
-          setNearMeError("Location access is blocked for this site -- check your browser's site settings and try again.");
+          setNearMeError("Location access was denied. Two things to check: (1) your browser's site settings for this page -- the icon left of the address bar -- make sure Location isn't set to Block; (2) your computer's own Location Services setting (Windows: Settings > Privacy & security > Location; Mac: System Settings > Privacy & Security > Location Services) -- make sure it's on and your browser is allowed.");
         } else if (error === GEO_UNSUPPORTED) {
           setNearMeError("This browser doesn't support location lookup -- try typing a city instead.");
         } else {
@@ -361,7 +358,7 @@ export default function BusinessDirectory({ mode = 'business' }) {
   const showKashrutOption = foodOnly || (category && FOOD_CATEGORIES.has(category));
   const activeFilterCount = [category, debouncedCity && city, locationType, foodOnly, kashrutOnly, openNow].filter(Boolean).length;
   const clearAdvancedFilters = () => {
-    setCategory(''); setCity(''); setCityAuto(false); setLocationType('');
+    setCategory(''); setCity(''); setLocationType('');
     setFoodOnly(false); setKashrutOnly(false); setOpenNow(false);
   };
   // A broader reset than the filter panel's own "Clear all" -- also drops the
@@ -452,9 +449,25 @@ export default function BusinessDirectory({ mode = 'business' }) {
               </h1>
               <p className="biz-masthead-sub">{isCommunity ? COMMUNITY_SUBTITLE : DIRECTORY_SUBTITLE}</p>
             </div>
-            <button className="biz-shake-btn" onClick={shake} disabled={shaking}>
-              <Shuffle size={15} className={shaking ? 'biz-shake-spin' : ''} /> {shaking ? 'Shaking…' : 'Shake the board'}
-            </button>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                <button
+                  type="button"
+                  className={`biz-shake-btn${nearbySelection && sort === 'distance' ? ' active' : ''}`}
+                  onClick={findNearMe}
+                  disabled={locating}
+                  title={`Show only listings within ${NEAR_ME_RADIUS_MILES} miles of your location`}
+                >
+                  <MapPin size={15} /> {locating ? 'Locating…' : t('nearMe')}
+                </button>
+                <button className="biz-shake-btn" onClick={shake} disabled={shaking}>
+                  <Shuffle size={15} className={shaking ? 'biz-shake-spin' : ''} /> {shaking ? 'Shaking…' : 'Shake the board'}
+                </button>
+              </div>
+              {nearMeError && (
+                <p style={{ fontSize: 12, color: '#ffb4a8', margin: 0, maxWidth: 260, textAlign: 'right' }}>{nearMeError}</p>
+              )}
+            </div>
           </div>
           <StatsBar scope={isCommunity ? 'community' : 'business'} />
         </div>
@@ -512,11 +525,8 @@ export default function BusinessDirectory({ mode = 'business' }) {
                           style={{ maxWidth: 140 }}
                           placeholder="City"
                           value={city}
-                          onChange={(e) => { setCity(e.target.value); setCityAuto(false); }}
+                          onChange={(e) => setCity(e.target.value)}
                         />
-                        {cityAuto && city && (
-                          <span className="biz-badge biz-badge-open" title="Defaulted to your location — edit or clear to change it"><MapPin size={11} /> Near you</span>
-                        )}
                         <select className="auth-input" style={{ maxWidth: 180 }} value={locationType} onChange={(e) => setLocationType(e.target.value)}>
                           <option value="">Any location type</option>
                           {Object.entries(LOCATION_TYPE_META).map(([key, meta]) => (
@@ -532,22 +542,10 @@ export default function BusinessDirectory({ mode = 'business' }) {
                           <button type="button" className={`biz-chip${foodOnly ? ' active' : ''}`} onClick={() => setFoodOnly((v) => { if (v) setKashrutOnly(false); return !v; })}><UtensilsCrossed size={13} /> Food only</button>
                         )}
                         <button type="button" className={`biz-chip${openNow ? ' active' : ''}`} onClick={() => setOpenNow((v) => !v)}><Clock size={13} /> Open now</button>
-                        <button
-                          type="button"
-                          className={`biz-chip${nearbySelection && sort === 'distance' ? ' active' : ''}`}
-                          onClick={findNearMe}
-                          disabled={locating}
-                          title={`Show only listings within ${NEAR_ME_RADIUS_MILES} miles of your location`}
-                        >
-                          <MapPin size={13} /> {locating ? 'Locating…' : t('nearMe')}
-                        </button>
                         {showKashrutOption && (
                           <button type="button" className={`biz-chip gold-active${kashrutOnly ? ' active' : ''}`} onClick={() => setKashrutOnly((v) => !v)}><ShieldCheck size={13} /> Kosher info</button>
                         )}
                       </div>
-                      {nearMeError && (
-                        <p style={{ fontSize: 12, color: 'var(--error, #c0392b)', margin: '6px 0 0' }}>{nearMeError}</p>
-                      )}
                     </div>
                     <div className="biz-filter-panel-section">
                       <div className="biz-filter-panel-label">Sort</div>
