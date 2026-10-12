@@ -5,6 +5,7 @@ import UploadFile from '../Uploadfile';
 import HoursEditor from './HoursEditor';
 import AddressAutocomplete from './AddressAutocomplete';
 import TypeTagPicker from './TypeTagPicker';
+import LocationTypeIcon from './LocationTypeIcon';
 import { CATEGORY_LABELS, FOOD_CATEGORIES, LOCATION_TYPE_META } from './categories';
 
 const NAME_MAX = 150;
@@ -25,6 +26,7 @@ function locationToPayload(loc) {
     address: loc.address, city: loc.city, state: loc.state, zip_code: loc.zip_code, country: loc.country,
     lat: loc.lat === '' ? null : loc.lat, lng: loc.lng === '' ? null : loc.lng,
     phone: loc.phone, email: loc.email, kashrut: loc.kashrut, hours: loc.hours, is_primary: !!loc.is_primary,
+    attributes: loc.attributes || null,
   };
 }
 
@@ -58,7 +60,7 @@ function LocationEditor({ loc, index, isFood, onChange, onRemove }) {
               className={`content-type-tab${type === key ? ' active' : ''}`}
               onClick={() => set({ location_type: key })}
             >
-              {meta.icon} {meta.label}
+              <LocationTypeIcon type={key} size={13} /> {meta.label}
             </button>
           ))}
         </div>
@@ -92,9 +94,19 @@ function LocationEditor({ loc, index, isFood, onChange, onRemove }) {
         )}
 
         <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-          <input className="gs-input" placeholder="Phone" value={loc.phone} onChange={(e) => set({ phone: e.target.value })} />
-          <input className="gs-input" placeholder="Email" value={loc.email} onChange={(e) => set({ email: e.target.value })} />
+          <input type="tel" inputMode="tel" className="gs-input" placeholder="Phone" value={loc.phone} onChange={(e) => set({ phone: e.target.value })} />
+          <input type="email" inputMode="email" className="gs-input" placeholder="Email" value={loc.email} onChange={(e) => set({ email: e.target.value })} />
         </div>
+        {loc.phone && loc.phone.trim() && (
+          <label style={{ fontSize: 13, display: 'flex', gap: 6, alignItems: 'center', marginTop: 8 }}>
+            <input
+              type="checkbox"
+              checked={!!(loc.attributes || {}).has_whatsapp}
+              onChange={(e) => set({ attributes: { ...(loc.attributes || {}), has_whatsapp: e.target.checked } })}
+            />
+            This number has WhatsApp — show a "message on WhatsApp" link on the profile
+          </label>
+        )}
         {isFood && (
           <div className="gs-field" style={{ marginTop: 8 }}>
             <input className="gs-input" placeholder="Kashrut / hashgacha (e.g. OU, Star-K)" value={loc.kashrut} onChange={(e) => set({ kashrut: e.target.value })} />
@@ -104,6 +116,14 @@ function LocationEditor({ loc, index, isFood, onChange, onRemove }) {
           <div className="gs-label">Hours</div>
           <HoursEditor hours={loc.hours} onChange={(hours) => set({ hours })} />
         </div>
+        <label style={{ fontSize: 13, display: 'flex', gap: 6, alignItems: 'center', marginTop: 10 }}>
+          <input
+            type="checkbox"
+            checked={!!(loc.attributes || {}).auto_holiday_closure}
+            onChange={(e) => set({ attributes: { ...(loc.attributes || {}), auto_holiday_closure: e.target.checked } })}
+          />
+          Automatically show as closed for Shabbat &amp; Yom Tov (in addition to your regular hours above)
+        </label>
       </div>
     </div>
   );
@@ -118,6 +138,7 @@ export default function BusinessForm() {
   const [category, setCategory] = useState('other');
   const [about, setAbout] = useState('');
   const [website, setWebsite] = useState('');
+  const [googleReviewUrl, setGoogleReviewUrl] = useState('');
   const [logo, setLogo] = useState(null);
   const [types, setTypes] = useState([]);
   // Whatever else might already live in Business.attributes -- preserved
@@ -139,6 +160,7 @@ export default function BusinessForm() {
         setCategory(b.category);
         setAbout(b.about || '');
         setWebsite(b.website || '');
+        setGoogleReviewUrl((b.attributes && b.attributes.google_review_url) || '');
         setLogo(null);
         setTypes((b.attributes && b.attributes.types) || []);
         setExistingAttributes(b.attributes || null);
@@ -160,7 +182,17 @@ export default function BusinessForm() {
   };
 
   const removeLocation = async (index) => {
+    if (locations.length <= 1) {
+      window.alert("A business needs at least one location -- add another one before removing this one.");
+      return;
+    }
     const loc = locations[index];
+    // Only an already-saved location's removal is actually irreversible
+    // (a still-unsaved row here just vanishes from the form) -- no point
+    // confirming the harmless case.
+    if (loc.id && !window.confirm('Remove this location? Its address, hours, and contact info will be deleted right away -- this can\'t be undone.')) {
+      return;
+    }
     if (editing && loc.id) {
       try { await apiRequest('DELETE', null, `/business/locations/${loc.id}`); } catch (_) { /* best-effort */ }
     }
@@ -177,7 +209,7 @@ export default function BusinessForm() {
     setError('');
     setSaving(true);
 
-    const attributesPayload = { ...(existingAttributes || {}), types };
+    const attributesPayload = { ...(existingAttributes || {}), types, google_review_url: googleReviewUrl.trim() || null };
 
     try {
       if (!editing) {
@@ -231,7 +263,24 @@ export default function BusinessForm() {
             <textarea className="gs-input gs-textarea" placeholder="About this business…" rows={4} value={about} maxLength={ABOUT_MAX} onChange={(e) => setAbout(e.target.value)} />
           </div>
           <div className="gs-field">
-            <input className="gs-input" type="url" placeholder="Website (optional) — https://…" value={website} onChange={(e) => setWebsite(e.target.value)} />
+            <input
+              className="gs-input" type="url" placeholder="Website (optional) — https://…"
+              value={website} onChange={(e) => setWebsite(e.target.value)}
+              onBlur={() => {
+                const v = website.trim();
+                if (v && !/^https?:\/\//i.test(v)) setWebsite(`https://${v}`);
+              }}
+            />
+          </div>
+          <div className="gs-field">
+            <input
+              className="gs-input" type="url"
+              placeholder="Google review link (optional) — search.google.com/local/writereview?placeid=…"
+              value={googleReviewUrl} onChange={(e) => setGoogleReviewUrl(e.target.value)}
+            />
+            <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 4 }}>
+              Happy customers get routed here from your review funnel instead of leaving only an on-site review.
+            </div>
           </div>
           <div className="gs-field">
             <div className="gs-label">Logo</div>

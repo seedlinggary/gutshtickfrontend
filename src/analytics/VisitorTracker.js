@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import { getCurrentSite } from '../siteMode';
 
 const API = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
 const LOCAL_HOSTNAMES = ['localhost', '127.0.0.1', '0.0.0.0'];
@@ -62,6 +63,7 @@ export default function VisitorTracker() {
       body: JSON.stringify({
         anon_id: anonId,
         path: location.pathname,
+        site: getCurrentSite()?.id || 'main',
       }),
     }).catch(() => {
       // Analytics must never break the app -- swallow network errors silently.

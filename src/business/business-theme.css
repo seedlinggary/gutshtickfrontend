@@ -1,4 +1,4 @@
-/* ── "Storefront Navy & Gold" — Good Shtick Business's own identity ──
+/* ── "Storefront Navy & Gold" — Gut Community's own identity ──
    Scoped entirely under `.business-theme` (toggled on <body> by App.js via
    isBusinessSite()), so none of this can ever leak onto the consumer
    ("Gut Shtick") site. Re-defining the *same* custom-property names the
@@ -10,29 +10,71 @@
    below so nothing here can collide with a shared gs-* class name. */
 
 .business-theme {
-  --bg: #f7f8fb;
+  /* Cool, considered off-white -- not the warm-cream/serif/terracotta combo
+     every "AI-designed" page defaults to. Warmth here comes from the brass
+     accent and the display serif, not the page background. */
+  --bg: #f3f4f9;
   --surface: #ffffff;
-  --surface-deep: #eef1f7;
-  --primary: #1c2438;
-  --accent: #1c2438;
-  --accent-hover: #131829;
-  --text: #1c2438;
-  --muted: #5b6472;
-  --muted-faint: #98a1b0;
-  --border: rgba(28, 36, 56, 0.10);
-  --success: #1f8a5f;
-  --shadow-sm: 0 1px 2px rgba(28, 36, 56, 0.06), 0 3px 10px rgba(28, 36, 56, 0.05);
-  --shadow: 0 2px 4px rgba(28, 36, 56, 0.05), 0 10px 26px rgba(28, 36, 56, 0.08);
-  --shadow-lg: 0 4px 10px rgba(28, 36, 56, 0.07), 0 18px 44px rgba(28, 36, 56, 0.12);
+  --surface-deep: #eaecf3;
+  --primary: #12192c;
+  --accent: #12192c;
+  --accent-hover: #090d18;
+  --text: #171f33;
+  --muted: #5c6478;
+  --muted-faint: #9aa1b5;
+  --border: rgba(18, 25, 44, 0.12);
+  --success: #1f7a5c;
+  --shadow-sm: 0 1px 2px rgba(18, 25, 44, 0.05), 0 3px 10px -2px rgba(18, 25, 44, 0.07);
+  --shadow: 0 8px 22px -8px rgba(18, 25, 44, 0.20);
+  --shadow-lg: 0 20px 48px -16px rgba(18, 25, 44, 0.28);
 
-  /* New tokens the shared stylesheet doesn't define -- gold is the CTA/
-     highlight color, layered on top of the navy chrome. */
-  --gold: #d4a24c;
-  --gold-hover: #b98a3a;
-  --gold-wash: rgba(212, 162, 76, 0.14);
-  --navy-wash: rgba(28, 36, 56, 0.06);
+  /* "Brass seal" -- the registry/ledger accent. Richer and less generic
+     than a flat gold swatch; used for CTAs, badges, and the one recurring
+     accent color across the whole directory. */
+  --gold: #ab7c31;
+  --gold-hover: #895f22;
+  --gold-wash: rgba(171, 124, 49, 0.15);
+  --navy-wash: rgba(18, 25, 44, 0.06);
+
+  /* Structural elements (cards, panels, primary buttons) get a considered,
+     smaller radius; true pill shapes are reserved for tags/chips/segmented
+     controls, where "pill" is the correct affordance -- not the default for
+     everything. */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-btn: 10px;
+
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body: 'Karla', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', monospace;
 
   background: var(--bg);
+  font-family: var(--font-body);
+}
+
+.business-theme h1, .business-theme h2, .business-theme h3, .business-theme h4 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.business-theme button, .business-theme input, .business-theme select, .business-theme textarea {
+  font-family: var(--font-body);
+}
+.business-theme code, .business-theme .biz-mono {
+  font-family: var(--font-mono);
+}
+
+/* De-pill the shared button/card primitives within this theme only --
+   .gs-btn is 999px/pill globally (fine for the consumer site), but a
+   registry/ledger directory reads more considered with a smaller, real
+   corner radius on buttons and cards, and pills kept only for tags. */
+.business-theme .gs-btn {
+  border-radius: var(--radius-btn);
+  font-family: var(--font-body);
+  letter-spacing: 0.01em;
+}
+.business-theme .gs-card {
+  border-radius: var(--radius-md);
 }
 
 /* ── Navbar: a solid navy band instead of a white bar, since --surface stays
@@ -49,6 +91,14 @@
 }
 .business-theme .gs-navbar .nav-link {
   color: rgba(255, 255, 255, 0.72);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.business-theme .dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 .business-theme .gs-navbar .nav-link:hover {
   color: #fff;
@@ -152,6 +202,12 @@
   overflow-x: auto;
   padding-bottom: 4px;
   scrollbar-width: thin;
+  /* iOS Safari hides scrollbars outside of an active scroll gesture, so a
+     row with more chips than fit just looks hard-clipped with no hint that
+     there's more -- a fixed right-edge fade reads as "scroll me" regardless
+     of scrollbar visibility. */
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 24px), transparent 100%);
+  mask-image: linear-gradient(to right, #000 calc(100% - 24px), transparent 100%);
 }
 .biz-chip-row::-webkit-scrollbar {
   height: 5px;
@@ -337,6 +393,24 @@
   flex: 1;
   min-width: 160px;
 }
+/* Icon-in-input wrapper used across the theme (search/city/name fields) --
+   a positioned icon absorbs the visual weight a leading emoji used to carry,
+   without eating into the input's own text baseline. */
+.biz-input-icon-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.biz-input-icon-wrap > svg {
+  position: absolute;
+  left: 12px;
+  color: var(--muted-faint);
+  pointer-events: none;
+}
+.biz-input-icon-wrap > input {
+  width: 100%;
+  padding-left: 36px !important;
+}
 .biz-filter-toggle {
   position: relative;
   display: inline-flex;
@@ -393,6 +467,21 @@
   box-shadow: var(--shadow-lg);
   border: 1px solid var(--border);
   padding: 16px;
+  max-height: calc(100vh - 140px);
+  overflow-y: auto;
+}
+/* Below this width, anchoring to a fixed max-width (88vw) still left a
+   noticeable sliver of the card list peeking out on one side -- a fixed
+   width makes sense once there's room to spare next to it, but on a phone
+   the panel might as well just be the full row width, edge to edge with the
+   topbar it's anchored to (same left/right inset the topbar already has, so
+   this doesn't touch the page's own side gutter). */
+@media (max-width: 767.98px) {
+  .biz-filter-panel {
+    left: 0;
+    right: 0;
+    width: auto;
+  }
 }
 .biz-filter-panel-section {
   margin-bottom: 14px;
@@ -445,39 +534,187 @@
   color: var(--gold-hover);
 }
 
-/* ── Stats bar (StatsBar.js) -- a small "trust bar" of directory-wide
-   counts, navy background so it reads as a banner distinct from cards. ── */
-.biz-stats-bar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0;
+/* ── WhatsApp shortcut next to a location's phone number ── */
+.biz-whatsapp-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: #25d366;
+  font-size: 13px;
+  line-height: 1;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+.biz-whatsapp-link:hover {
+  background: #1ebe59;
+  opacity: 0.9;
+}
+
+/* ── Directory masthead: one cohesive editorial panel (kicker + headline +
+   subhead + shake action, with the live counts as a quiet ledger strip along
+   the bottom) instead of a stack of separately-boxed generic blocks. Reuses
+   the same dark "brass seal" gradient language as .biz-hero (profile page)
+   so the directory's own landing moment reads as intentional, not an
+   afterthought bolted above a plain list. ── */
+.biz-masthead {
   background: linear-gradient(135deg, var(--accent) 0%, #2a3654 100%);
   border-radius: var(--radius-lg);
-  padding: 16px 8px;
-  margin-bottom: 16px;
+  padding: 30px 32px 6px;
+  margin-bottom: 18px;
+  position: relative;
+  overflow: hidden;
+}
+.biz-masthead::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 100% 0%, rgba(171, 124, 49, 0.28), transparent 55%);
+  pointer-events: none;
+}
+.biz-masthead-row {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.biz-masthead-copy { max-width: 640px; }
+.biz-masthead-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--gold);
+  margin-bottom: 10px;
+}
+.biz-masthead-title {
+  margin: 0 0 10px;
+  font-size: clamp(24px, 3.4vw, 34px);
+  line-height: 1.15;
+  color: #fff;
+  text-wrap: balance;
+}
+.biz-masthead-sub {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 14.5px;
+  line-height: 1.55;
+  max-width: 54ch;
+}
+.biz-shake-btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  font-weight: 700;
+  padding: 10px 18px;
+  border-radius: var(--radius-btn);
+  cursor: pointer;
+  transition: all 140ms ease;
+  margin-top: 2px;
+}
+.biz-shake-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+.biz-shake-btn:disabled { opacity: 0.75; cursor: default; }
+.biz-shake-spin { animation: biz-shake-spin 500ms ease; }
+@keyframes biz-shake-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(180deg); }
+}
+
+/* ── Stats ledger (StatsBar.js) -- a quiet row of live counts along the
+   masthead's own bottom edge, told apart by a mono numeral + hairline
+   dividers rather than boxed "trust bar" tiles. ── */
+.biz-stats-bar {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 22px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
 }
 .biz-stats-tile {
-  flex: 1;
-  min-width: 100px;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 8px 6px;
-  text-align: center;
+  align-items: baseline;
+  gap: 7px;
+  padding: 6px 20px 10px 0;
+  margin-right: 20px;
+  border-right: 1px solid rgba(255, 255, 255, 0.14);
 }
+.biz-stats-tile:last-child { border-right: none; margin-right: 0; }
 .biz-stats-value {
-  font-size: 19px;
-  font-weight: 800;
+  font-size: 18px;
+  font-weight: 700;
+  font-family: var(--font-mono);
   color: #fff;
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
+.biz-stats-value svg { color: var(--gold); flex-shrink: 0; }
 .biz-stats-label {
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.55);
+  white-space: nowrap;
+}
+@media (max-width: 640px) {
+  .biz-masthead { padding: 24px 20px 4px; }
+  /* Dividers read as broken once tiles wrap to their own line at this width
+     (a trailing rule with nothing beside it) -- gap alone carries the
+     separation here instead. */
+  .biz-stats-bar { gap: 10px 20px; }
+  .biz-stats-tile { padding: 6px 0 10px; margin-right: 0; border-right: none; }
+}
+
+/* ── "List your business" prompt -- reuses the shared PinSomethingCard
+   component (same one the main Gut Shtick feed uses), slimmed to a single
+   quiet strip here and pinned to the display/mono fonts so it doesn't fall
+   back to the consumer site's serif while sitting inside this theme. ── */
+.biz-list-cta { margin-bottom: 18px; }
+.biz-list-cta .pin-something {
+  border: 1.5px dashed var(--border);
+  border-radius: var(--radius-md);
+}
+.biz-list-cta .pin-something:hover { border-color: var(--gold); }
+.biz-list-cta .pin-something-body {
+  flex-direction: row;
+  align-items: center;
+  padding: 14px 20px;
+  gap: 14px;
+}
+.biz-list-cta .pin-something-mark {
+  font-family: var(--font-display);
+  border-color: var(--gold);
+  color: var(--gold);
+  flex-shrink: 0;
+}
+.biz-list-cta .pin-something-prompt {
+  font-family: var(--font-body);
+  font-size: 14px;
+  flex: 1;
+}
+.biz-list-cta .pin-something-cta {
+  color: var(--gold-hover);
+  flex-shrink: 0;
 }
 
 /* ── Data accuracy disclaimer ── */
@@ -525,11 +762,26 @@
 /* ── Business card hover lift (applied alongside .gs-card) ── */
 .biz-card-hover {
   cursor: pointer;
+  border: 1px solid var(--border);
 }
 .biz-card-hover:hover,
 .biz-card-hover.biz-card-active {
   box-shadow: var(--shadow-lg);
   transform: translateY(-2px);
+  border-color: rgba(171, 124, 49, 0.4);
+}
+.biz-card-chevron {
+  align-self: center;
+  flex-shrink: 0;
+  color: var(--muted-faint);
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+.biz-card-hover:hover .biz-card-chevron {
+  opacity: 1;
+  transform: translateX(0);
+  color: var(--gold);
 }
 
 /* ── Card media tile: the business's logo when it has one, otherwise a
@@ -537,9 +789,9 @@
    placeholder square without fabricating a stock photo. `--media-tint` is
    set inline per-card from CATEGORY_TINTS (categories.js). ── */
 .biz-card-media {
-  width: 84px;
-  height: 84px;
-  border-radius: 16px;
+  width: 88px;
+  height: 88px;
+  border-radius: var(--radius-md);
   flex-shrink: 0;
   overflow: hidden;
   display: flex;
@@ -547,6 +799,7 @@
   justify-content: center;
   font-size: 32px;
   background: linear-gradient(135deg, var(--media-tint, var(--accent)) 0%, var(--surface-deep) 150%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
 }
 .biz-card-media img {
   width: 100%;
@@ -573,9 +826,18 @@
 }
 .biz-hero-top {
   display: flex;
+  flex-wrap: wrap;
   gap: 16px;
   align-items: flex-start;
   position: relative;
+}
+@media (max-width: 560px) {
+  .biz-hero-top > div:last-child {
+    width: 100%;
+    flex-direction: row !important;
+    align-items: flex-start !important;
+    flex-wrap: wrap;
+  }
 }
 .biz-hero-logo {
   width: 76px;
@@ -726,3 +988,905 @@
   cursor: pointer;
   padding: 2px 4px;
 }
+
+/* ── Generic page shell (DealWallet, ReferralBoard, BusinessOwnerTools) ── */
+.biz-page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 24px 16px 60px;
+}
+.biz-page-title {
+  margin: 0 0 4px;
+}
+.biz-page-subtitle {
+  color: var(--muted);
+  margin: 0 0 18px;
+}
+.biz-section-title {
+  margin: 20px 0 8px;
+}
+.biz-empty {
+  color: var(--muted);
+  padding: 24px 0;
+  text-align: center;
+}
+.biz-error {
+  color: #b3261e;
+}
+
+/* ── Boosted-placement badge ── */
+.biz-badge-boost {
+  background: var(--gold-wash);
+  color: var(--gold-hover);
+}
+
+/* ── Kashrut glossary tooltip ── */
+.biz-kashrut-info {
+  position: relative;
+  display: inline-flex;
+}
+.biz-kashrut-info-btn {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font-size: 11px;
+  padding: 0 0 0 2px;
+  opacity: 0.75;
+}
+.biz-kashrut-info-popover {
+  position: absolute;
+  z-index: 20;
+  top: 130%;
+  left: 0;
+  width: 240px;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow-lg);
+  padding: 10px 12px;
+  font-size: 12px;
+  font-weight: 400;
+  white-space: normal;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* ── Follow button ── */
+.biz-follow-btn {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.biz-follow-btn-active {
+  background: var(--gold-wash);
+  border-color: var(--gold);
+  color: var(--gold-hover);
+}
+.biz-follow-count {
+  font-weight: 400;
+  color: var(--muted);
+}
+
+/* ── Share button ── */
+.biz-share-btn {
+  border: 1px solid rgba(255,255,255,0.3);
+  background: rgba(255,255,255,0.12);
+  color: #fff;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* ── Lead form (request a quote) ── */
+.biz-lead-open-btn {
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: #fff;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.biz-lead-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+}
+.biz-lead-form input,
+.biz-lead-form textarea {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font: inherit;
+}
+.biz-lead-form textarea { min-height: 80px; resize: vertical; }
+.biz-lead-actions { display: flex; gap: 8px; }
+.biz-lead-actions button {
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid var(--border);
+}
+.biz-lead-actions button[type="submit"] {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+.biz-lead-cancel { background: var(--surface); color: var(--muted); }
+.biz-lead-sent { color: var(--success); font-weight: 600; }
+.biz-lead-error { color: #b3261e; font-size: 13px; margin: 0; }
+
+/* ── Ask a question widget ── */
+.biz-qa { margin-top: 18px; }
+.biz-qa-list { list-style: none; margin: 0 0 12px; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.biz-qa-item { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; }
+.biz-qa-question { margin: 0 0 4px; font-weight: 600; }
+.biz-qa-answer { margin: 0; color: var(--muted); }
+.biz-qa-asker { font-weight: 400; color: var(--muted); font-size: 12px; }
+.biz-qa-answer-form { display: flex; gap: 6px; margin-top: 6px; }
+.biz-qa-answer-form input { flex: 1; border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; }
+.biz-qa-form { display: flex; flex-direction: column; gap: 8px; }
+.biz-qa-form textarea { border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; min-height: 70px; }
+.biz-qa-status { font-size: 12px; color: var(--muted); }
+.biz-qa-empty { font-size: 13px; color: var(--muted); margin: 0 0 10px; }
+
+/* ── Compare tray + modal ── */
+.biz-compare-toggle {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  padding: 3px 9px;
+  cursor: pointer;
+}
+.biz-compare-toggle-active {
+  background: var(--gold-wash);
+  border-color: var(--gold);
+  color: var(--gold-hover);
+}
+.biz-compare-tray {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+  padding: 10px 16px;
+  padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.biz-compare-tray-label { font-weight: 700; font-size: 13px; }
+.biz-compare-tray-chips { display: flex; gap: 6px; flex-wrap: wrap; flex: 1; }
+.biz-compare-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--navy-wash);
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 12px;
+}
+.biz-compare-chip button { background: none; border: none; cursor: pointer; font-weight: 800; }
+.biz-compare-view-btn, .biz-compare-clear-btn {
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--accent);
+  color: #fff;
+}
+.biz-compare-clear-btn { background: var(--surface); color: var(--muted); }
+.biz-compare-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.biz-compare-modal {
+  background: var(--surface);
+  border-radius: 14px;
+  max-width: 100%;
+  max-height: 85vh;
+  overflow: auto;
+  padding: 20px;
+  position: relative;
+}
+.biz-compare-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+}
+.biz-compare-table { display: flex; flex-direction: column; min-width: min(600px, 80vw); }
+.biz-compare-row { display: grid; grid-template-columns: 120px repeat(var(--cols), 1fr); border-bottom: 1px solid var(--border); }
+.biz-compare-header-row { font-weight: 700; }
+.biz-compare-cell { padding: 8px 10px; font-size: 13px; }
+.biz-compare-row-label { color: var(--muted); font-weight: 600; }
+.biz-compare-name { font-weight: 700; }
+
+/* ── Accessibility toggle ── */
+.biz-a11y-toggle { position: relative; }
+.biz-a11y-btn {
+  background: none;
+  border: 1px solid rgba(255,255,255,0.3);
+  color: #fff;
+  border-radius: 999px;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.biz-a11y-menu {
+  position: absolute;
+  right: 0;
+  top: 110%;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow-lg);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 30;
+  width: 190px;
+}
+.biz-a11y-item { display: flex; gap: 8px; align-items: center; font-size: 13px; }
+
+/* High-contrast / large-tap-target modes, toggled via data-attributes on
+   <html> (see AccessibilityToggle.js). Kept minimal and additive so they
+   never fight the existing light/dark theme handling. */
+:root[data-biz-contrast="high"] .business-theme {
+  --border: rgba(0,0,0,0.4);
+  --muted: #333333;
+}
+:root[data-biz-tap="large"] .business-theme button,
+:root[data-biz-tap="large"] .business-theme .biz-chip,
+:root[data-biz-tap="large"] .business-theme a.gs-btn {
+  min-height: 44px;
+  min-width: 44px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+/* ── Language select in navbar ── */
+.biz-lang-select {
+  background: rgba(255,255,255,0.12);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 8px;
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+/* ── Social Desk ── */
+.biz-social-desk { display: flex; flex-direction: column; gap: 20px; }
+.biz-social-notice {
+  background: var(--gold-wash);
+  color: var(--gold-hover);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+}
+.biz-social-accounts { display: flex; flex-direction: column; gap: 8px; }
+.biz-social-account-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  background: var(--surface);
+}
+.biz-social-account-connected { border-color: var(--gold); }
+.biz-social-account-icon { font-size: 22px; }
+.biz-social-account-info { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.biz-social-mode-tag { font-size: 12px; color: var(--muted); }
+.biz-social-mode-tag-warn { color: #b3261e; }
+.biz-social-connect, .biz-social-disconnect {
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid var(--border);
+}
+.biz-social-connect { background: var(--accent); color: #fff; }
+.biz-social-disconnect { background: var(--surface); color: var(--muted); }
+.biz-social-composer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  background: var(--surface);
+}
+.biz-social-composer textarea {
+  min-height: 90px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  resize: vertical;
+}
+.biz-social-platform-picker { display: flex; flex-wrap: wrap; gap: 8px; }
+.biz-social-pick {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.biz-social-pick-active { border-color: var(--gold); background: var(--gold-wash); }
+.biz-social-schedule { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); }
+.biz-social-composer button[type="submit"] {
+  align-self: flex-start;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.biz-social-composer button[type="submit"]:disabled { opacity: 0.5; cursor: not-allowed; }
+.biz-social-history { display: flex; flex-direction: column; gap: 10px; }
+.biz-social-post-row {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.biz-social-post-caption { margin: 0 0 8px; }
+.biz-social-post-targets { display: flex; flex-wrap: wrap; gap: 6px; }
+.biz-social-target-chip {
+  font-size: 12px;
+  border-radius: 999px;
+  padding: 3px 10px;
+  background: var(--navy-wash);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.biz-social-target-posted { background: rgba(31, 138, 95, 0.12); color: var(--success); }
+.biz-social-target-failed { background: rgba(179, 38, 30, 0.1); color: #b3261e; }
+.biz-social-target-chip button {
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+/* ── Analytics ── */
+.biz-analytics { display: flex; flex-direction: column; gap: 16px; }
+.biz-analytics-window-picker { display: flex; gap: 6px; }
+.biz-analytics-window-picker button {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.biz-analytics-window-picker button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.biz-analytics-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
+.biz-analytics-tile {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px;
+  text-align: center;
+}
+.biz-analytics-tile-value { font-size: 24px; font-weight: 800; }
+.biz-analytics-tile-label { font-size: 12px; color: var(--muted); margin-top: 4px; }
+.biz-analytics-chart { border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
+.biz-analytics-sparkline { width: 100%; height: 48px; margin-top: 8px; }
+
+/* ── Deal wallet ── */
+.biz-wallet-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+.biz-wallet-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  background: var(--surface);
+}
+.biz-wallet-card-redeemed { opacity: 0.65; }
+.biz-wallet-card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.biz-wallet-card-header h3 { margin: 0; font-size: 15px; }
+.biz-wallet-badge {
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--gold-wash);
+  color: var(--gold-hover);
+  border-radius: 999px;
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+.biz-wallet-badge-redeemed { background: rgba(31, 138, 95, 0.12); color: var(--success); }
+.biz-wallet-business { color: var(--muted); font-size: 13px; margin: 4px 0; }
+.biz-wallet-code {
+  font-family: monospace;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  margin: 8px 0 4px;
+}
+.biz-wallet-hint { font-size: 12px; color: var(--muted); margin: 0; }
+.biz-wallet-link { font-size: 13px; display: inline-block; margin-top: 8px; }
+
+/* ── Get This Deal / redemption ── */
+.biz-get-deal-btn {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 13px;
+}
+.biz-deal-code-badge {
+  font-size: 12px;
+  font-weight: 700;
+  background: rgba(31, 138, 95, 0.12);
+  color: var(--success);
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+.biz-verified-badge {
+  font-size: 11px;
+  font-weight: 700;
+  background: rgba(31, 138, 95, 0.12);
+  color: var(--success);
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+
+/* ── Referral board ── */
+.biz-referral-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 18px;
+}
+.biz-referral-form input, .biz-referral-form textarea {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font: inherit;
+}
+.biz-referral-form textarea { min-height: 70px; }
+.biz-referral-form button {
+  align-self: flex-start;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.biz-referral-list { display: flex; flex-direction: column; gap: 12px; }
+.biz-referral-post {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  background: var(--surface);
+}
+.biz-referral-post h3 { margin: 0 0 4px; }
+.biz-referral-meta { color: var(--muted); font-size: 12px; margin: 0 0 8px; }
+.biz-referral-body { white-space: pre-wrap; margin: 0; }
+.biz-referral-replies { list-style: none; margin: 10px 0 0; padding: 10px 0 0; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
+.biz-referral-reply-form { display: flex; gap: 6px; margin-top: 10px; }
+.biz-referral-reply-form input { flex: 1; border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; }
+
+/* ── Owner Tools dashboard shell ── */
+.biz-owner-tools-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+.biz-owner-tools-view-link { font-size: 13px; }
+
+.biz-owner-tools-layout {
+  display: flex;
+  gap: 22px;
+  margin-top: 16px;
+  align-items: flex-start;
+}
+.biz-owner-tools-sidebar {
+  flex: 0 0 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  position: sticky;
+  top: 84px;
+}
+.biz-owner-tools-group-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+  padding-left: 10px;
+}
+.biz-owner-tools-navbtn {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: none;
+  border-radius: var(--radius-sm);
+  padding: 9px 10px;
+  font-size: 14px;
+  cursor: pointer;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+.biz-owner-tools-navbtn svg { flex-shrink: 0; color: var(--muted); }
+.biz-owner-tools-navbtn:hover { background: var(--surface-deep); }
+.biz-owner-tools-navbtn.active { background: var(--accent); color: #fff; font-weight: 700; }
+.biz-owner-tools-navbtn.active svg { color: var(--gold); }
+.biz-owner-tools-content {
+  flex: 1;
+  min-width: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 22px;
+}
+.biz-owner-tools-content-title {
+  margin: 0 0 12px;
+  font-size: 21px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.biz-owner-tools-content-title svg { color: var(--gold); }
+.biz-tool-subnote { font-size: 12px; color: var(--muted); margin: -4px 0 8px; }
+
+@media (max-width: 780px) {
+  .biz-owner-tools-layout { flex-direction: column; }
+  .biz-owner-tools-sidebar {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 10px 18px;
+    position: static;
+    width: 100%;
+  }
+  .biz-owner-tools-group { flex: 1 1 auto; min-width: 140px; }
+  .biz-owner-tools-content { padding: 16px; }
+}
+
+/* ── Leads / redeem / boost tabs ── */
+.biz-leads-list { display: flex; flex-direction: column; gap: 10px; }
+.biz-lead-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  flex-wrap: wrap;
+}
+.biz-lead-new { border-left: 3px solid var(--gold); }
+.biz-lead-date { font-size: 11px; color: var(--muted); }
+.biz-lead-actions-row { display: flex; gap: 6px; align-items: flex-start; }
+.biz-lead-actions-row button {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.biz-redeem-form { display: flex; gap: 8px; margin-bottom: 10px; }
+.biz-redeem-form input { flex: 1; border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-family: monospace; letter-spacing: 1px; }
+.biz-redeem-form button { background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: 8px 16px; font-weight: 700; cursor: pointer; }
+.biz-redeem-ok { color: var(--success); font-weight: 600; }
+.biz-redeem-error { color: #b3261e; font-weight: 600; }
+.biz-redeem-log-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border); font-family: monospace; }
+.biz-boost-active { color: var(--gold-hover); font-weight: 700; }
+.biz-boost-checklist { list-style: none; margin: 10px 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.biz-boost-check-ok { color: var(--success); }
+.biz-boost-check-missing { color: var(--muted); }
+
+/* ── Bulk manager ── */
+.biz-bulk-manager {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  margin-top: 16px;
+  background: var(--surface);
+}
+.biz-bulk-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+.biz-bulk-item { display: flex; gap: 8px; align-items: center; font-size: 13px; }
+.biz-bulk-field-toggle { display: flex; gap: 8px; align-items: center; font-size: 13px; margin-top: 10px; }
+.biz-bulk-kashrut-input { border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; margin-top: 6px; width: 100%; max-width: 320px; }
+.biz-bulk-status { font-size: 13px; color: var(--muted); margin-top: 8px; }
+
+/* ── Review funnel ── */
+.biz-review-funnel {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  background: var(--surface);
+  margin-bottom: 16px;
+}
+.biz-review-funnel-prompt { margin: 0 0 4px; font-weight: 600; }
+.biz-review-funnel-explainer { margin: 0 0 8px; font-size: 12px; color: var(--muted); }
+.biz-review-funnel-stars { display: flex; gap: 6px; }
+.biz-review-funnel-stars button {
+  background: none;
+  border: none;
+  font-size: 26px;
+  cursor: pointer;
+  color: var(--gold);
+  padding: 0;
+}
+.biz-review-funnel-positive { border-color: var(--gold); }
+.biz-review-funnel-negative textarea {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  min-height: 70px;
+  margin: 8px 0;
+}
+.biz-review-funnel-negative button {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 7px 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.biz-review-funnel-thanks { color: var(--success); font-weight: 600; }
+
+/* ── Loyalty card ── */
+.biz-loyalty-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  background: var(--surface);
+  text-align: center;
+}
+.biz-loyalty-explainer { font-size: 12px; color: var(--muted); margin: 0 0 8px; }
+.biz-loyalty-reward { font-weight: 700; color: var(--gold-hover); margin: 0 0 10px; }
+.biz-loyalty-dots { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-bottom: 8px; }
+.biz-loyalty-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px dashed var(--border);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gold);
+  font-size: 15px;
+}
+.biz-loyalty-dot.filled { border-style: solid; border-color: var(--gold); background: var(--gold-wash); }
+.biz-loyalty-progress { font-size: 13px; color: var(--muted); margin: 0 0 10px; }
+.biz-loyalty-qr { margin: 0 auto 6px; display: block; }
+.biz-loyalty-code { font-family: monospace; font-weight: 700; letter-spacing: 2px; margin: 0; }
+.biz-loyalty-hint { font-size: 12px; color: var(--muted); margin: 4px 0 0; }
+.biz-loyalty-tab { display: flex; flex-direction: column; gap: 4px; }
+.biz-loyalty-setting { display: flex; flex-direction: column; gap: 4px; font-size: 13px; margin: 10px 0; max-width: 320px; }
+.biz-loyalty-setting input { border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; }
+
+/* ── Referral widget (customer) + owner tab ── */
+.biz-referral-widget {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  background: var(--surface);
+  margin-bottom: 16px;
+}
+.biz-referral-widget-explainer { font-size: 12px; color: var(--muted); margin: 0 0 6px; }
+.biz-referral-widget-reward { font-weight: 700; color: var(--gold-hover); margin: 0 0 8px; }
+.biz-referral-widget-link-row { display: flex; gap: 6px; }
+.biz-referral-widget-link-row input { flex: 1; border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; font-size: 12px; }
+.biz-referral-widget-link-row button {
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.biz-referral-widget-count { font-size: 12px; color: var(--muted); margin: 8px 0 0; }
+.biz-referral-reward-form { display: flex; flex-direction: column; gap: 6px; max-width: 360px; margin-bottom: 16px; }
+.biz-referral-reward-form label { font-size: 13px; display: flex; flex-direction: column; gap: 4px; }
+.biz-referral-reward-form input { border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; }
+.biz-referral-reward-form button {
+  align-self: flex-start;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.biz-referral-owner-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
+
+/* ── Marketing kit ── */
+.biz-marketing-kit-form { display: flex; flex-direction: column; gap: 10px; max-width: 360px; margin: 12px 0; }
+.biz-marketing-kit-form label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
+.biz-marketing-kit-form input, .biz-marketing-kit-form select {
+  border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px;
+}
+.biz-marketing-kit-form button {
+  align-self: flex-start;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.biz-marketing-kit-preview { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 16px; }
+.biz-marketing-kit-preview img { max-width: 280px; border: 1px solid var(--border); border-radius: 8px; }
+
+/* ── Campaign templates (Social Desk) ── */
+.biz-campaign-templates { margin-bottom: 10px; }
+.biz-campaign-templates-label { font-size: 12px; font-weight: 700; color: var(--gold-hover); margin-bottom: 6px; }
+.biz-campaign-templates-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.biz-campaign-template-chip {
+  border: 1px solid var(--gold);
+  background: var(--gold-wash);
+  color: var(--gold-hover);
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Insights tab ── */
+.biz-insights-recommendations { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.biz-insights-recommendations li {
+  border-left: 3px solid var(--gold);
+  background: var(--gold-wash);
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+/* ── Overview tab: Rewards & Perks grouping ── */
+.biz-perks-section {
+  margin-top: 16px;
+  padding: 14px;
+  border: 1px dashed var(--gold);
+  border-radius: 14px;
+  background: var(--gold-wash);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.biz-perks-section .biz-section-title { margin: 0; }
+.biz-perks-section .biz-loyalty-card,
+.biz-perks-section .biz-referral-widget {
+  margin-bottom: 0;
+}
+
+/* ── Admin: platform integrations ── */
+.biz-integration-list { display: flex; flex-direction: column; gap: 8px; margin: 18px 0; }
+.biz-integration-row {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  background: var(--surface);
+}
+.biz-integration-configured { border-color: var(--success); }
+.biz-integration-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; flex-wrap: wrap; }
+.biz-integration-status { display: block; font-size: 12px; margin-top: 2px; }
+.biz-integration-status-ok { color: var(--success); }
+.biz-integration-status-off { color: var(--muted); }
+.biz-integration-actions { display: flex; gap: 6px; }
+.biz-integration-actions button {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.biz-integration-client-id { font-size: 12px; color: var(--muted); margin: 8px 0 0; }
+.biz-integration-form { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; max-width: 420px; }
+.biz-integration-form input {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+.biz-integration-form-actions { display: flex; gap: 8px; }
+.biz-integration-form-actions button {
+  border-radius: 8px;
+  padding: 7px 16px;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid var(--border);
+}
+.biz-integration-form-actions button[type="submit"] { background: var(--accent); color: #fff; border-color: var(--accent); }
+.biz-integration-status-msg { font-size: 12px; color: var(--muted); margin: 0; }
+.biz-integration-doc-link { font-size: 12px; display: inline-block; margin: 4px 0 6px; }
+.biz-integration-callout {
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  margin-top: 20px;
+  background: var(--surface-deep);
+  font-size: 13px;
+}
+.biz-integration-callout code {
+  display: block;
+  background: var(--navy-wash);
+  padding: 8px 10px;
+  border-radius: 6px;
+  margin: 6px 0;
+  word-break: break-all;
+  font-size: 12px;
+}
+.biz-integration-callout-note { color: var(--muted); font-size: 12px; }
+
+/* ── Reusable "what is this / how it works" explainer block ── */
+.biz-tool-explainer {
+  background: var(--surface-deep);
+  border-left: 3px solid var(--gold);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--text);
+  margin-bottom: 16px;
+}
+.biz-tool-explainer strong { color: var(--gold-hover); }

@@ -48,6 +48,23 @@ export function isBusinessSite() {
   return getCurrentSite()?.id === 'business';
 }
 
+/** Absolute URL to a path on a specific registered sub-site, for linking
+ * into it from OUTSIDE that site (e.g. the main site's Super Admin linking
+ * to a Business listing) -- a plain react-router <Link> would resolve
+ * against the current site's own route table instead, since sub-sites are
+ * different hostnames in production. Falls back to the same `?site=` dev
+ * toggle site detection itself uses on localhost. */
+export function siteUrl(id, path = '/') {
+  const host = window.location.hostname;
+  if (isLocalHost(host)) {
+    const sep = path.includes('?') ? '&' : '?';
+    return `${window.location.origin}${path}${sep}site=${id}`;
+  }
+  const site = SITES.find((s) => s.id === id);
+  const target = site && hostnamesFor(site)[0];
+  return target ? `${window.location.protocol}//${target}${path}` : `${window.location.origin}${path}`;
+}
+
 /** Home URL of the main consumer site, for the small cross-site footer icon
  * every sub-site shows. Sub-sites link back to the one consumer site, not
  * to each other, so this always resolves to "main" regardless of how many

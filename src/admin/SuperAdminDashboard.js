@@ -7,6 +7,7 @@ import AdminAiPosts from './AdminAiPosts';
 import AdminScrapers from './AdminScrapers';
 import AdminYoutubeChannels from './AdminYoutubeChannels';
 import AdminAnalytics from './AdminAnalytics';
+import AdminBusinessAnalytics from './AdminBusinessAnalytics';
 
 const ROLES = ['viewer', 'user', 'admin', 'super_admin'];
 const ROLE_LABELS = { viewer: 'Viewer', user: 'User', admin: 'Admin', super_admin: 'Super Admin' };
@@ -247,6 +248,16 @@ export default function SuperAdminDashboard() {
   }
 
   async function changeRole(publicId, newRole) {
+    // Granting super_admin hands over full platform control -- a raw <select>
+    // is one misclick away from doing that to the wrong account, with no
+    // undo. Every other role change is much lower-stakes and stays a single
+    // click, matching how the rest of this dashboard only confirms the
+    // genuinely destructive/high-blast-radius actions.
+    if (newRole === 'super_admin') {
+      const target = users.find((u) => u.public_id === publicId);
+      const ok = window.confirm(`Make ${target?.profile_name || 'this user'} a Super Admin? They'll get full platform control, including this same ability to change anyone else's role.`);
+      if (!ok) return;
+    }
     try {
       const updated = await apiRequest('PATCH', { role: newRole }, `/admin/users/${publicId}/role`);
       setUsers((u) => u.map((x) => x.public_id === publicId ? { ...x, role: updated.role } : x));
@@ -291,6 +302,7 @@ export default function SuperAdminDashboard() {
           ['categories', `🏷️ Categories (${categories.length})`],
           ['content_pipeline', '🤖 Content Pipeline'],
           ['analytics', '📈 Analytics'],
+          ['business_analytics', '🏪 Business'],
           ['activity', selectedUser ? `🔍 ${selectedUser.profile_name}` : '🔍 Activity'],
         ].map(([key, label]) => (
           <button key={key} className={`admin-tab${tab === key ? ' active' : ''}`} onClick={() => setTab(key)}>
@@ -804,6 +816,13 @@ export default function SuperAdminDashboard() {
       {!loading && (
         <div style={{ display: tab === 'analytics' ? 'block' : 'none' }}>
           <AdminAnalytics />
+        </div>
+      )}
+
+      {/* ── Business site analytics ── */}
+      {!loading && (
+        <div style={{ display: tab === 'business_analytics' ? 'block' : 'none' }}>
+          <AdminBusinessAnalytics />
         </div>
       )}
 

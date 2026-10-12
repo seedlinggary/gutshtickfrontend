@@ -7,8 +7,25 @@ import BusinessCard from './BusinessCard';
 import BusinessPreviewPanel from './BusinessPreviewPanel';
 import StatsBar from './StatsBar';
 import DataDisclaimer from './DataDisclaimer';
-import detectNearbyCity from './geolocation';
-import { CATEGORY_LABELS, CATEGORY_ICONS, FOOD_CATEGORIES, LOCATION_TYPE_META } from './categories';
+import detectNearbyCity, { getBrowserCoords } from './geolocation';
+import { CATEGORY_LABELS, FOOD_CATEGORIES, LOCATION_TYPE_META } from './categories';
+import CategoryIcon from './CategoryIcon';
+import CompareTray, { useCompareTray } from './CompareTray';
+import { useLanguage } from './i18n';
+import {
+  Shuffle, Map, Store, Search, SlidersHorizontal, MapPin, UtensilsCrossed,
+  Clock, ShieldCheck, Menu, HeartHandshake,
+} from 'lucide-react';
+
+const DIRECTORY_SUBTITLE = 'Every listing here is a real Jewish-owned business, added by its neighbors or its owner. Results come back in a random order by default so newer and less-discovered ones get seen too — pick A–Z if you want it predictable.';
+const COMMUNITY_SUBTITLE = 'Shuls and chessed organizations, in their own area rather than mixed in with restaurants and retail. Results come back in a random order by default so newer and less-discovered ones get seen too — pick A–Z if you want it predictable.';
+
+// Shuls and chessed organizations (nonprofits) live in their own Community
+// area rather than the regular Business directory -- gemachs and kollels
+// stay put. The Directory always excludes these two; the Community page
+// shows only them (optionally narrowed to just one via its own category
+// chips). See list_businesses()'s categories/exclude_categories params.
+const COMMUNITY_CATEGORIES = ['shul', 'nonprofit'];
 
 // Lazy so maplibre-gl (a sizeable library) only downloads once the map is
 // actually needed -- on desktop that's on load (split view), but on mobile
@@ -16,7 +33,7 @@ import { CATEGORY_LABELS, CATEGORY_ICONS, FOOD_CATEGORIES, LOCATION_TYPE_META } 
 const BusinessMap = lazy(() => import('./BusinessMap'));
 
 const SORTS = [
-  { key: 'random', label: '🔀 Random' },
+  { key: 'random', label: 'Random' },
   { key: 'alpha', label: 'A–Z' },
   { key: 'rating', label: 'Top Rated' },
 ];
@@ -40,17 +57,20 @@ const DESKTOP_QUERY = '(min-width: 960px)';
 // back -- sessionStorage rather than URL params, kept simple since nothing
 // here needs to be a shareable/bookmarkable link. Cleared automatically
 // when the tab closes (sessionStorage, not localStorage) so it never goes
-// stale across visits.
-const SAVED_STATE_KEY = 'biz_directory_filters';
+// stale across visits. Keyed separately per mode so the Directory and the
+// Community page don't clobber each other's saved filters.
+function savedStateKey(mode) {
+  return mode === 'community' ? 'biz_community_filters' : 'biz_directory_filters';
+}
 // Bump whenever the saved shape changes -- guards against a stale snapshot
 // from an older version of this code (e.g. one saved before `nearbySelection`
 // existed, or before the pin-click nearby fix) being silently reused and
 // looking inconsistent with what the current code expects.
 const SAVED_STATE_VERSION = 2;
 
-function loadSavedFilters() {
+function loadSavedFilters(mode) {
   try {
-    const raw = sessionStorage.getItem(SAVED_STATE_KEY);
+    const raw = sessionStorage.getItem(savedStateKey(mode));
     if (!raw) return {};
     const parsed = JSON.parse(raw);
     return parsed.version === SAVED_STATE_VERSION ? parsed : {};
@@ -79,7 +99,7 @@ function useIsDesktop() {
 function MapErrorFallback(error, retry) {
   return (
     <div className="gs-empty" style={{ padding: 24 }}>
-      <p style={{ fontSize: 32, marginBottom: 8 }}>🗺️</p>
+      <Map size={32} style={{ marginBottom: 8, color: 'var(--muted-faint)' }} />
       <p>The map couldn't load.</p>
       <p style={{ fontSize: 12, color: 'var(--muted-faint)' }}>{String(error?.message || error)}</p>
       <button className="gs-btn gs-btn-outline gs-btn-sm" style={{ marginTop: 8 }} onClick={retry}>Try again</button>
@@ -87,8 +107,9 @@ function MapErrorFallback(error, retry) {
   );
 }
 
-export default function BusinessDirectory() {
-  const saved = loadSavedFilters();
+export default function BusinessDirectory({ mode = 'business' }) {
+  const isCommunity = mode === 'community';
+  const saved = loadSavedFilters(mode);
   const [q, setQ] = useState(saved.q || '');
   const [debouncedQ, setDebouncedQ] = useState(saved.q || '');
   const [category, setCategory] = useState(saved.category || '');
@@ -100,6 +121,10 @@ export default function BusinessDirectory() {
   const [kashrutOnly, setKashrutOnly] = useState(saved.kashrutOnly || false);
   const [openNow, setOpenNow] = useState(saved.openNow || false);
   const [sort, setSort] = useState(saved.sort || 'random');
+  const [nearCoords, setNearCoords] = useState(saved.nearCoords || null);
+  const [locating, setLocating] = useState(false);
+  const compareTray = useCompareTray();
+  const { t } = useLanguage();
   const [shakeSeed, setShakeSeed] = useState(0);
   const [mobileView, setMobileView] = useState('list');
   const [bbox, setBbox] = useState(saved.bbox || null);
@@ -129,6 +154,10 @@ export default function BusinessDirectory() {
   const [businesses, setBusinesses] = useState(saved.businesses || []);
   const [page, setPage] = useState(saved.page || 1);
   const [hasMore, setHasMore] = useState(saved.hasMore || false);
+  // The true count of businesses matching the current filters (from the
+  // backend's own count query), not just how many cards are loaded so far --
+  // `businesses.length` only ever reflects what's been paged in.
+  const [total, setTotal] = useState(typeof saved.total === 'number' ? saved.total : null);
   const [loading, setLoading] = useState(!hasSavedResults);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState(false);
@@ -163,19 +192,24 @@ export default function BusinessDirectory() {
 
   useEffect(() => {
     try {
-      sessionStorage.setItem(SAVED_STATE_KEY, JSON.stringify({
+      sessionStorage.setItem(savedStateKey(mode), JSON.stringify({
         version: SAVED_STATE_VERSION,
-        q, category, city, cityAuto, locationType, foodOnly, kashrutOnly, openNow, sort, bbox, nearbySelection,
-        businesses, page, hasMore,
+        q, category, city, cityAuto, locationType, foodOnly, kashrutOnly, openNow, sort, bbox, nearbySelection, nearCoords,
+        businesses, page, hasMore, total,
       }));
     } catch (_) { /* private browsing / storage disabled -- fine to just skip persisting */ }
-  }, [q, category, city, cityAuto, locationType, foodOnly, kashrutOnly, openNow, sort, bbox, nearbySelection, businesses, page, hasMore]);
+  }, [mode, q, category, city, cityAuto, locationType, foodOnly, kashrutOnly, openNow, sort, bbox, nearbySelection, nearCoords, businesses, page, hasMore, total]);
 
   useEffect(() => {
     if (!filterOpen) return undefined;
     const onOutside = (e) => { if (filterRef.current && !filterRef.current.contains(e.target)) setFilterOpen(false); };
+    const onKeyDown = (e) => { if (e.key === 'Escape') setFilterOpen(false); };
     document.addEventListener('mousedown', onOutside);
-    return () => document.removeEventListener('mousedown', onOutside);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', onOutside);
+      document.removeEventListener('keydown', onKeyDown);
+    };
   }, [filterOpen]);
 
   const load = useCallback((pageNum, append) => {
@@ -183,12 +217,21 @@ export default function BusinessDirectory() {
     setError(false);
     const params = new URLSearchParams({ page: pageNum, sort });
     if (debouncedQ) params.set('q', debouncedQ);
-    if (category) params.set('category', category);
+    if (category) {
+      params.set('category', category);
+    } else if (isCommunity) {
+      params.set('categories', COMMUNITY_CATEGORIES.join(','));
+    } else {
+      params.set('exclude_categories', COMMUNITY_CATEGORIES.join(','));
+    }
     if (debouncedCity) params.set('city', debouncedCity);
     if (locationType) params.set('location_type', locationType);
     if (foodOnly) params.set('food_only', '1');
     if (kashrutOnly) params.set('kashrut_only', '1');
     if (openNow) params.set('open_now', '1');
+    if (sort === 'distance' && nearCoords) {
+      params.set('lat', nearCoords.lat); params.set('lng', nearCoords.lng);
+    }
     if (bbox) {
       params.set('north', bbox.north); params.set('south', bbox.south);
       params.set('east', bbox.east); params.set('west', bbox.west);
@@ -198,12 +241,24 @@ export default function BusinessDirectory() {
         const list = res.businesses || [];
         setBusinesses((prev) => (append ? [...prev, ...list] : list));
         setHasMore(!!res.has_more);
+        setTotal(typeof res.total === 'number' ? res.total : null);
         setPage(pageNum);
       })
       .catch(() => setError(true))
       .finally(() => { setLoading(false); setLoadingMore(false); });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedQ, category, debouncedCity, locationType, foodOnly, kashrutOnly, openNow, sort, shakeSeed, bbox]);
+  }, [isCommunity, debouncedQ, category, debouncedCity, locationType, foodOnly, kashrutOnly, openNow, sort, shakeSeed, bbox, nearCoords]);
+
+  const findOpenNowNearMe = () => {
+    setLocating(true);
+    getBrowserCoords().then((coords) => {
+      setLocating(false);
+      if (!coords) return;
+      setNearCoords(coords);
+      setOpenNow(true);
+      setSort('distance');
+    });
+  };
 
   // Skip fetching when the current filters exactly match what was already
   // restored/fetched -- comparing against a stored signature, NOT a
@@ -216,35 +271,54 @@ export default function BusinessDirectory() {
   // just-restored snapshot. Comparing signatures is idempotent regardless of
   // how many times the effect body actually runs.
   const lastLoadSignatureRef = useRef(hasSavedResults
-    ? JSON.stringify([debouncedQ, category, debouncedCity, locationType, foodOnly, kashrutOnly, openNow, sort, bbox])
+    ? JSON.stringify([debouncedQ, category, debouncedCity, locationType, foodOnly, kashrutOnly, openNow, sort, bbox, shakeSeed, nearCoords])
     : null);
   useEffect(() => {
-    const signature = JSON.stringify([debouncedQ, category, debouncedCity, locationType, foodOnly, kashrutOnly, openNow, sort, bbox]);
+    // shakeSeed has to be part of this signature, not just of `load`'s own
+    // deps -- "Shake the board" only ever changes `sort` when it wasn't
+    // already 'random' (its default), so a shake while already on random
+    // sort produced a `load` with a new identity but a signature identical
+    // to the last one, and this effect silently no-opped: the button
+    // flashed "shaking…" for its local half-second timeout and reverted,
+    // but no fetch ever went out and the list never actually changed.
+    // nearCoords is included for the same reason -- "open now near me" can
+    // be pressed again after moving, which only changes nearCoords.
+    const signature = JSON.stringify([debouncedQ, category, debouncedCity, locationType, foodOnly, kashrutOnly, openNow, sort, bbox, shakeSeed, nearCoords]);
     if (lastLoadSignatureRef.current === signature) return;
     lastLoadSignatureRef.current = signature;
     load(1, false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [load]);
 
-  // Typing a new search/city, or shaking the board, implies the user wants
-  // a fresh area rather than staying boxed into an earlier map "search this
-  // area" click — but refining category/sort/etc. within that same map
+  // Typing a new search/city implies the user wants a fresh area rather than
+  // staying boxed into an earlier map "search this area" click -- but
+  // refining category/sort/etc. (or shaking the board) within that same map
   // viewport should keep it, so those are deliberately left out here.
+  // shakeSeed used to be included on the theory that shaking also "wants a
+  // fresh area" -- but that's backwards from what shaking the board is for
+  // (reroll within whatever's currently in view/filtered, not reset it), and
+  // it raced with the effect below: shaking sets shakeSeed, which changed
+  // `load`'s identity and fired a fetch WITH the still-set bbox, then this
+  // effect cleared bbox a moment later and fired a SECOND fetch without it --
+  // two in-flight requests for one shake, with no ordering guarantee between
+  // them, so the one that lost the race could silently overwrite the other's
+  // (correct) results. That's what made shaking look flaky, especially right
+  // after a "search this area"/"find nearby" click or two shakes in a row.
   // Same signature-comparison approach as above, for the same StrictMode
   // reason -- a "skip the first run" ref flag would wipe a `bbox` just
   // restored from sessionStorage the moment StrictMode's second pass hits.
-  const lastQCityShakeRef = useRef(JSON.stringify([debouncedQ, debouncedCity, shakeSeed]));
+  const lastQCityRef = useRef(JSON.stringify([debouncedQ, debouncedCity]));
   useEffect(() => {
-    const signature = JSON.stringify([debouncedQ, debouncedCity, shakeSeed]);
-    if (lastQCityShakeRef.current === signature) return;
-    lastQCityShakeRef.current = signature;
+    const signature = JSON.stringify([debouncedQ, debouncedCity]);
+    if (lastQCityRef.current === signature) return;
+    lastQCityRef.current = signature;
     setBbox(null);
     setNearbySelection(null);
-  }, [debouncedQ, debouncedCity, shakeSeed]);
+  }, [debouncedQ, debouncedCity]);
 
   // A selected pin's preview panel shouldn't linger once the underlying
   // list has changed out from under it (different filters/search/sort/area).
-  useEffect(() => { setSelectedId(null); }, [debouncedQ, category, debouncedCity, locationType, foodOnly, kashrutOnly, openNow, sort, shakeSeed, bbox]);
+  useEffect(() => { setSelectedId(null); }, [debouncedQ, category, debouncedCity, locationType, foodOnly, kashrutOnly, openNow, sort, shakeSeed, bbox, nearCoords]);
 
   const shake = () => {
     if (shaking) return;
@@ -257,21 +331,50 @@ export default function BusinessDirectory() {
   const toggleCategory = (key) => setCategory((c) => (c === key ? '' : key));
   const showKashrutOption = foodOnly || (category && FOOD_CATEGORIES.has(category));
   const activeFilterCount = [category, debouncedCity && city, locationType, foodOnly, kashrutOnly, openNow].filter(Boolean).length;
-  const countLabel = `${businesses.length}${hasMore ? '+' : ''} business${businesses.length === 1 && !hasMore ? '' : 'es'}`;
+  const clearAdvancedFilters = () => {
+    setCategory(''); setCity(''); setCityAuto(false); setLocationType('');
+    setFoodOnly(false); setKashrutOnly(false); setOpenNow(false);
+  };
+  // A broader reset than the filter panel's own "Clear all" -- also drops the
+  // search box and any map-drawn area, since someone staring at zero results
+  // most likely wants a clean slate, not just the advanced filters cleared.
+  const clearEverything = () => {
+    clearAdvancedFilters();
+    setQ('');
+    setBbox(null);
+    setNearbySelection(null);
+  };
+  const hasAnyFilter = activeFilterCount > 0 || !!q.trim() || !!bbox;
+  // Prefer the backend's real count of everything matching the current
+  // filters; fall back to "how many cards are loaded so far" (with a "+"
+  // hinting there's more) only for an older cached snapshot that predates
+  // the backend returning `total` at all.
+  const resultNoun = (n) => (isCommunity ? `listing${n === 1 ? '' : 's'}` : `business${n === 1 ? '' : 'es'}`);
+  const countLabel = typeof total === 'number'
+    ? `${total} ${resultNoun(total)}`
+    : `${businesses.length}${hasMore ? '+' : ''} ${resultNoun(hasMore ? 2 : businesses.length)}`;
 
   const resultsList = (
     <>
       {loading && (<><SkeletonCard /><SkeletonCard /><SkeletonCard /></>)}
-      {!loading && error && <div className="gs-error-box">Couldn't load the directory right now. Please try again.</div>}
+      {!loading && error && <div className="gs-error-box">Couldn't load {isCommunity ? 'the community area' : 'the directory'} right now. Please try again.</div>}
       {!loading && !error && businesses.length === 0 && (
         <div className="gs-empty">
-          <p style={{ fontSize: 40, marginBottom: 8 }}>🏪</p>
-          <p>No businesses match your filters yet.</p>
+          <Store size={40} style={{ marginBottom: 8, color: 'var(--muted-faint)' }} />
+          <p>No {isCommunity ? 'shuls or organizations' : 'businesses'} match your filters yet.</p>
+          {hasAnyFilter && (
+            <button type="button" className="gs-btn gs-btn-outline gs-btn-sm" onClick={clearEverything}>
+              Clear search &amp; filters
+            </button>
+          )}
         </div>
       )}
       {!loading && !error && businesses.map((b, i) => (
         <React.Fragment key={b.id}>
-          <BusinessCard business={b} onHover={setHoveredId} active={hoveredId === b.id} />
+          <BusinessCard
+            business={b} onHover={setHoveredId} active={hoveredId === b.id}
+            onCompareToggle={compareTray.toggle} isComparing={compareTray.isSelected(b.id)}
+          />
           {i === 3 && <AdSlot placement="business_directory" />}
         </React.Fragment>
       ))}
@@ -309,40 +412,52 @@ export default function BusinessDirectory() {
   return (
     <div className="feed-section">
       <div className="gs-container" style={{ maxWidth: 1180 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6, flexWrap: 'wrap', gap: 8 }}>
-          <h1 style={{ margin: 0 }}>🏪 Business Directory</h1>
-          <button className="gs-btn gs-btn-outline" onClick={shake} disabled={shaking}>
-            {shaking ? 'shaking…' : '🔀 Shake the board'}
-          </button>
+        <div className="biz-masthead">
+          <div className="biz-masthead-row">
+            <div className="biz-masthead-copy">
+              <div className="biz-masthead-kicker">
+                {isCommunity ? <><HeartHandshake size={13} /> The Community</> : <><Store size={13} /> The Directory</>}
+              </div>
+              <h1 className="biz-masthead-title">
+                {isCommunity ? 'Find a shul or community organization' : 'Find your next favorite local business'}
+              </h1>
+              <p className="biz-masthead-sub">{isCommunity ? COMMUNITY_SUBTITLE : DIRECTORY_SUBTITLE}</p>
+            </div>
+            <button className="biz-shake-btn" onClick={shake} disabled={shaking}>
+              <Shuffle size={15} className={shaking ? 'biz-shake-spin' : ''} /> {shaking ? 'Shaking…' : 'Shake the board'}
+            </button>
+          </div>
+          <StatsBar scope={isCommunity ? 'community' : 'business'} />
         </div>
-        <p style={{ color: 'var(--muted)', marginTop: 0 }}>
-          Find local Jewish-owned businesses — results come back in a random order by default so
-          newer and less-discovered listings get seen too. Pick A–Z if you want it predictable.
-        </p>
 
-        <StatsBar />
-
-        <div style={{ marginBottom: 16 }}>
-          <PinSomethingCard to="/business/new" prompt="Own a business? Add it to the directory — free." cta="List your business" />
+        <div className="biz-list-cta">
+          {isCommunity ? (
+            <PinSomethingCard to="/business/new" prompt="Run a shul or chessed organization? Add it — free." cta="List your organization" />
+          ) : (
+            <PinSomethingCard to="/business/new" prompt="Own a business? Add it to the directory — free." cta="List your business" />
+          )}
         </div>
 
         <div className="biz-directory-split">
           <div className="biz-directory-list">
             <div className="biz-topbar">
-              <input
-                type="text"
-                className="auth-input biz-topbar-search"
-                placeholder="🔎 Search by name or about…"
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-              />
+              <div className="biz-input-icon-wrap biz-topbar-search">
+                <Search size={15} />
+                <input
+                  type="text"
+                  className="auth-input"
+                  placeholder="Search by name or about…"
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                />
+              </div>
               <div ref={filterRef}>
                 <button
                   type="button"
                   className={`biz-filter-toggle${activeFilterCount ? ' has-active' : ''}`}
                   onClick={() => setFilterOpen((o) => !o)}
                 >
-                  ⚙ Filters {activeFilterCount > 0 && <span className="biz-filter-count">{activeFilterCount}</span>}
+                  <SlidersHorizontal size={14} /> Filters {activeFilterCount > 0 && <span className="biz-filter-count">{activeFilterCount}</span>}
                 </button>
                 {filterOpen && (
                   <div className="biz-filter-panel">
@@ -350,11 +465,13 @@ export default function BusinessDirectory() {
                       <div className="biz-filter-panel-label">Category</div>
                       <div className="biz-chip-row">
                         <button type="button" className={`biz-chip${!category ? ' active' : ''}`} onClick={() => setCategory('')}>All</button>
-                        {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
-                          <button key={key} type="button" className={`biz-chip${category === key ? ' active' : ''}`} onClick={() => toggleCategory(key)}>
-                            {CATEGORY_ICONS[key] || '🏪'} {label}
-                          </button>
-                        ))}
+                        {Object.entries(CATEGORY_LABELS)
+                          .filter(([key]) => isCommunity === COMMUNITY_CATEGORIES.includes(key))
+                          .map(([key, label]) => (
+                            <button key={key} type="button" className={`biz-chip${category === key ? ' active' : ''}`} onClick={() => toggleCategory(key)}>
+                              <CategoryIcon category={key} size={14} /> {label}
+                            </button>
+                          ))}
                       </div>
                     </div>
                     <div className="biz-filter-panel-section">
@@ -364,17 +481,17 @@ export default function BusinessDirectory() {
                           type="text"
                           className="auth-input"
                           style={{ maxWidth: 140 }}
-                          placeholder="📍 City"
+                          placeholder="City"
                           value={city}
                           onChange={(e) => { setCity(e.target.value); setCityAuto(false); }}
                         />
                         {cityAuto && city && (
-                          <span className="biz-badge biz-badge-open" title="Defaulted to your location — edit or clear to change it">📍 Near you</span>
+                          <span className="biz-badge biz-badge-open" title="Defaulted to your location — edit or clear to change it"><MapPin size={11} /> Near you</span>
                         )}
                         <select className="auth-input" style={{ maxWidth: 180 }} value={locationType} onChange={(e) => setLocationType(e.target.value)}>
                           <option value="">Any location type</option>
                           {Object.entries(LOCATION_TYPE_META).map(([key, meta]) => (
-                            <option key={key} value={key}>{meta.icon} {meta.label}</option>
+                            <option key={key} value={key}>{meta.label}</option>
                           ))}
                         </select>
                       </div>
@@ -382,10 +499,20 @@ export default function BusinessDirectory() {
                     <div className="biz-filter-panel-section">
                       <div className="biz-filter-panel-label">Quick filters</div>
                       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                        <button type="button" className={`biz-chip${foodOnly ? ' active' : ''}`} onClick={() => setFoodOnly((v) => { if (v) setKashrutOnly(false); return !v; })}>🍽️ Food only</button>
-                        <button type="button" className={`biz-chip${openNow ? ' active' : ''}`} onClick={() => setOpenNow((v) => !v)}>🕒 Open now</button>
+                        {!isCommunity && (
+                          <button type="button" className={`biz-chip${foodOnly ? ' active' : ''}`} onClick={() => setFoodOnly((v) => { if (v) setKashrutOnly(false); return !v; })}><UtensilsCrossed size={13} /> Food only</button>
+                        )}
+                        <button type="button" className={`biz-chip${openNow ? ' active' : ''}`} onClick={() => setOpenNow((v) => !v)}><Clock size={13} /> Open now</button>
+                        <button
+                          type="button"
+                          className={`biz-chip${sort === 'distance' && nearCoords ? ' active' : ''}`}
+                          onClick={findOpenNowNearMe}
+                          disabled={locating}
+                        >
+                          <MapPin size={13} /> {locating ? 'Locating…' : t('openNowNearMe')}
+                        </button>
                         {showKashrutOption && (
-                          <button type="button" className={`biz-chip gold-active${kashrutOnly ? ' active' : ''}`} onClick={() => setKashrutOnly((v) => !v)}>✡️ Kosher info</button>
+                          <button type="button" className={`biz-chip gold-active${kashrutOnly ? ' active' : ''}`} onClick={() => setKashrutOnly((v) => !v)}><ShieldCheck size={13} /> Kosher info</button>
                         )}
                       </div>
                     </div>
@@ -402,7 +529,7 @@ export default function BusinessDirectory() {
                       <button
                         type="button"
                         className="gs-btn gs-btn-outline gs-btn-sm"
-                        onClick={() => { setCategory(''); setCity(''); setCityAuto(false); setLocationType(''); setFoodOnly(false); setKashrutOnly(false); setOpenNow(false); }}
+                        onClick={clearAdvancedFilters}
                       >
                         Clear all
                       </button>
@@ -416,8 +543,8 @@ export default function BusinessDirectory() {
             {!isDesktop && (
               <div className="biz-mobile-toggle">
                 <div className="biz-segmented">
-                  <button type="button" className={`biz-segmented-btn${mobileView === 'list' ? ' active' : ''}`} onClick={() => setMobileView('list')}>☰ List</button>
-                  <button type="button" className={`biz-segmented-btn${mobileView === 'map' ? ' active' : ''}`} onClick={() => setMobileView('map')}>🗺️ Map</button>
+                  <button type="button" className={`biz-segmented-btn${mobileView === 'list' ? ' active' : ''}`} onClick={() => setMobileView('list')}><Menu size={14} /> List</button>
+                  <button type="button" className={`biz-segmented-btn${mobileView === 'map' ? ' active' : ''}`} onClick={() => setMobileView('map')}><Map size={14} /> Map</button>
                 </div>
               </div>
             )}
@@ -436,6 +563,7 @@ export default function BusinessDirectory() {
           )}
         </div>
       </div>
+      <CompareTray items={compareTray.items} onRemove={(id) => compareTray.toggle({ id })} onClear={compareTray.clear} />
     </div>
   );
 }

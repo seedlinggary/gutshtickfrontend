@@ -7,6 +7,15 @@ export default function HoursEditor({ hours, onChange }) {
     onChange({ ...hours, [dayKey]: { ...(hours?.[dayKey] || {}), ...patch } });
   };
 
+  // Same hours every day is the common case -- copying one day's value to
+  // the rest saves re-entering the same open/close time seven times.
+  const copyToAll = (dayKey) => {
+    const source = hours?.[dayKey] || {};
+    const next = {};
+    WEEKDAYS.forEach((w) => { next[w.key] = { ...source }; });
+    onChange(next);
+  };
+
   return (
     <div>
       {WEEKDAYS.map((w) => {
@@ -24,6 +33,16 @@ export default function HoursEditor({ hours, onChange }) {
                 <span>–</span>
                 <input type="time" className="gs-input" style={{ padding: 4, width: 110 }} value={day.close || ''} onChange={(e) => set(w.key, { close: e.target.value })} />
               </>
+            )}
+            {(day.open || day.closed) && (
+              <button
+                type="button"
+                onClick={() => copyToAll(w.key)}
+                title={`Use ${w.label}'s hours for every day`}
+                style={{ background: 'none', border: 'none', color: 'var(--muted)', fontSize: 11, cursor: 'pointer', textDecoration: 'underline', padding: 0 }}
+              >
+                Copy to all days
+              </button>
             )}
           </div>
         );

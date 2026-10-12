@@ -19,11 +19,12 @@ export const CATEGORY_LABELS = {
   other: 'Other',
 };
 
-// Mirrors backend/business/modals/business.py's LOCATION_TYPES.
+// Mirrors backend/business/modals/business.py's LOCATION_TYPES. `icon` names
+// a lucide-react component, rendered via LocationTypeIcon.js.
 export const LOCATION_TYPE_META = {
-  physical: { label: 'Physical address', icon: '📍' },
-  delivery: { label: 'Delivery / service area (no storefront)', icon: '🚚' },
-  online: { label: 'Online only', icon: '🌐' },
+  physical: { label: 'Physical address', icon: 'MapPin' },
+  delivery: { label: 'Delivery / service area (no storefront)', icon: 'Truck' },
+  online: { label: 'Online only', icon: 'Globe2' },
 };
 
 export const FOOD_CATEGORIES = new Set(['restaurant', 'grocery']);
@@ -48,30 +49,13 @@ export const CATEGORY_TINTS = {
   other: '#5b6472',
 };
 
-export const CATEGORY_ICONS = {
-  restaurant: '🍽️',
-  grocery: '🛒',
-  retail: '🛍️',
-  professional_services: '💼',
-  health_beauty: '💇',
-  home_services: '🔧',
-  education: '📚',
-  entertainment: '🎉',
-  automotive: '🚗',
-  nonprofit: '🤝',
-  gemach: '🎁',
-  shul: '🕍',
-  kollel: '📖',
-  other: '🏪',
-};
-
 export const POST_TYPE_META = {
-  sale: { label: 'Sale', color: '#e0574c' },
-  new_product: { label: 'New Product', color: 'var(--accent)' },
-  new_service: { label: 'New Service', color: '#6366f1' },
-  event: { label: 'Event', color: '#0ea5a4' },
-  announcement: { label: 'Announcement', color: 'var(--success, #2f9e59)' },
-  other: { label: 'Other', color: 'var(--muted)' },
+  sale: { label: 'Sale', color: '#c2542f', iconName: 'Tag' },
+  new_product: { label: 'New Product', color: 'var(--accent)', iconName: 'Sparkles' },
+  new_service: { label: 'New Service', color: '#6a4fc4', iconName: 'BellRing' },
+  event: { label: 'Event', color: '#0d7d7a', iconName: 'CalendarDays' },
+  announcement: { label: 'Announcement', color: 'var(--success, #2f9e59)', iconName: 'Megaphone' },
+  other: { label: 'Other', color: 'var(--muted)', iconName: 'FileText' },
 };
 
 export const WEEKDAYS = [

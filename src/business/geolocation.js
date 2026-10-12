@@ -17,6 +17,15 @@ function getPosition() {
   });
 }
 
+/** Resolves to {lat, lng} for the browser's current position, or null --
+ * same never-throws contract as detectNearbyCity, for the "open now near
+ * me" filter (sort=distance) which needs real coordinates, not a city
+ * name. */
+export async function getBrowserCoords() {
+  const pos = await getPosition();
+  return pos ? { lat: pos.coords.latitude, lng: pos.coords.longitude } : null;
+}
+
 /** Resolves to a city name near the browser's current position, or null if
  * geolocation is unavailable/denied/fails for any reason. Never rejects. */
 export default async function detectNearbyCity() {

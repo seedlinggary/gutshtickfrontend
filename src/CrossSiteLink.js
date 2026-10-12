@@ -36,8 +36,8 @@ export default function CrossSiteLink() {
       className="cross-site-link"
       onClick={go}
       disabled={loading}
-      title={business ? 'Go to Gut Shtick' : 'Go to Good Shtick Business'}
-      aria-label={business ? 'Go to Gut Shtick' : 'Go to Good Shtick Business'}
+      title={business ? 'Go to Gut Shtick' : 'Go to Gut Community'}
+      aria-label={business ? 'Go to Gut Shtick' : 'Go to Gut Community'}
     >
       {business ? '🏠' : '🏪'}
     </button>

@@ -9,25 +9,36 @@ export default function StarRating({ value = 0, count, onRate, size = 16 }) {
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
       <span style={{ display: 'inline-flex' }} onMouseLeave={() => interactive && setHover(0)}>
-        {[1, 2, 3, 4, 5].map((n) => (
-          <span
-            key={n}
-            onMouseEnter={() => interactive && setHover(n)}
-            onClick={() => interactive && onRate(n)}
-            style={{
-              fontSize: size,
-              color: n <= display ? 'var(--gold, #f5a623)' : 'var(--border)',
-              cursor: interactive ? 'pointer' : 'default',
-              lineHeight: 1,
-            }}
-          >
-            ★
-          </span>
-        ))}
+        {[1, 2, 3, 4, 5].map((n) => {
+          const Tag = interactive ? 'button' : 'span';
+          return (
+            <Tag
+              key={n}
+              type={interactive ? 'button' : undefined}
+              aria-label={interactive ? `Rate ${n} star${n === 1 ? '' : 's'}` : undefined}
+              onMouseEnter={() => interactive && setHover(n)}
+              onFocus={() => interactive && setHover(n)}
+              onBlur={() => interactive && setHover(0)}
+              onClick={() => interactive && onRate(n)}
+              style={{
+                fontSize: size,
+                color: n <= display ? 'var(--gold, #f5a623)' : 'var(--border)',
+                cursor: interactive ? 'pointer' : 'default',
+                lineHeight: 1,
+                background: 'none',
+                border: 'none',
+                padding: 0,
+                fontFamily: 'inherit',
+              }}
+            >
+              ★
+            </Tag>
+          );
+        })}
       </span>
       {typeof count === 'number' && (
         <span style={{ fontSize: 12, color: 'var(--muted)' }}>
-          {value ? value.toFixed(1) : '—'} ({count})
+          {count > 0 ? `${value.toFixed(1)} (${count})` : 'No ratings yet'}
         </span>
       )}
     </span>

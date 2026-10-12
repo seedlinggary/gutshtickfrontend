@@ -34,7 +34,7 @@ const Footer = () => {
         <div className="gs-footer-grid">
           <div>
             <div className="gs-footer-brand">
-              {business ? <>Good Shtick <span>Business</span></> : <>Gut <span>Shtick</span></>}
+              {business ? <>Gut <span>Community</span></> : <>Gut <span>Shtick</span></>}
             </div>
             <p className="gs-footer-tagline">
               {business
@@ -47,6 +47,7 @@ const Footer = () => {
             <div>
               <div className="gs-footer-col-title">Navigate</div>
               <button className="gs-footer-link" onClick={() => go("/")}>Directory</button>
+              <button className="gs-footer-link" onClick={() => go("/community")}>Community</button>
               <button className="gs-footer-link" onClick={() => go("/deals")}>Deals</button>
               <button className="gs-footer-link" onClick={() => go("/business/new")}>List Your Business</button>
               {email && (
@@ -94,7 +95,7 @@ const Footer = () => {
 
         <div className="gs-footer-bottom">
           <span className="gs-footer-copy">
-            &copy; {new Date().getFullYear()} {business ? "Good Shtick Business" : "Gut Shtick"}. All rights reserved.
+            &copy; {new Date().getFullYear()} {business ? "Gut Community" : "Gut Shtick"}. All rights reserved.
           </span>
         </div>
       </div>

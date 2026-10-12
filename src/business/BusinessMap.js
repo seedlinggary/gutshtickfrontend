@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
+import { MapPin, X, Search } from 'lucide-react';
 
 // OpenFreeMap: free vector tiles, no API key, no rate limits, self-hostable.
 // https://openfreemap.org
@@ -443,7 +444,7 @@ export default function BusinessMap({ businesses, onBoundsSearch, hoveredId, onS
         onClick={toggleNearbyMode}
         title="Click a point on the map, then pick a radius to find businesses around it"
       >
-        📍 {nearbyMode ? 'Click the map…' : 'Find nearby'}
+        <MapPin size={14} /> {nearbyMode ? 'Click the map…' : 'Find nearby'}
       </button>
       {nearbyMode && nearbyPoint && (
         <div className="biz-map-nearby-picker">
@@ -451,12 +452,12 @@ export default function BusinessMap({ businesses, onBoundsSearch, hoveredId, onS
           {NEARBY_RADII.map((mi) => (
             <button key={mi} type="button" className="biz-chip" onClick={() => pickRadius(mi)}>{mi} mi</button>
           ))}
-          <button type="button" className="biz-map-nearby-cancel" onClick={toggleNearbyMode}>✕</button>
+          <button type="button" className="biz-map-nearby-cancel" onClick={toggleNearbyMode}><X size={14} /></button>
         </div>
       )}
       {showSearchArea && (
         <button type="button" className="biz-map-search-area" onClick={searchThisArea}>
-          🔎 Search this area
+          <Search size={13} /> Search this area
         </button>
       )}
       {styleError && (

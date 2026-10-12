@@ -38,6 +38,7 @@ export default function AddressAutocomplete({ initialQuery = '', onSelect }) {
   const [suggestions, setSuggestions] = useState([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [highlighted, setHighlighted] = useState(-1);
   const boxRef = useRef(null);
 
   useEffect(() => {
@@ -51,6 +52,7 @@ export default function AddressAutocomplete({ initialQuery = '', onSelect }) {
           if (cancelled) return;
           setSuggestions((data.features || []).map(formatSuggestion));
           setOpen(true);
+          setHighlighted(-1);
         })
         .catch(() => { if (!cancelled) setSuggestions([]); })
         .finally(() => { if (!cancelled) setLoading(false); });
@@ -69,7 +71,24 @@ export default function AddressAutocomplete({ initialQuery = '', onSelect }) {
   const pick = (s) => {
     setQuery(s.label);
     setOpen(false);
+    setHighlighted(-1);
     onSelect(suggestionToLocation(s));
+  };
+
+  const onKeyDown = (e) => {
+    if (!open || suggestions.length === 0) return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setHighlighted((h) => (h + 1) % suggestions.length);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setHighlighted((h) => (h <= 0 ? suggestions.length - 1 : h - 1));
+    } else if (e.key === 'Enter') {
+      if (highlighted >= 0) { e.preventDefault(); pick(suggestions[highlighted]); }
+    } else if (e.key === 'Escape') {
+      setOpen(false);
+      setHighlighted(-1);
+    }
   };
 
   return (
@@ -80,25 +99,29 @@ export default function AddressAutocomplete({ initialQuery = '', onSelect }) {
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         onFocus={() => suggestions.length > 0 && setOpen(true)}
+        onKeyDown={onKeyDown}
+        role="combobox"
+        aria-expanded={open && suggestions.length > 0}
+        aria-autocomplete="list"
       />
       {loading && <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>Searching…</div>}
       {open && suggestions.length > 0 && (
-        <ul style={{
+        <ul role="listbox" style={{
           position: 'absolute', zIndex: 20, left: 0, right: 0, top: '100%', marginTop: 2,
           background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8,
           boxShadow: 'var(--shadow-sm)', listStyle: 'none', padding: 4, maxHeight: 260, overflowY: 'auto',
         }}>
           {suggestions.map((s, i) => (
-            <li key={i}>
+            <li key={i} role="option" aria-selected={i === highlighted}>
               <button
                 type="button"
                 onClick={() => pick(s)}
+                onMouseEnter={() => setHighlighted(i)}
                 style={{
                   display: 'block', width: '100%', textAlign: 'left', padding: '8px 10px',
-                  background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, borderRadius: 6,
+                  background: i === highlighted ? 'var(--surface-alt, #f2ece3)' : 'none',
+                  border: 'none', cursor: 'pointer', fontSize: 13, borderRadius: 6,
                 }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--surface-alt, #f2ece3)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'none'; }}
               >
                 {s.label}
               </button>

@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import { Tag, Search, MapPin, Shuffle, Percent } from 'lucide-react';
 import apiRequest from '../ApiRequest';
 import ShareButton from '../ShareButton';
 import AdSlot from '../ads/AdSlot';
@@ -7,14 +8,18 @@ import timeAgo from '../utils/timeAgo';
 import DataDisclaimer from './DataDisclaimer';
 import detectNearbyCity from './geolocation';
 import { POST_TYPE_META, CATEGORY_TINTS } from './categories';
+import PostTypeIcon from './PostTypeIcon';
+import CategoryIcon from './CategoryIcon';
+import GetDealButton from './GetDealButton';
+import { isSuperAdmin } from '../auth';
 
 const TYPES = [
   { key: '', label: 'All types' },
-  { key: 'sale', label: '💰 Sales' },
-  { key: 'new_product', label: '✨ New Products' },
-  { key: 'new_service', label: '🛎️ New Services' },
-  { key: 'event', label: '📅 Events' },
-  { key: 'announcement', label: '📣 Announcements' },
+  { key: 'sale', label: 'Sales' },
+  { key: 'new_product', label: 'New Products' },
+  { key: 'new_service', label: 'New Services' },
+  { key: 'event', label: 'Events' },
+  { key: 'announcement', label: 'Announcements' },
 ];
 
 function SkeletonCard() {
@@ -34,10 +39,10 @@ function PostCard({ post }) {
     <div className="gs-card biz-deal-card" style={{ marginBottom: 14, '--deal-color': meta.color }}>
       <div className="gs-card-body">
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
-          <div className="biz-card-media" style={{ width: 44, height: 44, borderRadius: 12, fontSize: 18, '--media-tint': tint }}>
+          <div className="biz-card-media" style={{ width: 44, height: 44, borderRadius: 12, '--media-tint': tint }}>
             {post.business?.logo_url ? (
               <img src={post.business.logo_url} alt={post.business.name} />
-            ) : (post.business?.is_food ? '🍽️' : '🏪')}
+            ) : <CategoryIcon category={post.business?.category} size={18} />}
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <Link to={`/business/${post.business?.slug}`} style={{ fontWeight: 700, textDecoration: 'none', color: 'inherit', display: 'block' }}>
@@ -45,15 +50,15 @@ function PostCard({ post }) {
             </Link>
             <span className="shtick-time">{timeAgo(post.pub_date)}</span>
           </div>
-          <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', color: '#fff', background: meta.color, borderRadius: 999, padding: '2px 10px', flexShrink: 0 }}>
-            {meta.label}
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 700, textTransform: 'uppercase', color: '#fff', background: meta.color, borderRadius: 999, padding: '2px 10px', flexShrink: 0 }}>
+            <PostTypeIcon postType={post.post_type} size={12} /> {meta.label}
           </span>
         </div>
         <h3 className="shtick-caption" style={{ marginTop: 0 }}>{post.title}</h3>
         <p style={{ whiteSpace: 'pre-wrap', margin: '6px 0 0' }}>{post.body}</p>
         {post.image_url && <img src={post.image_url} alt={post.title} className="shtick-image" style={{ marginTop: 8 }} />}
         <div className="shtick-footer">
-          <div />
+          {post.post_type === 'sale' && isSuperAdmin() ? <GetDealButton post={post} /> : <div />}
           <ShareButton title={post.title} text={post.body} url={`${window.location.origin}/deals?post=${post.id}`} />
         </div>
       </div>
@@ -125,40 +130,47 @@ export default function DealsFeed() {
   useEffect(() => { load(1, false); }, [load]);
 
   const countLabel = `${posts.length}${hasMore ? '+' : ''} deal${posts.length === 1 && !hasMore ? '' : 's'}`;
+  const hasAnyFilter = !!type || !!q.trim() || !!city.trim();
+  const clearFilters = () => { setType(''); setQ(''); setCity(''); setCityAuto(false); };
 
   return (
     <div className="feed-section">
       <div className="gs-container" style={{ maxWidth: 720 }}>
-        <h1>🏷️ Deals</h1>
+        <h1 style={{ display: 'flex', alignItems: 'center', gap: 10 }}><Tag size={28} /> Deals</h1>
         <p style={{ color: 'var(--muted)', marginTop: 0 }}>
           Sales, new products, events, and announcements from businesses in the directory.
         </p>
 
         <div className="biz-topbar">
-          <input
-            type="text"
-            className="auth-input biz-topbar-search"
-            placeholder="🔎 Search deals…"
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-          />
-          <input
-            type="text"
-            className="auth-input"
-            style={{ maxWidth: 150 }}
-            placeholder="📍 City"
-            value={city}
-            onChange={(e) => { setCity(e.target.value); setCityAuto(false); }}
-          />
+          <div className="biz-input-icon-wrap biz-topbar-search">
+            <Search size={15} />
+            <input
+              type="text"
+              className="auth-input"
+              placeholder="Search deals…"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+            />
+          </div>
+          <div className="biz-input-icon-wrap" style={{ maxWidth: 160 }}>
+            <MapPin size={15} />
+            <input
+              type="text"
+              className="auth-input"
+              placeholder="City"
+              value={city}
+              onChange={(e) => { setCity(e.target.value); setCityAuto(false); }}
+            />
+          </div>
           {cityAuto && city && (
-            <span className="biz-badge biz-badge-open" title="Defaulted to your location — edit or clear the city field to change it">📍 Near you</span>
+            <span className="biz-badge biz-badge-open" title="Defaulted to your location — edit or clear the city field to change it"><MapPin size={11} /> Near you</span>
           )}
           <select className="auth-input" style={{ maxWidth: 190 }} value={type} onChange={(e) => setType(e.target.value)}>
             {TYPES.map((t) => <option key={t.key} value={t.key}>{t.label}</option>)}
           </select>
           <div className="biz-segmented">
             <button type="button" className={`biz-segmented-btn${sort === 'recent' ? ' active' : ''}`} onClick={() => setSort('recent')}>Newest</button>
-            <button type="button" className={`biz-segmented-btn${sort === 'random' ? ' active' : ''}`} onClick={() => setSort('random')}>🔀 Surprise</button>
+            <button type="button" className={`biz-segmented-btn${sort === 'random' ? ' active' : ''}`} onClick={() => setSort('random')}><Shuffle size={13} /> Surprise</button>
           </div>
           <span className="biz-result-count" style={{ marginLeft: 'auto' }}>{!loading && !error ? countLabel : ' '}</span>
         </div>
@@ -166,7 +178,15 @@ export default function DealsFeed() {
         {loading && <><SkeletonCard /><SkeletonCard /><SkeletonCard /></>}
         {!loading && error && <div className="gs-error-box">Couldn't load deals right now. Please try again.</div>}
         {!loading && !error && posts.length === 0 && (
-          <div className="gs-empty"><p style={{ fontSize: 40, marginBottom: 8 }}>🏷️</p><p>No deals here yet.</p></div>
+          <div className="gs-empty">
+            <Percent size={40} style={{ marginBottom: 8, color: 'var(--muted-faint)' }} />
+            <p>No deals here yet.</p>
+            {hasAnyFilter && (
+              <button type="button" className="gs-btn gs-btn-outline gs-btn-sm" onClick={clearFilters}>
+                Clear search &amp; filters
+              </button>
+            )}
+          </div>
         )}
 
         {!loading && !error && posts.map((post, i) => (
