@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { MapPin, X, Search } from 'lucide-react';
+import { radiusToBbox } from './geolocation';
 
 // OpenFreeMap: free vector tiles, no API key, no rate limits, self-hostable.
 // https://openfreemap.org
@@ -16,18 +17,9 @@ const NEARBY_MIN_ZOOM = 11;
 const SOURCE_ID = 'gs-businesses';
 const NEARBY_SOURCE_ID = 'gs-nearby-circle';
 const NEARBY_RADII = [0.5, 1, 5, 10];
-// Shared with the bbox math below so the drawn circle's N/S/E/W extent
-// visually matches the actual search area sent to the backend.
+// Shared with radiusToBbox (geolocation.js) so the drawn circle's N/S/E/W
+// extent visually matches the actual search area sent to the backend.
 const MILES_PER_DEGREE_LAT = 69;
-
-function radiusToBbox(point, miles) {
-  const latDelta = miles / MILES_PER_DEGREE_LAT;
-  const lngDelta = miles / (MILES_PER_DEGREE_LAT * Math.cos((point.lat * Math.PI) / 180));
-  return {
-    north: point.lat + latDelta, south: point.lat - latDelta,
-    east: point.lng + lngDelta, west: point.lng - lngDelta,
-  };
-}
 
 // A polygon approximation of a circle (GL styles have no native circle-by-
 // real-world-radius geometry) -- purely a visual reference for the area the
@@ -313,6 +305,35 @@ export default function BusinessMap({ businesses, onBoundsSearch, hoveredId, onS
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Redraw the pin+circle when a NEW nearby search arrives after the map is
+  // already mounted -- e.g. the filter panel's one-click "Near me" chip,
+  // which (unlike the map's own "Find nearby") lives outside this component
+  // and only ever communicates through this prop. The mount-time effect
+  // above only ever reads `initialNearby` once (for resuming a search after
+  // remounting), so without this, picking a fresh one while the map was
+  // already sitting there just silently did nothing visually -- the list
+  // and the map's own camera/bounds still updated (see the [businesses]
+  // effect below), but no pin or radius circle ever appeared. Compared by
+  // value, not reference, since a fresh `{point, radius}` object is created
+  // on every "Near me" click even when the point is unchanged.
+  const lastNearbySignatureRef = useRef(initialNearby ? JSON.stringify(initialNearby) : null);
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !loadedRef.current) return;
+    const signature = initialNearby ? JSON.stringify(initialNearby) : null;
+    if (signature === lastNearbySignatureRef.current) return;
+    lastNearbySignatureRef.current = signature;
+    const source = map.getSource(NEARBY_SOURCE_ID);
+    if (initialNearby?.point) {
+      setNearbyPoint(initialNearby.point);
+      if (source) source.setData(circlePolygon(initialNearby.point, initialNearby.radius));
+      map.flyTo({ center: [initialNearby.point.lng, initialNearby.point.lat], zoom: NEARBY_MIN_ZOOM });
+    } else {
+      setNearbyPoint(null);
+      if (source) source.setData(EMPTY_FC);
+    }
+  }, [initialNearby]);
 
   // Highlight the hovered card's pin gold instead of navy.
   useEffect(() => {

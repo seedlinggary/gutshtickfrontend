@@ -716,6 +716,27 @@
   color: var(--gold-hover);
   flex-shrink: 0;
 }
+/* The row layout above needs real width to breathe -- on a phone, the
+   non-shrinking CTA text ("LIST YOUR BUSINESS -- SIGN UP FREE") forced the
+   prompt into a narrow column that wrapped to 4-5 lines while the CTA
+   itself still overflowed off the right edge, clipped under the floating
+   cross-site icon. Stacking instead gives each line the full width. */
+@media (max-width: 640px) {
+  .biz-list-cta .pin-something-body {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 16px 18px;
+  }
+  .biz-list-cta .pin-something-mark {
+    width: 32px;
+    height: 32px;
+    font-size: 20px;
+  }
+  .biz-list-cta .pin-something-cta {
+    white-space: normal;
+  }
+}
 
 /* ── Data accuracy disclaimer ── */
 .biz-disclaimer {

@@ -7,7 +7,9 @@ import BusinessCard from './BusinessCard';
 import BusinessPreviewPanel from './BusinessPreviewPanel';
 import StatsBar from './StatsBar';
 import DataDisclaimer from './DataDisclaimer';
-import detectNearbyCity, { getBrowserCoords } from './geolocation';
+import detectNearbyCity, {
+  getBrowserCoordsDetailed, radiusToBbox, GEO_PERMISSION_DENIED, GEO_UNSUPPORTED,
+} from './geolocation';
 import { CATEGORY_LABELS, FOOD_CATEGORIES, LOCATION_TYPE_META } from './categories';
 import CategoryIcon from './CategoryIcon';
 import CompareTray, { useCompareTray } from './CompareTray';
@@ -26,6 +28,9 @@ const COMMUNITY_SUBTITLE = 'Shuls and chessed organizations, in their own area r
 // shows only them (optionally narrowed to just one via its own category
 // chips). See list_businesses()'s categories/exclude_categories params.
 const COMMUNITY_CATEGORIES = ['shul', 'nonprofit'];
+
+// Default radius for the one-click "Near me" filter-panel chip.
+const NEAR_ME_RADIUS_MILES = 10;
 
 // Lazy so maplibre-gl (a sizeable library) only downloads once the map is
 // actually needed -- on desktop that's on load (split view), but on mobile
@@ -123,6 +128,7 @@ export default function BusinessDirectory({ mode = 'business' }) {
   const [sort, setSort] = useState(saved.sort || 'random');
   const [nearCoords, setNearCoords] = useState(saved.nearCoords || null);
   const [locating, setLocating] = useState(false);
+  const [nearMeError, setNearMeError] = useState(null);
   const compareTray = useCompareTray();
   const { t } = useLanguage();
   const [shakeSeed, setShakeSeed] = useState(0);
@@ -249,14 +255,37 @@ export default function BusinessDirectory({ mode = 'business' }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isCommunity, debouncedQ, category, debouncedCity, locationType, foodOnly, kashrutOnly, openNow, sort, shakeSeed, bbox, nearCoords]);
 
-  const findOpenNowNearMe = () => {
+  // "Near me" actually restricts results to a real radius around the user
+  // (same bbox math the map's "Find nearby" uses) -- it used to just set
+  // sort=distance, which only re-orders results by distance with no cutoff
+  // at all, so "near me" never excluded anything far away; it was also
+  // bundled with openNow, so this doubled as a confusing "and only if
+  // currently open" filter nobody asked for. Those are now independent --
+  // see the separate "Open now" chip.
+  const findNearMe = () => {
     setLocating(true);
-    getBrowserCoords().then((coords) => {
+    setNearMeError(null);
+    getBrowserCoordsDetailed().then(({ coords, error }) => {
       setLocating(false);
-      if (!coords) return;
+      if (!coords) {
+        // Most real failures here are "still waiting on a fix" (timeout) or
+        // "no position available" (no GPS/WiFi signal to triangulate from),
+        // not an actual block -- a blanket "check your permission" message
+        // was wrong more often than right and sent people to the wrong
+        // settings screen. Only a real PERMISSION_DENIED points there now.
+        if (error === GEO_PERMISSION_DENIED) {
+          setNearMeError("Location access is blocked for this site -- check your browser's site settings and try again.");
+        } else if (error === GEO_UNSUPPORTED) {
+          setNearMeError("This browser doesn't support location lookup -- try typing a city instead.");
+        } else {
+          setNearMeError("Couldn't get your location -- this can take a moment on some connections, try again.");
+        }
+        return;
+      }
       setNearCoords(coords);
-      setOpenNow(true);
       setSort('distance');
+      setBbox(radiusToBbox(coords, NEAR_ME_RADIUS_MILES));
+      setNearbySelection({ point: coords, radius: NEAR_ME_RADIUS_MILES });
     });
   };
 
@@ -505,16 +534,20 @@ export default function BusinessDirectory({ mode = 'business' }) {
                         <button type="button" className={`biz-chip${openNow ? ' active' : ''}`} onClick={() => setOpenNow((v) => !v)}><Clock size={13} /> Open now</button>
                         <button
                           type="button"
-                          className={`biz-chip${sort === 'distance' && nearCoords ? ' active' : ''}`}
-                          onClick={findOpenNowNearMe}
+                          className={`biz-chip${nearbySelection && sort === 'distance' ? ' active' : ''}`}
+                          onClick={findNearMe}
                           disabled={locating}
+                          title={`Show only listings within ${NEAR_ME_RADIUS_MILES} miles of your location`}
                         >
-                          <MapPin size={13} /> {locating ? 'Locating…' : t('openNowNearMe')}
+                          <MapPin size={13} /> {locating ? 'Locating…' : t('nearMe')}
                         </button>
                         {showKashrutOption && (
                           <button type="button" className={`biz-chip gold-active${kashrutOnly ? ' active' : ''}`} onClick={() => setKashrutOnly((v) => !v)}><ShieldCheck size={13} /> Kosher info</button>
                         )}
                       </div>
+                      {nearMeError && (
+                        <p style={{ fontSize: 12, color: 'var(--error, #c0392b)', margin: '6px 0 0' }}>{nearMeError}</p>
+                      )}
                     </div>
                     <div className="biz-filter-panel-section">
                       <div className="biz-filter-panel-label">Sort</div>
