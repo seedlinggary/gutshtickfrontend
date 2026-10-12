@@ -14,7 +14,7 @@ import CompareTray, { useCompareTray } from './CompareTray';
 import { useLanguage } from './i18n';
 import {
   Shuffle, Map, Store, Search, SlidersHorizontal, MapPin, UtensilsCrossed,
-  Clock, ShieldCheck, Menu, HeartHandshake,
+  Clock, ShieldCheck, Menu, HeartHandshake, X,
 } from 'lucide-react';
 
 const DIRECTORY_SUBTITLE = 'Every listing here is a real Jewish-owned business, added by its neighbors or its owner. Results come back in a random order by default so newer and less-discovered ones get seen too — pick A–Z if you want it predictable.';
@@ -252,7 +252,25 @@ export default function BusinessDirectory({ mode = 'business' }) {
   // bundled with openNow, so this doubled as a confusing "and only if
   // currently open" filter nobody asked for. Those are now independent --
   // see the separate "Open now" chip.
+  // Also doubles as the toggle's own "is it on" check -- true for either
+  // this button's own selection or the map's "Find nearby" (same bbox/sort
+  // combination either way), so a second click turns off whichever one is
+  // actually active, not just a selection this exact button made.
+  const nearMeActive = !!nearbySelection && sort === 'distance';
+
   const findNearMe = () => {
+    if (nearMeActive) {
+      // Second click = turn it off, not re-locate. Reset sort back to the
+      // default rather than leaving it on 'distance' with nothing to sort
+      // by -- the backend requires lat/lng whenever sort=distance, so
+      // leaving it set with nearCoords cleared would just start erroring.
+      setNearMeError(null);
+      setBbox(null);
+      setNearbySelection(null);
+      setNearCoords(null);
+      setSort('random');
+      return;
+    }
     setLocating(true);
     setNearMeError(null);
     getBrowserCoordsDetailed().then(({ coords, error }) => {
@@ -356,14 +374,27 @@ export default function BusinessDirectory({ mode = 'business' }) {
 
   const toggleCategory = (key) => setCategory((c) => (c === key ? '' : key));
   const showKashrutOption = foodOnly || (category && FOOD_CATEGORIES.has(category));
-  const activeFilterCount = [category, debouncedCity && city, locationType, foodOnly, kashrutOnly, openNow].filter(Boolean).length;
+  const activeFilterCount = [category, debouncedCity && city, locationType, foodOnly, kashrutOnly, openNow, nearMeActive].filter(Boolean).length;
   const clearAdvancedFilters = () => {
     setCategory(''); setCity(''); setLocationType('');
     setFoodOnly(false); setKashrutOnly(false); setOpenNow(false);
+    // Near me is a filter too now (it's right here in the panel) -- "Clear
+    // all" should turn it off the same way a second click on its own chip
+    // does, not just leave sort stuck on 'distance' with no location behind it.
+    if (nearMeActive) {
+      setNearMeError(null);
+      setBbox(null);
+      setNearbySelection(null);
+      setNearCoords(null);
+      setSort('random');
+    }
   };
   // A broader reset than the filter panel's own "Clear all" -- also drops the
-  // search box and any map-drawn area, since someone staring at zero results
-  // most likely wants a clean slate, not just the advanced filters cleared.
+  // search box and any map-drawn area (clearAdvancedFilters only drops the
+  // map area when it was near-me's; a plain "search this area" box survives
+  // the panel's own "Clear all" but not this one), since someone staring at
+  // zero results most likely wants a clean slate, not just the advanced
+  // filters cleared.
   const clearEverything = () => {
     clearAdvancedFilters();
     setQ('');
@@ -453,12 +484,12 @@ export default function BusinessDirectory({ mode = 'business' }) {
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                 <button
                   type="button"
-                  className={`biz-shake-btn${nearbySelection && sort === 'distance' ? ' active' : ''}`}
+                  className={`biz-shake-btn${nearMeActive ? ' active' : ''}`}
                   onClick={findNearMe}
                   disabled={locating}
-                  title={`Show only listings within ${NEAR_ME_RADIUS_MILES} miles of your location`}
+                  title={nearMeActive ? 'Turn off the nearby filter' : `Show only listings within ${NEAR_ME_RADIUS_MILES} miles of your location`}
                 >
-                  <MapPin size={15} /> {locating ? 'Locating…' : t('nearMe')}
+                  {nearMeActive ? <X size={15} /> : <MapPin size={15} />} {locating ? 'Locating…' : t('nearMe')}
                 </button>
                 <button className="biz-shake-btn" onClick={shake} disabled={shaking}>
                   <Shuffle size={15} className={shaking ? 'biz-shake-spin' : ''} /> {shaking ? 'Shaking…' : 'Shake the board'}
@@ -542,10 +573,22 @@ export default function BusinessDirectory({ mode = 'business' }) {
                           <button type="button" className={`biz-chip${foodOnly ? ' active' : ''}`} onClick={() => setFoodOnly((v) => { if (v) setKashrutOnly(false); return !v; })}><UtensilsCrossed size={13} /> Food only</button>
                         )}
                         <button type="button" className={`biz-chip${openNow ? ' active' : ''}`} onClick={() => setOpenNow((v) => !v)}><Clock size={13} /> Open now</button>
+                        <button
+                          type="button"
+                          className={`biz-chip gold-active${nearMeActive ? ' active' : ''}`}
+                          onClick={findNearMe}
+                          disabled={locating}
+                          title={nearMeActive ? 'Turn off the nearby filter' : `Show only listings within ${NEAR_ME_RADIUS_MILES} miles of your location`}
+                        >
+                          {nearMeActive ? <X size={13} /> : <MapPin size={13} />} {locating ? 'Locating…' : t('nearMe')}
+                        </button>
                         {showKashrutOption && (
                           <button type="button" className={`biz-chip gold-active${kashrutOnly ? ' active' : ''}`} onClick={() => setKashrutOnly((v) => !v)}><ShieldCheck size={13} /> Kosher info</button>
                         )}
                       </div>
+                      {nearMeError && (
+                        <p style={{ fontSize: 12, color: 'var(--error, #c0392b)', margin: '6px 0 0' }}>{nearMeError}</p>
+                      )}
                     </div>
                     <div className="biz-filter-panel-section">
                       <div className="biz-filter-panel-label">Sort</div>
