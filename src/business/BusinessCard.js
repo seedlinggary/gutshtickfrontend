@@ -17,6 +17,24 @@ function locationBlurb(loc) {
   return loc.city ? { icon: <MapPin size={12} />, text: loc.city } : null;
 }
 
+/** Shul/mikvah extras sourced from the OU Communities directory and
+ * mikvah.org -- shown only for the categories they actually apply to, and
+ * only the fields that came back populated (see BusinessCardSchema.
+ * get_community_info on the backend for the exact allowlist). */
+function CommunityInfoLine({ category, info }) {
+  const parts = [];
+  if (category === 'shul') {
+    if (info.rabbi_name) parts.push(`Rabbi ${info.rabbi_name}`);
+    if (info.hashkafa) parts.push(info.hashkafa);
+    if (info.families_count) parts.push(`~${info.families_count} families`);
+  } else if (category === 'mikvah') {
+    if (info.wheelchair_accessible) parts.push('♿ Wheelchair accessible');
+    if (info.mikvah_schedule) parts.push(info.mikvah_schedule);
+  }
+  if (!parts.length) return null;
+  return <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 4 }}>{parts.join(' · ')}</div>;
+}
+
 /** `onHover(id|null)` -- if given, lets the Directory's split view highlight
  * this card's pin on the map while the pointer is over it. `active` mirrors
  * that back (e.g. hovering the pin itself) so the highlight is two-way.
@@ -73,6 +91,7 @@ export default function BusinessCard({ business, onHover, active, onCompareToggl
               )}
             </div>
             <TypeTags types={business.types} />
+            {business.community_info && <CommunityInfoLine category={business.category} info={business.community_info} />}
           </div>
           <ChevronRight size={18} className="biz-card-chevron" />
         </div>

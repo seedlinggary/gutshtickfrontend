@@ -7,7 +7,7 @@ import BusinessCard from './BusinessCard';
 import BusinessPreviewPanel from './BusinessPreviewPanel';
 import StatsBar from './StatsBar';
 import DataDisclaimer from './DataDisclaimer';
-import { getBrowserCoordsDetailed, radiusToBbox, GEO_PERMISSION_DENIED, GEO_UNSUPPORTED } from './geolocation';
+import { getBrowserCoordsDetailed, radiusToBbox, getNearMeErrorMessage, isIOSSafari } from './geolocation';
 import { CATEGORY_LABELS, FOOD_CATEGORIES, LOCATION_TYPE_META } from './categories';
 import CategoryIcon from './CategoryIcon';
 import CompareTray, { useCompareTray } from './CompareTray';
@@ -18,14 +18,21 @@ import {
 } from 'lucide-react';
 
 const DIRECTORY_SUBTITLE = 'Every listing here is a real Jewish-owned business, added by its neighbors or its owner. Results come back in a random order by default so newer and less-discovered ones get seen too — pick A–Z if you want it predictable.';
-const COMMUNITY_SUBTITLE = 'Shuls and chessed organizations, in their own area rather than mixed in with restaurants and retail. Results come back in a random order by default so newer and less-discovered ones get seen too — pick A–Z if you want it predictable.';
+const COMMUNITY_SUBTITLE = 'Shuls, mikvahs, schools and chessed organizations, in their own area rather than mixed in with restaurants and retail. Results come back in a random order by default so newer and less-discovered ones get seen too — pick A–Z if you want it predictable.';
 
 // Shuls and chessed organizations (nonprofits) live in their own Community
 // area rather than the regular Business directory -- gemachs and kollels
-// stay put. The Directory always excludes these two; the Community page
+// stay put. Schools (education) live there too now, alongside shuls/chessed
+// orgs. The Directory always excludes these three; the Community page
 // shows only them (optionally narrowed to just one via its own category
 // chips). See list_businesses()'s categories/exclude_categories params.
-const COMMUNITY_CATEGORIES = ['shul', 'nonprofit'];
+const COMMUNITY_CATEGORIES = ['shul', 'nonprofit', 'education', 'mikvah'];
+
+// Attractions get their own dedicated Activities page/map and never show in
+// either the regular Directory or the Community page -- excluded from the
+// Directory same as the Community categories, but deliberately left out of
+// COMMUNITY_CATEGORIES so it doesn't also become a Community filter chip.
+const DIRECTORY_HIDDEN_CATEGORIES = [...COMMUNITY_CATEGORIES, 'attraction'];
 
 // Default radius for the one-click "Near me" masthead button.
 const NEAR_ME_RADIUS_MILES = 10;
@@ -69,7 +76,11 @@ function savedStateKey(mode) {
 // from an older version of this code (e.g. one saved before `nearbySelection`
 // existed, or before the pin-click nearby fix) being silently reused and
 // looking inconsistent with what the current code expects.
-const SAVED_STATE_VERSION = 2;
+// Bumped because education/attraction moved out of the Directory's result
+// set -- a cached list fetched before that change would otherwise keep
+// showing those businesses until the user's next filter change forced a
+// refetch, with no visible sign anything was stale.
+const SAVED_STATE_VERSION = 4;
 
 function loadSavedFilters(mode) {
   try {
@@ -218,7 +229,7 @@ export default function BusinessDirectory({ mode = 'business' }) {
     } else if (isCommunity) {
       params.set('categories', COMMUNITY_CATEGORIES.join(','));
     } else {
-      params.set('exclude_categories', COMMUNITY_CATEGORIES.join(','));
+      params.set('exclude_categories', DIRECTORY_HIDDEN_CATEGORIES.join(','));
     }
     if (debouncedCity) params.set('city', debouncedCity);
     if (locationType) params.set('location_type', locationType);
@@ -288,13 +299,7 @@ export default function BusinessDirectory({ mode = 'business' }) {
         // ask the OS for a position, so it reports it as denied). That's at
         // least as common a cause as an actual site-level block, so the
         // message has to send people to both places, not just one.
-        if (error === GEO_PERMISSION_DENIED) {
-          setNearMeError("Location access was denied. Two things to check: (1) your browser's site settings for this page -- the icon left of the address bar -- make sure Location isn't set to Block; (2) your computer's own Location Services setting (Windows: Settings > Privacy & security > Location; Mac: System Settings > Privacy & Security > Location Services) -- make sure it's on and your browser is allowed.");
-        } else if (error === GEO_UNSUPPORTED) {
-          setNearMeError("This browser doesn't support location lookup -- try typing a city instead.");
-        } else {
-          setNearMeError("Couldn't get your location -- this can take a moment on some connections, try again.");
-        }
+        setNearMeError(getNearMeErrorMessage(error));
         return;
       }
       setNearCoords(coords);
@@ -473,10 +478,10 @@ export default function BusinessDirectory({ mode = 'business' }) {
           <div className="biz-masthead-row">
             <div className="biz-masthead-copy">
               <div className="biz-masthead-kicker">
-                {isCommunity ? <><HeartHandshake size={13} /> The Community</> : <><Store size={13} /> The Directory</>}
+                {isCommunity ? <><HeartHandshake size={13} /> Shuls & Organizations</> : <><Store size={13} /> The Directory</>}
               </div>
               <h1 className="biz-masthead-title">
-                {isCommunity ? 'Find a shul or community organization' : 'Find your next favorite local business'}
+                {isCommunity ? 'Find a shul or chessed organization' : 'Find your next favorite local business'}
               </h1>
               <p className="biz-masthead-sub">{isCommunity ? COMMUNITY_SUBTITLE : DIRECTORY_SUBTITLE}</p>
             </div>
@@ -496,7 +501,12 @@ export default function BusinessDirectory({ mode = 'business' }) {
                 </button>
               </div>
               {nearMeError && (
-                <p style={{ fontSize: 12, color: '#ffb4a8', margin: 0, maxWidth: 260, textAlign: 'right' }}>{nearMeError}</p>
+                <p style={{
+                  fontSize: 12,
+                  color: isIOSSafari() ? '#ff3b30' : '#ffb4a8',
+                  fontWeight: isIOSSafari() ? 700 : 400,
+                  margin: 0, maxWidth: 320, textAlign: 'right', whiteSpace: 'pre-line',
+                }}>{nearMeError}</p>
               )}
             </div>
           </div>
@@ -539,7 +549,7 @@ export default function BusinessDirectory({ mode = 'business' }) {
                       <div className="biz-chip-row">
                         <button type="button" className={`biz-chip${!category ? ' active' : ''}`} onClick={() => setCategory('')}>All</button>
                         {Object.entries(CATEGORY_LABELS)
-                          .filter(([key]) => isCommunity === COMMUNITY_CATEGORIES.includes(key))
+                          .filter(([key]) => (isCommunity ? COMMUNITY_CATEGORIES.includes(key) : !DIRECTORY_HIDDEN_CATEGORIES.includes(key)))
                           .map(([key, label]) => (
                             <button key={key} type="button" className={`biz-chip${category === key ? ' active' : ''}`} onClick={() => toggleCategory(key)}>
                               <CategoryIcon category={key} size={14} /> {label}
@@ -587,7 +597,12 @@ export default function BusinessDirectory({ mode = 'business' }) {
                         )}
                       </div>
                       {nearMeError && (
-                        <p style={{ fontSize: 12, color: 'var(--error, #c0392b)', margin: '6px 0 0' }}>{nearMeError}</p>
+                        <p style={{
+                          fontSize: 12,
+                          color: isIOSSafari() ? '#ff3b30' : 'var(--error, #c0392b)',
+                          fontWeight: isIOSSafari() ? 700 : 400,
+                          margin: '6px 0 0', whiteSpace: 'pre-line',
+                        }}>{nearMeError}</p>
                       )}
                     </div>
                     <div className="biz-filter-panel-section">

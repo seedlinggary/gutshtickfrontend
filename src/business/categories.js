@@ -16,6 +16,8 @@ export const CATEGORY_LABELS = {
   gemach: 'Gemach',
   shul: 'Shul',
   kollel: 'Kollel',
+  mikvah: 'Mikvah',
+  attraction: 'Attraction/Activity',
   other: 'Other',
 };
 
@@ -46,6 +48,8 @@ export const CATEGORY_TINTS = {
   gemach: '#a16207',
   shul: '#1c2438',
   kollel: '#1c2438',
+  mikvah: '#0369a1',
+  attraction: '#be185d',
   other: '#5b6472',
 };
 

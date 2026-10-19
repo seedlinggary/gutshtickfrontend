@@ -23,6 +23,7 @@ import LoyaltyCard from './LoyaltyCard';
 import ReferralWidget from './ReferralWidget';
 import GetDealButton from './GetDealButton';
 import CategoryIcon from './CategoryIcon';
+import MinyanTimes from './MinyanTimes';
 
 function LocationCard({ loc, businessId }) {
   const today = hoursToday(loc);
@@ -304,10 +305,12 @@ export default function BusinessProfile() {
   return (
     <div className="feed-section">
       <div className="gs-container" style={{ maxWidth: 680 }}>
-        {['shul', 'nonprofit'].includes(business.category) ? (
-          <Link to="/community" className="biz-back-link" style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><ArrowLeft size={13} /> Back to Community</Link>
+        {['shul', 'nonprofit', 'education', 'mikvah'].includes(business.category) ? (
+          <Link to="/community" className="biz-back-link" style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><ArrowLeft size={13} /> Back to Shuls & Orgs</Link>
+        ) : business.category === 'attraction' ? (
+          <Link to="/activities" className="biz-back-link" style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><ArrowLeft size={13} /> Back to Activities</Link>
         ) : (
-          <Link to="/" className="biz-back-link" style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><ArrowLeft size={13} /> Back to Directory</Link>
+          <Link to="/" className="biz-back-link" style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><ArrowLeft size={13} /> Back to Shops</Link>
         )}
         <div className="biz-hero">
           <div className="biz-hero-top">
@@ -317,6 +320,13 @@ export default function BusinessProfile() {
             <div style={{ flex: 1 }}>
               <h1>{business.name} {business.is_claimed && <span className="biz-badge biz-badge-claimed" title="Claimed by verified owner">✓ Claimed</span>}</h1>
               <div className="biz-hero-category">{CATEGORY_LABELS[business.category] || business.category}</div>
+              {['shul', 'mikvah'].includes(business.category) && (() => {
+                const attrs = business.attributes || {};
+                const parts = business.category === 'shul'
+                  ? [attrs.rabbi_name && `Rabbi ${attrs.rabbi_name}`, attrs.hashkafa, attrs.families_count && `~${attrs.families_count} families`].filter(Boolean)
+                  : [attrs.wheelchair_accessible ? '♿ Wheelchair accessible' : null, attrs.mikvah_schedule].filter(Boolean);
+                return parts.length ? <div style={{ fontSize: 13, opacity: 0.9, marginTop: 2 }}>{parts.join(' · ')}</div> : null;
+              })()}
               <TypeTags types={business.attributes?.types} />
               <div style={{ marginTop: 6 }}>
                 <StarRating value={business.rating_avg} count={business.rating_count} />
@@ -407,6 +417,8 @@ export default function BusinessProfile() {
                 )}
               </div>
             )}
+
+            {business.category === 'shul' && <MinyanTimes businessId={business.id} canManage={business.is_own_business} />}
 
             {!business.is_own_business && isSuperAdmin() && <LeadForm businessId={business.id} />}
 

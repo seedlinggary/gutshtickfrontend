@@ -1175,6 +1175,44 @@
 .biz-qa-status { font-size: 12px; color: var(--muted); }
 .biz-qa-empty { font-size: 13px; color: var(--muted); margin: 0 0 10px; }
 
+.biz-empty { font-size: 13px; color: var(--muted); margin: 0 0 10px; }
+.biz-minyan-groups { display: flex; flex-direction: column; gap: 12px; }
+.biz-minyan-group { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; }
+.biz-minyan-group-title { font-weight: 700; font-size: 13px; color: var(--accent); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .03em; }
+.biz-minyan-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 10px; padding: 5px 0; border-top: 1px solid var(--border); }
+.biz-minyan-row:first-child { border-top: none; }
+.biz-minyan-time { font-weight: 700; font-size: 14px; min-width: 64px; }
+.biz-minyan-meta { color: var(--muted); font-size: 13px; }
+.biz-minyan-notes { color: var(--muted); font-size: 12px; font-style: italic; width: 100%; }
+.biz-minyan-source { color: var(--muted); font-size: 11px; width: 100%; }
+.biz-minyan-source a { color: var(--muted); }
+.biz-minyan-delete { margin-left: auto; background: none; border: none; color: var(--muted); cursor: pointer; padding: 2px; }
+.biz-minyan-delete:hover { color: var(--error, #c0392b); }
+.biz-minyan-disclaimer { display: flex; align-items: flex-start; gap: 6px; font-size: 12px; color: var(--muted); margin: 8px 0 0; }
+.biz-minyan-form { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
+.biz-minyan-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.biz-minyan-form label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--muted); }
+.biz-minyan-form input, .biz-minyan-form select { border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; font-size: 13px; color: var(--text); background: var(--bg); }
+.biz-minyan-form-single { width: 100%; }
+.biz-minyan-time-toggle { display: flex; gap: 16px; font-size: 13px; }
+.biz-minyan-time-toggle label { flex-direction: row; align-items: center; gap: 6px; font-size: 13px; }
+@media (max-width: 480px) {
+  .biz-minyan-form-grid { grid-template-columns: 1fr; }
+}
+
+.biz-community-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+.biz-community-card { display: block; background: var(--card-bg, var(--surface)); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; text-decoration: none; color: inherit; transition: transform .12s ease, box-shadow .12s ease; }
+.biz-community-card:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,.08); }
+.biz-community-card-img { width: 100%; height: 120px; object-fit: cover; display: block; background: var(--surface); }
+.biz-community-card-img-placeholder { display: flex; align-items: center; justify-content: center; color: var(--muted); }
+.biz-community-card-body { padding: 12px 14px; }
+.biz-community-card-body h3 { margin: 0 0 2px; font-size: 16px; }
+.biz-community-card-body p { margin: 0; font-size: 13px; color: var(--muted); }
+.biz-community-card-desc { margin-top: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.biz-amenity-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 4px 16px; }
+.biz-minyan-search-link { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--accent); margin: 10px 0 24px; text-decoration: none; }
+.biz-minyan-search-link:hover { text-decoration: underline; }
+
 /* ── Compare tray + modal ── */
 .biz-compare-toggle {
   position: absolute;
@@ -1299,6 +1337,27 @@
   width: 190px;
 }
 .biz-a11y-item { display: flex; gap: 8px; align-items: center; font-size: 13px; }
+
+/* ── Notification bell, re-themed to match the accessibility toggle's
+   circular pill right next to it in this navbar -- the shared base style in
+   index.css (used by the main site's own navbar too) is plainer, and this
+   component used to render a plain 🔔 emoji here, which ignored the base
+   style's color:#fff entirely (emoji glyphs carry their own built-in color)
+   and rendered as a full-color gold bell that clashed with its flat,
+   monochrome neighbors. NotificationBell.js now renders a real Bell icon
+   instead, which this can actually restyle. */
+.business-theme .gs-navbar .notif-bell-btn {
+  background: none;
+  border: 1px solid rgba(255,255,255,0.3);
+  color: #fff;
+  border-radius: 999px;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
 
 /* High-contrast / large-tap-target modes, toggled via data-attributes on
    <html> (see AccessibilityToggle.js). Kept minimal and additive so they

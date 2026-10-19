@@ -1,16 +1,20 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Tag, Search, MapPin, Shuffle, Percent } from 'lucide-react';
+import { Tag, Search, MapPin, Percent } from 'lucide-react';
 import apiRequest from '../ApiRequest';
 import ShareButton from '../ShareButton';
 import AdSlot from '../ads/AdSlot';
 import timeAgo from '../utils/timeAgo';
 import DataDisclaimer from './DataDisclaimer';
+import StatsBar from './StatsBar';
 import { POST_TYPE_META, CATEGORY_TINTS } from './categories';
 import PostTypeIcon from './PostTypeIcon';
 import CategoryIcon from './CategoryIcon';
 import GetDealButton from './GetDealButton';
 import { isSuperAdmin } from '../auth';
+import { useNearMe, NearMeShakeControls } from './NearMeShake';
+
+const NEAR_ME_RADIUS_MILES = 25;
 
 const TYPES = [
   { key: '', label: 'All types' },
@@ -74,12 +78,28 @@ export default function DealsFeed() {
   const [city, setCity] = useState('');
   const [debouncedCity, setDebouncedCity] = useState('');
   const [sort, setSort] = useState('recent');
+  const [nearCoords, setNearCoords] = useState(null);
+  const [shakeSeed, setShakeSeed] = useState(0);
+  const [shaking, setShaking] = useState(false);
   const [posts, setPosts] = useState([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState(false);
+
+  const { locating, nearMeActive, nearMeError, findNearMe } = useNearMe(
+    (coords) => { setNearCoords(coords); setSort('distance'); },
+    () => { setNearCoords(null); setSort('recent'); }
+  );
+
+  const shake = () => {
+    if (shaking) return;
+    setShaking(true);
+    setSort('random');
+    setShakeSeed((s) => s + 1);
+    setTimeout(() => setShaking(false), 500);
+  };
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedQ(q.trim()), 350);
@@ -106,6 +126,10 @@ export default function DealsFeed() {
     if (debouncedQ) params.set('q', debouncedQ);
     if (debouncedCity) params.set('city', debouncedCity);
     if (businessId) params.set('business_id', businessId);
+    if (sort === 'distance' && nearCoords) {
+      params.set('lat', nearCoords.lat);
+      params.set('lng', nearCoords.lng);
+    }
     apiRequest('GET', null, `/business/posts?${params.toString()}`)
       .then((res) => {
         const list = res.posts || [];
@@ -115,21 +139,37 @@ export default function DealsFeed() {
       })
       .catch(() => setError(true))
       .finally(() => { setLoading(false); setLoadingMore(false); });
-  }, [type, debouncedQ, debouncedCity, sort, businessId]);
+  }, [type, debouncedQ, debouncedCity, sort, businessId, nearCoords]);
 
-  useEffect(() => { load(1, false); }, [load]);
+  useEffect(() => { load(1, false); }, [load, shakeSeed]);
 
   const countLabel = `${posts.length}${hasMore ? '+' : ''} deal${posts.length === 1 && !hasMore ? '' : 's'}`;
-  const hasAnyFilter = !!type || !!q.trim() || !!city.trim();
-  const clearFilters = () => { setType(''); setQ(''); setCity(''); setCityAuto(false); };
+  const hasAnyFilter = !!type || !!q.trim() || !!city.trim() || nearMeActive;
+  const clearFilters = () => {
+    setType(''); setQ(''); setCity('');
+    // findNearMe() itself is the "turn it off" toggle when already active --
+    // it already resets sort/nearCoords via useNearMe's onCleared callback,
+    // so there's no separate reset to duplicate here.
+    if (nearMeActive) findNearMe(); else setSort('recent');
+  };
 
   return (
     <div className="feed-section">
       <div className="gs-container" style={{ maxWidth: 720 }}>
-        <h1 style={{ display: 'flex', alignItems: 'center', gap: 10 }}><Tag size={28} /> Deals</h1>
-        <p style={{ color: 'var(--muted)', marginTop: 0 }}>
-          Sales, new products, events, and announcements from businesses in the directory.
-        </p>
+        <div className="biz-masthead">
+          <div className="biz-masthead-row">
+            <div className="biz-masthead-copy">
+              <div className="biz-masthead-kicker"><Tag size={13} /> Deals</div>
+              <h1 className="biz-masthead-title">Deals &amp; announcements</h1>
+              <p className="biz-masthead-sub">Sales, new products, events, and announcements from businesses in the directory.</p>
+            </div>
+            <NearMeShakeControls
+              nearMeActive={nearMeActive} locating={locating} onNearMe={findNearMe}
+              radiusMiles={NEAR_ME_RADIUS_MILES} shaking={shaking} onShake={shake} nearMeError={nearMeError}
+            />
+          </div>
+          <StatsBar scope="business" />
+        </div>
 
         <div className="biz-topbar">
           <div className="biz-input-icon-wrap biz-topbar-search">
@@ -155,10 +195,6 @@ export default function DealsFeed() {
           <select className="auth-input" style={{ maxWidth: 190 }} value={type} onChange={(e) => setType(e.target.value)}>
             {TYPES.map((t) => <option key={t.key} value={t.key}>{t.label}</option>)}
           </select>
-          <div className="biz-segmented">
-            <button type="button" className={`biz-segmented-btn${sort === 'recent' ? ' active' : ''}`} onClick={() => setSort('recent')}>Newest</button>
-            <button type="button" className={`biz-segmented-btn${sort === 'random' ? ' active' : ''}`} onClick={() => setSort('random')}><Shuffle size={13} /> Surprise</button>
-          </div>
           <span className="biz-result-count" style={{ marginLeft: 'auto' }}>{!loading && !error ? countLabel : ' '}</span>
         </div>
 

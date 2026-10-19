@@ -2,13 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
   LineChart, TrendingUp, Megaphone, Printer, Rocket, Inbox, HelpCircle,
-  Ticket, Gem, Gift, PartyPopper, Wrench, ArrowRight, Pencil,
+  Ticket, Gem, Gift, PartyPopper, Wrench, ArrowRight, Pencil, Clock,
 } from 'lucide-react';
 import apiRequest from '../ApiRequest';
 import { isSuperAdmin } from '../auth';
 import SocialDesk from './SocialDesk';
 import BusinessAnalytics from './BusinessAnalytics';
 import AskQuestion from './AskQuestion';
+import MinyanTimes from './MinyanTimes';
 import MarketingKit from './MarketingKit';
 import ToolExplainer from './ToolExplainer';
 
@@ -27,6 +28,7 @@ const TAB_META = {
   boost: { label: 'Boost', Icon: Rocket },
   leads: { label: 'Leads', Icon: Inbox },
   questions: { label: 'Questions', Icon: HelpCircle },
+  minyanim: { label: 'Minyan Times', Icon: Clock },
   redeem: { label: 'Redeem a Deal', Icon: Ticket },
   loyalty: { label: 'Loyalty', Icon: Gem },
   referrals: { label: 'Referrals', Icon: Gift },
@@ -35,7 +37,7 @@ const TAB_META = {
 const ALL_GROUPS = [
   { key: 'performance', label: 'Performance', tabs: ['insights', 'analytics'] },
   { key: 'grow', label: 'Grow', tabs: ['social', 'marketing', 'boost'] },
-  { key: 'customers', label: 'Customers', tabs: ['leads', 'questions', 'redeem'] },
+  { key: 'customers', label: 'Customers', tabs: ['leads', 'questions', 'minyanim', 'redeem'] },
   { key: 'rewards', label: 'Rewards', tabs: ['loyalty', 'referrals'] },
 ];
 
@@ -47,6 +49,7 @@ const EXPLAINERS = {
   boost: "Boosted placement puts your listing at the top of its category and search results for 7 days. It's earned by completing your profile, not paid for -- once one ends, you can activate another.",
   leads: 'When someone requests a quote from your profile, it lands here with their contact details so you can follow up directly.',
   questions: 'Customers can ask a question right from your profile instead of needing your phone number. Answer it here and it becomes a public FAQ that future visitors can see too.',
+  minyanim: "Add your shul's minyan times here -- they'll show on your public profile and in sitewide minyan search. Every time needs a source (your website, a call to the office, a posted sign) since we never want to show a time we can't back up, and we show everyone a reminder to confirm with you directly since times shift with the season and the sun.",
   redeem: "When a customer taps \"Get This Deal,\" they get a unique code (with a QR version) saved to their Deal Wallet. Type or scan that code here when they show up to mark it redeemed -- this is also how your Insights tab knows a deal actually got used, not just viewed.",
   loyalty: 'A digital punch-card for repeat visits. Turn it on, pick how many visits earn a reward, and each customer gets their own scannable code. Enter their code here on each visit to add a stamp -- when they hit your threshold, they earn the reward and the count resets.',
   referrals: "Every customer automatically gets a personal link to refer friends to your business. When someone new uses that link to get one of your deals, it shows up here so you know who's sending you customers. You decide the reward and hand it out yourself -- there's no automatic discount applied.",
@@ -336,10 +339,12 @@ export default function BusinessOwnerTools() {
   }
 
   const canSeeRestricted = isSuperAdmin();
+  const isShul = business.category === 'shul';
+  const tabAllowed = (key) => (canSeeRestricted || !RESTRICTED_TABS.has(key)) && (key !== 'minyanim' || isShul);
   const groups = ALL_GROUPS
-    .map((group) => ({ ...group, tabs: group.tabs.filter((key) => canSeeRestricted || !RESTRICTED_TABS.has(key)) }))
+    .map((group) => ({ ...group, tabs: group.tabs.filter(tabAllowed) }))
     .filter((group) => group.tabs.length > 0);
-  const activeTab = (canSeeRestricted || !RESTRICTED_TABS.has(tab)) ? tab : 'insights';
+  const activeTab = tabAllowed(tab) ? tab : 'insights';
   const meta = TAB_META[activeTab];
 
   return (
@@ -381,6 +386,7 @@ export default function BusinessOwnerTools() {
           {activeTab === 'insights' && <InsightsTab businessId={business.id} />}
           {activeTab === 'analytics' && <BusinessAnalytics businessId={business.id} />}
           {activeTab === 'questions' && <QuestionsTab businessId={business.id} />}
+          {activeTab === 'minyanim' && <MinyanTimes businessId={business.id} canManage />}
           {activeTab === 'boost' && <BoostTab businessId={business.id} />}
           {canSeeRestricted && activeTab === 'social' && <SocialDesk businessId={business.id} />}
           {canSeeRestricted && activeTab === 'leads' && <LeadsTab businessId={business.id} />}

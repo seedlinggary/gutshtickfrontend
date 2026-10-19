@@ -2,6 +2,7 @@ import React from 'react';
 import {
   UtensilsCrossed, ShoppingCart, ShoppingBag, Briefcase, Scissors, Wrench,
   BookOpen, PartyPopper, Car, HandHeart, Gift, Landmark, BookMarked, Store,
+  Droplets, FerrisWheel,
 } from 'lucide-react';
 
 // One real line-icon per category, replacing the emoji set -- rendered at a
@@ -21,6 +22,8 @@ const CATEGORY_ICON_COMPONENTS = {
   gemach: Gift,
   shul: Landmark,
   kollel: BookMarked,
+  mikvah: Droplets,
+  attraction: FerrisWheel,
   other: Store,
 };
 

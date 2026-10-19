@@ -14,6 +14,13 @@ function formatShortDate(isoDate) {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
+function formatDate(isoDateTime) {
+  if (!isoDateTime) return '—';
+  const d = new Date(isoDateTime);
+  if (Number.isNaN(d.getTime())) return '—';
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
 function Legend() {
   return (
     <div style={{ display: 'flex', gap: 16, fontSize: 12, color: 'var(--muted)', marginBottom: 4 }}>
@@ -51,6 +58,14 @@ export default function AdminBusinessAnalytics() {
   const [lookupLoading, setLookupLoading] = useState(false);
   const [copiedEmail, setCopiedEmail] = useState(null);
 
+  const [recent, setRecent] = useState(null);
+  const [recentLoading, setRecentLoading] = useState(true);
+  const [recentError, setRecentError] = useState('');
+  const [recentAddedBy, setRecentAddedBy] = useState('all');
+  const [recentSince, setRecentSince] = useState('');
+  const [recentUntil, setRecentUntil] = useState('');
+  const [recentPage, setRecentPage] = useState(1);
+
   const copyEmail = async (email) => {
     try {
       await navigator.clipboard.writeText(email);
@@ -71,6 +86,26 @@ export default function AdminBusinessAnalytics() {
       .catch((e) => setError(typeof e === 'string' ? e : 'Failed to load Business analytics.'))
       .finally(() => setLoading(false));
   }
+
+  function loadRecent(page) {
+    setRecentLoading(true);
+    setRecentError('');
+    const params = new URLSearchParams({ page: String(page) });
+    if (recentAddedBy !== 'all') params.set('added_by', recentAddedBy);
+    if (recentSince) params.set('since', recentSince);
+    if (recentUntil) params.set('until', recentUntil);
+    apiRequest('GET', null, `/business/admin/recent-additions?${params.toString()}`)
+      .then((d) => { setRecent(d); setRecentPage(page); })
+      .catch((e) => setRecentError(typeof e === 'string' ? e : 'Failed to load recent additions.'))
+      .finally(() => setRecentLoading(false));
+  }
+
+  // Re-fetch page 1 whenever a filter changes; page navigation itself calls
+  // loadRecent(page) directly instead of going through this effect.
+  useEffect(() => {
+    loadRecent(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recentAddedBy, recentSince, recentUntil]);
 
   useEffect(() => {
     const q = lookupQuery.trim();
@@ -167,6 +202,121 @@ export default function AdminBusinessAnalytics() {
               </div>
             ))}
           </div>
+        )}
+      </div>
+
+      {/* ── Recently added businesses: who added them, and when -- lets an
+          admin tell their own additions apart from a teammate's or from an
+          unattended bulk import, which "whose" a raw created_by id can't. ── */}
+      <div style={{ marginBottom: 28 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4, flexWrap: 'wrap', gap: 8 }}>
+          <h3 className="shtick-caption" style={{ margin: 0 }}>🆕 Recently Added Businesses</h3>
+          <button className="gs-btn gs-btn-outline gs-btn-sm" onClick={() => loadRecent(1)} disabled={recentLoading}>
+            ↻ Refresh
+          </button>
+        </div>
+        <p className="admin-empty" style={{ marginTop: 0, marginBottom: 10 }}>
+          Every business as it's added, newest first — who added it (a real owner self-listing
+          their own business, vs. a bulk import and which source it came from), filterable by
+          who and by date.
+        </p>
+
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 12, alignItems: 'flex-end' }}>
+          <div className="auth-field" style={{ minWidth: 220, margin: 0 }}>
+            <label className="auth-label">Added by</label>
+            <select className="auth-input" value={recentAddedBy} onChange={(e) => setRecentAddedBy(e.target.value)}>
+              <option value="all">Everyone</option>
+              {recent?.filters?.self_submitters?.length > 0 && (
+                <optgroup label="Self-submitted by">
+                  {recent.filters.self_submitters.map((u) => (
+                    <option key={u.public_id} value={u.public_id}>{u.name || u.email}</option>
+                  ))}
+                </optgroup>
+              )}
+              {(recent?.filters?.import_sources?.length > 0 || recent?.filters?.has_other_sources) && (
+                <optgroup label="Imported from">
+                  <option value="imported">Any import source</option>
+                  {recent.filters.import_sources.map((s) => (
+                    <option key={s} value={`imported:${s}`}>{s}</option>
+                  ))}
+                  {recent.filters.has_other_sources && (
+                    <option value="imported:__other__">Other/smaller import sources</option>
+                  )}
+                </optgroup>
+              )}
+            </select>
+          </div>
+          <div className="auth-field" style={{ margin: 0 }}>
+            <label className="auth-label">From</label>
+            <input type="date" className="auth-input" value={recentSince} onChange={(e) => setRecentSince(e.target.value)} />
+          </div>
+          <div className="auth-field" style={{ margin: 0 }}>
+            <label className="auth-label">To</label>
+            <input type="date" className="auth-input" value={recentUntil} onChange={(e) => setRecentUntil(e.target.value)} />
+          </div>
+          {(recentAddedBy !== 'all' || recentSince || recentUntil) && (
+            <button
+              className="gs-btn gs-btn-outline gs-btn-sm"
+              onClick={() => { setRecentAddedBy('all'); setRecentSince(''); setRecentUntil(''); }}
+            >
+              Clear filters
+            </button>
+          )}
+        </div>
+
+        {recentLoading && <div className="gs-loading"><div className="gs-spinner" /></div>}
+        {!recentLoading && recentError && <div className="gs-error-box">{recentError}</div>}
+
+        {!recentLoading && !recentError && recent && (
+          <>
+            <p style={{ fontSize: 12, color: 'var(--muted)', margin: '0 0 8px' }}>
+              {recent.total} business{recent.total === 1 ? '' : 'es'} match{recent.total === 1 ? 'es' : ''} this filter.
+            </p>
+            {recent.results.length === 0 && <div className="admin-empty">No businesses match this filter.</div>}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {recent.results.map((b) => (
+                <div key={b.id} className="admin-card" style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', padding: '10px 14px' }}>
+                  <div style={{ flex: 1, minWidth: 180 }}>
+                    <a
+                      href={siteUrl('business', `/business/${b.slug}`)}
+                      target="_blank" rel="noopener noreferrer"
+                      style={{ fontWeight: 700, color: 'inherit', textDecoration: 'none' }}
+                    >
+                      {b.name}
+                    </a>
+                    <div style={{ fontSize: 12, color: 'var(--muted)' }}>
+                      {b.category}{b.city ? ` · ${b.city}${b.state ? `, ${b.state}` : ''}` : ''}
+                      {' · '}{b.is_claimed ? 'Claimed' : 'Unclaimed'}
+                    </div>
+                  </div>
+                  <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                    <div
+                      style={{
+                        fontSize: 12, fontWeight: 700,
+                        color: b.added_by.kind === 'imported' ? 'var(--info, #3b82f6)'
+                          : b.added_by.kind === 'user' ? 'var(--accent)' : 'var(--muted)',
+                      }}
+                      title={b.added_by.detail || undefined}
+                    >
+                      {b.added_by.kind === 'imported' ? `Imported — ${b.added_by.label}` : b.added_by.label}
+                    </div>
+                    <div className="admin-date" style={{ fontSize: 11 }}>{formatDate(b.pub_date)}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            {(recentPage > 1 || recent.has_more) && (
+              <div style={{ display: 'flex', justifyContent: 'center', gap: 10, marginTop: 14 }}>
+                <button className="gs-btn gs-btn-outline gs-btn-sm" disabled={recentPage <= 1} onClick={() => loadRecent(recentPage - 1)}>
+                  ← Newer
+                </button>
+                <span style={{ fontSize: 12, color: 'var(--muted)', alignSelf: 'center' }}>Page {recentPage}</span>
+                <button className="gs-btn gs-btn-outline gs-btn-sm" disabled={!recent.has_more} onClick={() => loadRecent(recentPage + 1)}>
+                  Older →
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
 

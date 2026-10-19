@@ -13,8 +13,16 @@ export const LANGUAGES = [
 
 const DICT = {
   en: {
-    directory: 'Directory',
-    community: 'Community',
+    directory: 'Shops',
+    // "Community" belongs to the per-city lookup feature (shuls, mikvahs,
+    // schools, orgs, activities, eruv -- everything about one place), since
+    // that's the more natural meaning of the word. The older shul/chessed-
+    // org directory view (still at /community) needed its own distinct,
+    // descriptive name once it no longer owned "Community" -- it's really
+    // just the directory filtered down to those two categories.
+    community: 'Shuls & Orgs',
+    findCommunity: 'Community',
+    activities: 'Activities',
     deals: 'Deals',
     myBusinesses: 'My Businesses',
     myDeals: 'My Deals',
@@ -49,8 +57,10 @@ const DICT = {
     loading: 'Loading...',
   },
   he: {
-    directory: 'מדריך עסקים',
-    community: 'קהילה',
+    directory: 'חנויות',
+    community: 'בתי כנסת וארגונים',
+    findCommunity: 'קהילה',
+    activities: 'פעילויות',
     deals: 'מבצעים',
     myBusinesses: 'העסקים שלי',
     myDeals: 'המבצעים שלי',

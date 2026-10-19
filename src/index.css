@@ -248,10 +248,13 @@ iframe {
   align-items: center;
   flex: 1;
   min-width: 0;
+  flex-wrap: wrap;
+  row-gap: 4px;
 }
 .gs-navbar .navbar-nav {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   list-style: none;
   margin: 0;
   padding: 0;
@@ -280,6 +283,20 @@ iframe {
 }
 .gs-navbar .nav-link:hover {
   color: var(--accent-hover);
+}
+.gs-navbar .nav-link-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+.gs-navbar .nav-link-wrap span {
+  white-space: normal;
+  font-size: 12px;
+  line-height: 1.15;
+  text-align: left;
+  max-width: 52px;
 }
 .gs-navbar .nav-link-pin {
   background: var(--accent);
@@ -319,6 +336,15 @@ iframe {
   padding: 6px;
   z-index: 1010;
 }
+/* For a dropdown toggle sitting at the far right of the navbar (the account
+   menu lives in navbar-nav-end) -- a left-aligned menu there would expand
+   further off the right edge of the viewport instead of into visible
+   space. Mobile overrides this back to a static, full-width block below, so
+   it never applies there. */
+.gs-navbar .dropdown-menu-end {
+  left: auto;
+  right: 0;
+}
 .gs-navbar .dropdown-item {
   display: block;
   width: 100%;
@@ -343,7 +369,7 @@ iframe {
   margin: 6px 2px;
 }
 
-@media (max-width: 991.98px) {
+@media (max-width: 1299.98px) {
   .gs-navbar .navbar-toggler {
     display: block;
   }
@@ -384,6 +410,11 @@ iframe {
     font-size: 15px;
     width: 100%;
     text-align: left;
+  }
+  .gs-navbar .nav-link-wrap span {
+    max-width: none;
+    text-align: left;
+    white-space: nowrap;
   }
   .gs-navbar .navbar-notif {
     width: 100%;

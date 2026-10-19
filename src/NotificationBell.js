@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Bell } from 'lucide-react';
 import apiRequest from './ApiRequest';
 import { isLoggedIn } from './auth';
 
@@ -89,7 +90,7 @@ export default function NotificationBell() {
         onBlur={() => setTimeout(() => setOpen(false), 150)}
         aria-label="Notifications"
       >
-        🔔
+        <Bell size={17} />
         {unreadCount > 0 && <span className="notif-badge">{unreadCount > 9 ? '9+' : unreadCount}</span>}
       </button>
       {open && (

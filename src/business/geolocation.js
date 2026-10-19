@@ -15,6 +15,21 @@ export const GEO_PERMISSION_DENIED = 1;
 export const GEO_POSITION_UNAVAILABLE = 2;
 export const GEO_TIMEOUT = 3;
 
+/** iOS routes location permission through a THIRD gate desktop doesn't have
+ * (Settings app > Privacy & Security > Location Services > Safari Websites,
+ * on top of both the per-site Safari permission and the in-page prompt), so
+ * the "Near me" error message needs to name it specifically there -- the
+ * generic desktop wording sends iPhone users to settings screens that don't
+ * exist on their device. iPadOS identifies as "MacIntel" with touch support
+ * since iPadOS 13; everything else in the UA string is standard sniffing. */
+export function isIOSSafari() {
+  if (typeof navigator === 'undefined') return false;
+  const ua = navigator.userAgent || '';
+  const isIOSDevice = /iPad|iPhone|iPod/.test(ua)
+    || (ua.includes('Macintosh') && typeof document !== 'undefined' && 'ontouchend' in document);
+  return isIOSDevice;
+}
+
 function getPosition() {
   return new Promise((resolve) => {
     if (!('geolocation' in navigator)) { resolve({ error: GEO_UNSUPPORTED }); return; }
@@ -51,6 +66,27 @@ export async function getBrowserCoords() {
 export async function getBrowserCoordsDetailed() {
   const { pos, error } = await getPosition();
   return pos ? { coords: { lat: pos.coords.latitude, lng: pos.coords.longitude } } : { error };
+}
+
+/** The exact "Near me" failure copy, extracted out of BusinessDirectory.js
+ * so every page with its own "Near me" button (Communities, Activities,
+ * Deals) shows the same carefully-tuned explanation instead of each
+ * re-deriving (and inevitably drifting from) it. One message covers every
+ * platform rather than branching on device -- whoever's reading it is on
+ * exactly one device anyway, so there's no cost to listing all the gates
+ * and letting them skip the ones that don't apply. */
+export function getNearMeErrorMessage(error) {
+  if (error === GEO_PERMISSION_DENIED) {
+    return (
+      "Location access was denied. Check the setting for this site/browser:\n"
+      + "• On a computer: the icon left of the address bar -- make sure Location isn't set to Block -- and your OS's own Location setting (Windows: Settings > Privacy & security > Location; Mac: System Settings > Privacy & Security > Location Services).\n"
+      + "• On iPhone/iPad: Settings app > Privacy & Security > Location Services > Safari Websites -- set it to \"While Using the App\" (if it's \"Never\", Safari won't even show the prompt and a per-site Allow won't override it) -- then in Safari, tap the \"aA\" icon in the address bar > Website Settings > Location > Allow."
+    );
+  }
+  if (error === GEO_UNSUPPORTED) {
+    return "This browser doesn't support location lookup -- try typing a city instead.";
+  }
+  return "Couldn't get your location -- this can take a moment on some connections, try again.";
 }
 
 // Shared by the "Near me" filter-panel chip (BusinessDirectory.js) and the

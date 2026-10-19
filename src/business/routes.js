@@ -14,6 +14,11 @@ const BusinessOwnerTools = lazy(() => import('./BusinessOwnerTools'));
 const DealWallet        = lazy(() => import('./DealWallet'));
 const ReferralBoard     = lazy(() => import('./ReferralBoard'));
 const AdminIntegrations = lazy(() => import('./AdminIntegrations'));
+const FindCommunity      = lazy(() => import('./FindCommunity'));
+const CommunityProfile   = lazy(() => import('./CommunityProfile'));
+const CommunityForm      = lazy(() => import('./CommunityForm'));
+const ActivitiesPage     = lazy(() => import('./ActivitiesPage'));
+const MinyanSearch       = lazy(() => import('./MinyanSearch'));
 
 /** The business site's routes as data, so App.js's <Routes> can render any
  * registered site's routes the same generic way (see src/sites/registry.js)
@@ -46,6 +51,12 @@ export default [
   { path: '/my-deals', element: <RequireAuth check={isLoggedIn}><DealWallet /></RequireAuth> },
   { path: '/vendor-board', element: <RequireAuth check={isLoggedIn}><ReferralBoard /></RequireAuth> },
   { path: '/admin/integrations', element: <RequireAuth check={isAdmin}><AdminIntegrations /></RequireAuth> },
+  { path: '/communities', element: <FindCommunity /> },
+  { path: '/communities/new', element: <RequireAuth check={isLoggedIn}><CommunityForm /></RequireAuth> },
+  { path: '/communities/:slug/edit', element: <RequireAuth check={isLoggedIn}><CommunityForm /></RequireAuth> },
+  { path: '/communities/:slug', element: <CommunityProfile /> },
+  { path: '/activities', element: <ActivitiesPage /> },
+  { path: '/minyanim', element: <MinyanSearch /> },
   { path: '/contact', element: <Contact /> },
   { path: '*', element: <NotFound /> },
 ];
