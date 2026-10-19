@@ -1,5 +1,23 @@
 {
   "rewrites": [
+    { "source": "/sitemap.xml", "destination": "/api/sitemap" },
+    { "source": "/business/:slug", "destination": "/api/render?kind=business&slug=:slug" },
+    { "source": "/communities/:slug", "destination": "/api/render?kind=community&slug=:slug" },
+    { "source": "/community", "destination": "/api/static-meta?route=community" },
+    { "source": "/communities", "destination": "/api/static-meta?route=communities" },
+    { "source": "/activities", "destination": "/api/static-meta?route=activities" },
+    { "source": "/deals", "destination": "/api/static-meta?route=deals" },
+    { "source": "/minyanim", "destination": "/api/static-meta?route=minyanim" },
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "gutcommunity.com" }],
+      "destination": "/api/static-meta?route=home"
+    },
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "www.gutcommunity.com" }],
+      "destination": "/api/static-meta?route=home"
+    },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
