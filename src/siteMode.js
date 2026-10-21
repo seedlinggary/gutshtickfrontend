@@ -6,8 +6,21 @@ import { SITES } from './sites/registry';
 // decides which one shows -- nothing to build/deploy separately per site.
 // Adding a new sub-site means adding an entry to SITES, not touching this
 // file's logic.
-const MAIN_HOSTS = (import.meta.env.VITE_MAIN_HOSTNAMES || '')
-  .split(',').map((s) => s.trim()).filter(Boolean);
+// Hostname env vars should be bare hosts ("www.example.com"), but a stray
+// "https://" prefix or trailing slash is an easy mistake to paste into a
+// Vercel env var -- window.location.hostname never has either, so an
+// un-normalized entry would silently never match anything (falling through
+// to the main site) and would also corrupt siteUrl()'s protocol+host
+// concatenation below. Strip both defensively rather than fail silently.
+function normalizeHost(raw) {
+  return raw.trim().replace(/^[a-z][a-z0-9+.-]*:\/\//i, '').replace(/\/+$/, '');
+}
+
+function parseHostnames(envValue) {
+  return (envValue || '').split(',').map(normalizeHost).filter(Boolean);
+}
+
+const MAIN_HOSTS = parseHostnames(import.meta.env.VITE_MAIN_HOSTNAMES);
 
 const DEV_MODE_KEY = 'dev_site_mode';
 const isLocalHost = (host) => host === 'localhost' || host === '127.0.0.1';
@@ -16,7 +29,7 @@ const isLocalHost = (host) => host === 'localhost' || host === '127.0.0.1';
 // e.g. site id "business" -> VITE_BUSINESS_HOSTNAMES (comma-separated).
 function hostnamesFor(site) {
   const envVar = `VITE_${site.id.toUpperCase()}_HOSTNAMES`;
-  return (import.meta.env[envVar] || '').split(',').map((s) => s.trim()).filter(Boolean);
+  return parseHostnames(import.meta.env[envVar]);
 }
 
 /** Returns the matched entry from SITES for the current hostname/dev
