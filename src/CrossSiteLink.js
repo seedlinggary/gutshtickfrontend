@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { LayoutGrid, Check } from 'lucide-react';
 import { getCurrentSite, listAllSites } from './siteMode';
-import { isLoggedIn, getEmail } from './auth';
+import { isLoggedIn, getEmail, isSuperAdmin } from './auth';
 import apiRequest from './ApiRequest';
 
 /** The *only* way to jump between sites -- a small fixed icon (not a nav
@@ -17,7 +17,10 @@ export default function CrossSiteLink() {
   const ref = useRef(null);
   const currentSite = getCurrentSite();
   const currentId = currentSite ? currentSite.id : 'main';
-  const sites = listAllSites();
+  // Gut News is soft-locked to super_admin only for now (see
+  // news/SuperAdminGate.js) -- don't advertise it in the switcher to
+  // everyone else.
+  const sites = listAllSites().filter((site) => site.id !== 'news' || isSuperAdmin());
 
   useEffect(() => {
     if (!open) return undefined;

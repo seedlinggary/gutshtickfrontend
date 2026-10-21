@@ -183,6 +183,25 @@
 .fin-indicator-card h4 { margin: 0 0 2px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
 .fin-indicator-value { font-family: var(--font-mono); font-weight: 700; font-size: 22px; color: var(--accent); margin-bottom: 8px; }
 
+/* ── In-depth insights panel ── */
+.fin-insight-section { margin-top: 18px; }
+.fin-insight-heading { margin: 0 0 10px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); font-weight: 700; }
+.fin-insight-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 18px; }
+.fin-insight-tile { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; }
+.fin-insight-tile-label { font-size: 11.5px; color: var(--muted); margin-bottom: 4px; }
+.fin-insight-tile-value { font-family: var(--font-mono); font-weight: 700; font-size: 16px; color: var(--text); }
+.fin-insight-tile-value.up { color: #0e7490; }
+.fin-insight-tile-value.down { color: #b3261e; }
+.fin-insight-tile-note { font-size: 11px; color: var(--muted); margin-top: 3px; }
+.fin-52wk-bar { position: relative; height: 6px; background: var(--border); border-radius: 999px; margin: 10px 0 4px; }
+.fin-52wk-bar-dot { position: absolute; top: 50%; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); border: 2px solid var(--surface); transform: translate(-50%, -50%); }
+.fin-52wk-bar-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); font-family: var(--font-mono); }
+.fin-glossary { border-top: 1px solid var(--border); margin-top: 18px; padding-top: 14px; }
+.fin-glossary-toggle { display: flex; align-items: center; gap: 6px; background: none; border: none; cursor: pointer; font-weight: 700; font-size: 13.5px; color: var(--accent); padding: 0; }
+.fin-glossary-list { margin-top: 12px; display: flex; flex-direction: column; gap: 10px; }
+.fin-glossary-term { font-weight: 700; font-size: 13px; color: var(--text); }
+.fin-glossary-def { font-size: 13px; color: var(--muted); line-height: 1.5; margin: 2px 0 0; }
+
 /* ── Calculators (same structural pattern as estates-theme.css's .est-calc-*,
    new prefix/palette) ── */
 .fin-calc-intro { font-size: 14px; color: var(--muted); line-height: 1.6; margin: 0 0 18px; max-width: 68ch; }

@@ -1,15 +1,34 @@
 import React, { useState } from 'react';
 
+/** Builds `count` evenly-spaced tick values between min and max (inclusive),
+ * deduped -- not "nice rounded" ticks (no charting library here to do that
+ * for us), just a plain linear split, which is legible enough at the sizes
+ * these charts render at. */
+function niceTicks(min, max, count) {
+  if (min === max) return [min];
+  const ticks = [];
+  for (let i = 0; i < count; i += 1) ticks.push(min + ((max - min) * i) / (count - 1));
+  return ticks;
+}
+
 /** Minimal, dependency-free SVG line chart -- this codebase has no charting
  * library anywhere else, and these two components cover every chart Gut
  * Money needs (price history, economic indicator trends, budget
  * breakdown) without adding one. `points` is [{x, y}] with numeric x/y;
- * `xLabel(point)`/`formatY(value)` control axis text. Hovering a point
- * shows its value via a simple tooltip -- no external interaction library. */
-export function LineChart({ points, height = 220, color = 'var(--accent)', formatY = (v) => v, xLabel = (p) => p.x, ariaLabel }) {
+ * `xLabel(point)`/`formatY(value)` control axis text. Both axes always draw
+ * with real tick values (not just a bare line) so a chart is readable
+ * without hovering -- hovering a point additionally shows its exact value
+ * via a simple tooltip. `yTickCount`/`xTickCount` are reduced automatically
+ * for small/sparkline-sized charts via the `compact` prop. */
+export function LineChart({
+  points, height = 220, color = 'var(--accent)', formatY = (v) => v, xLabel = (p) => p.x, ariaLabel, compact = false,
+}) {
   const [hoverIdx, setHoverIdx] = useState(null);
   const width = 600;
-  const padding = { top: 16, right: 12, bottom: 24, left: 12 };
+  const yTickCount = compact ? 3 : 5;
+  const xTickCount = compact ? 3 : 6;
+  const leftPad = compact ? 34 : 48;
+  const padding = { top: 14, right: 10, bottom: 28, left: leftPad };
 
   if (!points || points.length < 2) {
     return <div style={{ padding: 20, textAlign: 'center', color: 'var(--muted)', fontSize: 13 }}>Not enough data to chart yet.</div>;
@@ -32,6 +51,11 @@ export function LineChart({ points, height = 220, color = 'var(--accent)', forma
   const areaPath = `${linePath} L${coords[coords.length - 1].x.toFixed(1)},${padding.top + innerH} L${coords[0].x.toFixed(1)},${padding.top + innerH} Z`;
   const hovered = hoverIdx != null ? coords[hoverIdx] : null;
 
+  const yTicks = niceTicks(minY, maxY, yTickCount);
+  const xTickIdxs = Array.from(new Set(
+    Array.from({ length: xTickCount }, (_, i) => Math.round((i / (xTickCount - 1)) * (points.length - 1)))
+  ));
+
   return (
     <div style={{ position: 'relative' }}>
       <svg
@@ -44,6 +68,20 @@ export function LineChart({ points, height = 220, color = 'var(--accent)', forma
             <stop offset="100%" stopColor={color} stopOpacity="0" />
           </linearGradient>
         </defs>
+
+        {/* Y-axis gridlines + value labels */}
+        {yTicks.map((t, i) => {
+          const y = padding.top + innerH - ((t - minY) / spanY) * innerH;
+          return (
+            <g key={i}>
+              <line x1={padding.left} y1={y} x2={width - padding.right} y2={y} stroke="var(--border)" strokeWidth="1" />
+              <text x={padding.left - 6} y={y} fontSize={compact ? 9.5 : 10.5} fill="var(--muted)" textAnchor="end" dominantBaseline="middle">
+                {formatY(t)}
+              </text>
+            </g>
+          );
+        })}
+
         <path d={areaPath} fill="url(#simpleChartFade)" stroke="none" />
         <path d={linePath} fill="none" stroke={color} strokeWidth="2" />
         {coords.map((c, i) => (
@@ -53,8 +91,17 @@ export function LineChart({ points, height = 220, color = 'var(--accent)', forma
           />
         ))}
         {hovered && <circle cx={hovered.x} cy={hovered.y} r="4" fill={color} />}
-        <text x={padding.left} y={height - 6} fontSize="11" fill="var(--muted)">{xLabel(points[0])}</text>
-        <text x={width - padding.right} y={height - 6} fontSize="11" fill="var(--muted)" textAnchor="end">{xLabel(points[points.length - 1])}</text>
+
+        {/* X-axis tick labels */}
+        {xTickIdxs.map((idx) => {
+          const c = coords[idx];
+          const anchor = idx === 0 ? 'start' : idx === points.length - 1 ? 'end' : 'middle';
+          return (
+            <text key={idx} x={c.x} y={height - 8} fontSize={compact ? 9.5 : 10.5} fill="var(--muted)" textAnchor={anchor}>
+              {xLabel(c.point)}
+            </text>
+          );
+        })}
       </svg>
       {hovered && (
         <div style={{

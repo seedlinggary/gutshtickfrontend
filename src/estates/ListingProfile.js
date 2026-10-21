@@ -32,7 +32,7 @@ function daysUntil(dateStr) {
 }
 
 export default function ListingProfile() {
-  const { slug } = useParams();
+  const { idOrSlug } = useParams();
   const navigate = useNavigate();
   const [listing, setListing] = useState(null);
   const [notFound, setNotFound] = useState(false);
@@ -41,10 +41,10 @@ export default function ListingProfile() {
   useEffect(() => {
     setListing(null);
     setNotFound(false);
-    apiRequest('GET', null, `/estates/listings/${slug}`)
+    apiRequest('GET', null, `/estates/listings/${idOrSlug}`)
       .then(setListing)
       .catch(() => setNotFound(true));
-  }, [slug]);
+  }, [idOrSlug]);
 
   const toggleLike = async () => {
     if (!isLoggedIn() || !listing) return;
