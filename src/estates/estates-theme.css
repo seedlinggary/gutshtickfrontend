@@ -1,0 +1,824 @@
+/* ── "Clay & Pine" — Gut Estates's own identity ──
+   Scoped entirely under `.estates-theme` (toggled on <body> by App.js via
+   the site registry), so none of this leaks onto the other two sites.
+   Re-defines the *same* custom-property names the shared gs-* classes
+   already read (--bg/--surface/--accent/etc., originally set in
+   src/index.css) so every existing structural class (.gs-card, .gs-btn,
+   .auth-input, .gs-navbar, .gs-spinner, ...) re-themes for free with zero
+   per-component overrides -- same pattern business-theme.css established.
+   New surface-level UI (masthead, split map view, listing cards, photo
+   upload grid) gets its own .est-* classes below, mirroring the structural
+   patterns business-theme.css built for the Directory/Community pages
+   (masthead/stats-bar/segmented/directory-split), just under a new prefix
+   and palette so nothing here can collide with a .biz-* class. */
+
+.estates-theme {
+  /* Cool sage-tinted off-white, not the warm-cream default -- warmth comes
+     from the clay accent and the serif display face, same approach as
+     business-theme's navy/gold, different palette entirely. */
+  --bg: #f2f5f2;
+  --surface: #ffffff;
+  --surface-deep: #e9eee9;
+  --primary: #15332c;
+  --accent: #15332c;
+  --accent-hover: #0c1e19;
+  --text: #182420;
+  --muted: #5b6b63;
+  --muted-faint: #96a39c;
+  --border: rgba(21, 51, 44, 0.14);
+  --success: #1f7a5c;
+  --shadow-sm: 0 1px 2px rgba(21, 51, 44, 0.05), 0 3px 10px -2px rgba(21, 51, 44, 0.07);
+  --shadow: 0 8px 22px -8px rgba(21, 51, 44, 0.20);
+  --shadow-lg: 0 20px 48px -16px rgba(21, 51, 44, 0.28);
+
+  /* "Clay" accent -- terracotta, for CTAs/badges/the one recurring accent
+     color across listings and group-buy projects. */
+  --gold: #bf5f37;
+  --gold-hover: #9c4c2b;
+  --gold-wash: rgba(191, 95, 55, 0.14);
+  --navy-wash: rgba(21, 51, 44, 0.06);
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-btn: 10px;
+
+  --font-display: 'Lora', Georgia, serif;
+  --font-body: 'Work Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', monospace;
+
+  background: var(--bg);
+  font-family: var(--font-body);
+}
+
+.estates-theme h1, .estates-theme h2, .estates-theme h3, .estates-theme h4 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.estates-theme button, .estates-theme input, .estates-theme select, .estates-theme textarea {
+  font-family: var(--font-body);
+}
+.estates-theme code, .estates-theme .est-mono {
+  font-family: var(--font-mono);
+}
+
+.estates-theme .gs-btn {
+  border-radius: var(--radius-btn);
+  font-family: var(--font-body);
+  letter-spacing: 0.01em;
+}
+.estates-theme .gs-card {
+  border-radius: var(--radius-md);
+}
+
+/* ── Navbar: solid pine band, same structural pattern as business-theme. ── */
+.estates-theme .gs-navbar {
+  background: var(--accent);
+  box-shadow: 0 2px 12px rgba(16, 32, 27, 0.18);
+}
+.estates-theme .gs-navbar .navbar-brand { color: #fff; }
+.estates-theme .gs-navbar .navbar-brand span { color: var(--gold); }
+.estates-theme .gs-navbar .nav-link { color: rgba(255, 255, 255, 0.78); }
+.estates-theme .gs-navbar .nav-link:hover { color: #fff; }
+.estates-theme .gs-navbar .nav-link-pin {
+  background: var(--gold);
+  border: 1.5px solid var(--gold);
+  color: #fff;
+}
+.estates-theme .gs-navbar .nav-link-pin:hover {
+  background: var(--gold-hover);
+  border-color: var(--gold-hover);
+}
+.estates-theme .gs-navbar .dropdown-menu {
+  background: var(--surface);
+  color: var(--text);
+}
+.estates-theme .gs-navbar .navbar-toggler-icon,
+.estates-theme .gs-navbar .navbar-toggler-icon::before,
+.estates-theme .gs-navbar .navbar-toggler-icon::after {
+  background: #fff;
+}
+
+/* ── Accessibility toggle + notification bell -- AccessibilityToggle.js and
+   NotificationBell.js are reused as-is from the business site (generic,
+   not business-specific components); these rules re-theme their hardcoded
+   .biz-a11y-* / .notif-bell-btn class names for this site's own navbar, same
+   as business-theme.css does for its own navbar. ── */
+.estates-theme .biz-a11y-btn,
+.estates-theme .gs-navbar .notif-bell-btn {
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #fff;
+  border-radius: 999px;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.estates-theme .biz-a11y-menu {
+  position: absolute;
+  right: 0;
+  top: 110%;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow-lg);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 30;
+  width: 190px;
+}
+.estates-theme .biz-a11y-item { display: flex; gap: 8px; align-items: center; font-size: 13px; }
+:root[data-biz-contrast="high"] .estates-theme {
+  --border: rgba(0, 0, 0, 0.4);
+  --muted: #2c352f;
+}
+:root[data-biz-tap="large"] .estates-theme button,
+:root[data-biz-tap="large"] .estates-theme .est-chip,
+:root[data-biz-tap="large"] .estates-theme a.gs-btn {
+  min-height: 44px;
+  min-width: 44px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+/* ── Segmented control (sort / list-vs-map toggles) ── */
+.est-segmented {
+  display: inline-flex;
+  background: var(--surface-deep);
+  border-radius: 999px;
+  padding: 3px;
+  gap: 2px;
+}
+.est-segmented-btn {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+  padding: 7px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 140ms ease;
+}
+.est-segmented-btn:hover { color: var(--text); }
+.est-segmented-btn.active {
+  background: var(--surface);
+  color: var(--accent);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ── Filter chips ── */
+.est-chip-row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: thin;
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 24px), transparent 100%);
+  mask-image: linear-gradient(to right, #000 calc(100% - 24px), transparent 100%);
+}
+.est-chip-row::-webkit-scrollbar { height: 5px; }
+.est-chip-row::-webkit-scrollbar-thumb { background: var(--border); border-radius: 999px; }
+.est-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  padding: 8px 15px;
+  border-radius: 999px;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 140ms ease;
+}
+.est-chip:hover { border-color: var(--muted-faint); color: var(--text); }
+.est-chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+.est-back-link {
+  display: inline-block;
+  margin-bottom: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+  text-decoration: none;
+}
+.est-back-link:hover { color: var(--accent); }
+
+/* ── Masthead -- same structural pattern as business-theme's .biz-masthead,
+   new palette/prefix. ── */
+.est-masthead {
+  background: linear-gradient(135deg, var(--accent) 0%, #2a4840 100%);
+  border-radius: var(--radius-lg);
+  padding: 30px 32px 6px;
+  margin-bottom: 18px;
+  position: relative;
+  overflow: hidden;
+}
+.est-masthead::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 100% 0%, rgba(191, 95, 55, 0.28), transparent 55%);
+  pointer-events: none;
+}
+.est-masthead-row {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.est-masthead-copy { max-width: 640px; }
+.est-masthead-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--gold);
+  margin-bottom: 10px;
+}
+.est-masthead-title {
+  margin: 0 0 10px;
+  font-size: clamp(24px, 3.4vw, 34px);
+  line-height: 1.15;
+  color: #fff;
+  text-wrap: balance;
+}
+.est-masthead-sub {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 14.5px;
+  line-height: 1.55;
+  max-width: 54ch;
+}
+@media (max-width: 640px) {
+  .est-masthead { padding: 24px 20px 4px; }
+}
+
+/* ── Stats ledger ── */
+.est-stats-bar {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 22px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+}
+.est-stats-tile {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  padding: 6px 20px 10px 0;
+  margin-right: 20px;
+  border-right: 1px solid rgba(255, 255, 255, 0.14);
+}
+.est-stats-tile:last-child { border-right: none; margin-right: 0; }
+.est-stats-value {
+  font-size: 18px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: #fff;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.est-stats-value svg { color: var(--gold); flex-shrink: 0; }
+.est-stats-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.55);
+  white-space: nowrap;
+}
+@media (max-width: 640px) {
+  .est-stats-bar { gap: 10px 20px; }
+  .est-stats-tile { padding: 6px 0 10px; margin-right: 0; border-right: none; }
+}
+
+/* ── Directory split view: scrolling list + sticky map side by side on
+   desktop, single column with a List/Map toggle below 960px -- same
+   breakpoint/pattern as the Directory/Community/Activities pages. ── */
+.est-directory-split { display: block; }
+@media (min-width: 960px) {
+  .est-directory-split {
+    display: grid;
+    grid-template-columns: minmax(360px, 440px) 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+}
+.est-directory-list { min-width: 0; }
+.est-directory-mappane { display: none; }
+@media (min-width: 960px) {
+  .est-directory-mappane {
+    display: block;
+    position: sticky;
+    top: 80px;
+    height: calc(100vh - 100px);
+    min-height: 420px;
+  }
+  .est-directory-mappane .biz-map-wrap,
+  .est-directory-mappane .biz-map-canvas {
+    height: 100%;
+  }
+}
+.est-mobile-toggle { display: flex; justify-content: center; margin-bottom: 12px; }
+@media (min-width: 960px) {
+  .est-mobile-toggle { display: none; }
+}
+
+/* ── Listing card grid ── */
+.est-listing-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+.est-listing-card {
+  display: block;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  transition: transform .12s ease, box-shadow .12s ease;
+  position: relative;
+}
+.est-listing-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+.est-listing-card-img {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  display: block;
+  background: var(--surface-deep);
+}
+.est-listing-card-img-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted-faint);
+}
+.est-listing-card-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(21, 51, 44, 0.82);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+.est-listing-card-badge.agent { background: var(--gold); }
+.est-listing-card-badge.unknown { background: rgba(21, 51, 44, 0.45); }
+.est-listing-card-expired {
+  position: absolute;
+  inset: 0;
+  background: rgba(24, 36, 32, 0.55);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.est-listing-card-body { padding: 12px 14px; }
+.est-listing-card-price {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 17px;
+  color: var(--accent);
+}
+.est-listing-card-price-period { font-size: 12px; color: var(--muted); font-weight: 500; }
+.est-listing-card-body h3 { margin: 6px 0 2px; font-size: 15.5px; line-height: 1.3; }
+.est-listing-card-body p { margin: 0; font-size: 13px; color: var(--muted); }
+.est-listing-card-specs {
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.est-like-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  border-radius: 999px;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--muted);
+  box-shadow: var(--shadow-sm);
+}
+.est-like-btn.active { color: var(--gold); }
+
+/* ── Listing/group-buy detail page ── */
+.est-hero-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px;
+  margin-bottom: 18px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.est-hero-gallery img {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  background: var(--surface-deep);
+  display: block;
+}
+.est-hero-gallery-empty {
+  height: 220px;
+  background: var(--surface-deep);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted-faint);
+  margin-bottom: 18px;
+}
+.est-badge-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+.est-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  background: var(--navy-wash);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
+}
+.est-badge.agent { background: var(--gold-wash); color: var(--gold-hover); }
+.est-price-line {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 28px;
+  color: var(--accent);
+  margin: 4px 0 2px;
+}
+.est-spec-row {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin: 14px 0;
+  padding: 14px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.est-spec {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.est-spec-value { font-weight: 700; font-size: 15px; }
+.est-spec-label { font-size: 11.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.est-contact-card {
+  background: var(--surface-deep);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.est-contact-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.est-expiry-note {
+  font-size: 12.5px;
+  color: var(--muted);
+  background: var(--navy-wash);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin: 10px 0;
+}
+.est-expiry-note.expired { background: var(--gold-wash); color: var(--gold-hover); font-weight: 600; }
+
+/* ── Photo upload widget (up to MAX_PHOTOS slots) ── */
+.est-photo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 10px;
+  margin: 8px 0 4px;
+}
+.est-photo-slot {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--surface-deep);
+  border: 1.5px dashed var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.est-photo-slot img { width: 100%; height: 100%; object-fit: cover; }
+.est-photo-slot-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: rgba(21, 51, 44, 0.75);
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.est-photo-add {
+  background: none;
+  border: none;
+  color: var(--muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+}
+.est-photo-add input { display: none; }
+
+/* ── Form layout helpers (ListingForm / GroupBuyForm) ── */
+.est-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+}
+.est-form-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  margin-bottom: 16px;
+}
+.est-form-section h3 {
+  margin: 0 0 14px;
+  font-size: 15px;
+}
+.est-field-label {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--muted);
+  margin-bottom: 5px;
+}
+.est-radio-row { display: flex; gap: 16px; flex-wrap: wrap; }
+.est-radio-option {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* ── Group buy progress ── */
+.est-progress-bar {
+  width: 100%;
+  height: 8px;
+  background: var(--surface-deep);
+  border-radius: 999px;
+  overflow: hidden;
+  margin: 6px 0;
+}
+.est-progress-fill {
+  height: 100%;
+  background: var(--gold);
+  border-radius: 999px;
+  transition: width 200ms ease;
+}
+
+/* ── Learn / guide page ── */
+.est-guide-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 22px 24px;
+  margin-bottom: 20px;
+}
+.est-guide-section h2 {
+  margin: 0 0 4px;
+  font-size: 21px;
+}
+.est-guide-section .est-guide-kicker {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--gold);
+  display: block;
+  margin-bottom: 6px;
+}
+.est-guide-section h3 { margin: 18px 0 6px; font-size: 16px; }
+.est-guide-section p, .est-guide-section li { font-size: 14.5px; line-height: 1.65; color: var(--text); }
+.est-guide-section ul { padding-left: 20px; }
+.est-guide-note {
+  background: var(--navy-wash);
+  border-left: 3px solid var(--accent);
+  padding: 10px 14px;
+  border-radius: 0 8px 8px 0;
+  font-size: 13.5px;
+  color: var(--muted);
+  margin-top: 10px;
+}
+.est-guide-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+.est-sources {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+.est-sources h4 {
+  margin: 0 0 8px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+.est-sources ol {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 12.5px;
+  color: var(--muted);
+  line-height: 1.8;
+}
+.est-sources a { color: var(--accent); }
+
+.est-empty { font-size: 13px; color: var(--muted); margin: 0 0 10px; }
+.est-error { color: #b3261e; }
+
+/* ── Calculators ── */
+.est-calc-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+.est-calc-intro {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin: 0 0 18px;
+  max-width: 68ch;
+}
+.est-calc-layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) minmax(260px, 340px);
+  gap: 20px;
+  align-items: start;
+}
+@media (max-width: 760px) {
+  .est-calc-layout { grid-template-columns: 1fr; }
+}
+.est-calc-results {
+  position: sticky;
+  top: 80px;
+  background: var(--accent);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  color: #fff;
+}
+@media (max-width: 760px) {
+  .est-calc-results { position: static; }
+}
+.est-calc-results h4 {
+  margin: 0 0 14px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.6);
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+.est-calc-headline {
+  font-family: var(--font-mono);
+  font-size: 30px;
+  font-weight: 700;
+  margin-bottom: 2px;
+  word-break: break-word;
+}
+.est-calc-headline-label {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.65);
+  margin-bottom: 16px;
+}
+.est-calc-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  font-size: 13.5px;
+}
+.est-calc-row-label { color: rgba(255, 255, 255, 0.75); }
+.est-calc-row-value { font-family: var(--font-mono); font-weight: 600; text-align: right; }
+.est-calc-row.total {
+  border-top: 2px solid rgba(255, 255, 255, 0.35);
+  margin-top: 4px;
+  font-weight: 700;
+  font-size: 14.5px;
+}
+.est-calc-field { margin-bottom: 14px; }
+.est-calc-field-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 5px;
+}
+.est-calc-field-row label { font-size: 12.5px; font-weight: 700; color: var(--muted); }
+.est-calc-field-value { font-family: var(--font-mono); font-size: 12.5px; font-weight: 700; color: var(--accent); }
+.est-calc-help {
+  font-size: 12px;
+  color: var(--muted-faint);
+  margin: 4px 0 0;
+  line-height: 1.5;
+}
+.est-calc-slider {
+  width: 100%;
+  accent-color: var(--gold);
+}
+.est-calc-brackets {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin: 10px 0;
+}
+.est-calc-brackets th {
+  text-align: left;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  padding: 0 8px 6px 0;
+}
+.est-calc-brackets td { padding: 4px 8px 4px 0; vertical-align: middle; }
+.est-calc-brackets input { width: 100%; }
+.est-calc-brackets-remove {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 4px;
+}
+.est-calc-comparison {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin: 14px 0;
+}
+@media (max-width: 500px) {
+  .est-calc-comparison { grid-template-columns: 1fr; }
+}
+.est-calc-compare-card {
+  background: var(--surface-deep);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+}
+.est-calc-compare-card.winner { background: var(--gold-wash); border: 1.5px solid var(--gold); }
+.est-calc-compare-card h5 { margin: 0 0 6px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
+.est-calc-compare-value { font-family: var(--font-mono); font-weight: 700; font-size: 20px; color: var(--accent); }
+
+.est-spin { animation: est-spin 800ms linear infinite; }
+@keyframes est-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

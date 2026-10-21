@@ -53,34 +53,32 @@ export function isBusinessSite() {
  * to a Business listing) -- a plain react-router <Link> would resolve
  * against the current site's own route table instead, since sub-sites are
  * different hostnames in production. Falls back to the same `?site=` dev
- * toggle site detection itself uses on localhost. */
+ * toggle site detection itself uses on localhost. `id: 'main'` is accepted
+ * too (not a SITES entry -- it's the one site with its own MAIN_HOSTS env
+ * var instead), so every site this app serves can be addressed the same way
+ * -- see listAllSites()/CrossSiteLink.js, which needs exactly that. */
 export function siteUrl(id, path = '/') {
   const host = window.location.hostname;
   if (isLocalHost(host)) {
     const sep = path.includes('?') ? '&' : '?';
     return `${window.location.origin}${path}${sep}site=${id}`;
   }
-  const site = SITES.find((s) => s.id === id);
-  const target = site && hostnamesFor(site)[0];
+  let target = MAIN_HOSTS[0];
+  if (id !== 'main') {
+    const site = SITES.find((s) => s.id === id);
+    target = site && hostnamesFor(site)[0];
+  }
   return target ? `${window.location.protocol}//${target}${path}` : `${window.location.origin}${path}`;
 }
 
-/** Home URL of the main consumer site, for the small cross-site footer icon
- * every sub-site shows. Sub-sites link back to the one consumer site, not
- * to each other, so this always resolves to "main" regardless of how many
- * sub-sites exist; from *main*, it links out to the first registered
- * sub-site (there's only ever been one "other site" link to show). */
-export function otherSiteHomeUrl() {
-  const host = window.location.hostname;
-  const site = getCurrentSite();
-  if (site) {
-    const target = MAIN_HOSTS[0];
-    if (target) return `${window.location.protocol}//${target}/`;
-    return isLocalHost(host) ? `${window.location.origin}/?site=main` : window.location.origin;
-  }
-  const fallback = SITES[0];
-  if (!fallback) return window.location.origin;
-  const target = hostnamesFor(fallback)[0];
-  if (target) return `${window.location.protocol}//${target}/`;
-  return isLocalHost(host) ? `${window.location.origin}/?site=${fallback.id}` : window.location.origin;
+/** Every site this deployment serves, main consumer site included (as
+ * `id: 'main'`, which isn't itself a SITES entry -- see siteUrl() above) --
+ * what CrossSiteLink's "switch sites" menu lists. Each entry's `url` is
+ * already resolved for the current environment (dev `?site=` toggle vs.
+ * production hostname), via siteUrl(). */
+export function listAllSites() {
+  return [
+    { id: 'main', label: 'Gut Shtick', url: siteUrl('main', '/') },
+    ...SITES.map((site) => ({ id: site.id, label: site.label || site.id, url: siteUrl(site.id, '/') })),
+  ];
 }

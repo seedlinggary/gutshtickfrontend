@@ -135,20 +135,26 @@ iframe {
   .main-content { padding-bottom: 64px; }
 }
 
-/* ── Cross-site link -- the *only* way to jump between the consumer site and
-   the business site, deliberately a small icon rather than a nav item. ── */
-.cross-site-link {
+/* ── Cross-site link -- the *only* way to jump between sites, deliberately a
+   small icon rather than a nav item. Opens a menu listing every site this
+   deployment serves (see CrossSiteLink.js/siteMode.js's listAllSites()). ── */
+.cross-site-wrap {
   position: fixed;
   right: 16px;
   bottom: 16px;
   z-index: 902;
+}
+@media (max-width: 768px) {
+  .cross-site-wrap { bottom: calc(64px + 12px + env(safe-area-inset-bottom)); right: 12px; }
+}
+.cross-site-link {
   width: 40px;
   height: 40px;
   border-radius: 50%;
   border: 1px solid var(--border);
   background: var(--surface);
+  color: var(--text);
   box-shadow: var(--shadow-sm);
-  font-size: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -159,8 +165,38 @@ iframe {
 .cross-site-link:hover { opacity: 1; transform: scale(1.06); }
 .cross-site-link:disabled { cursor: wait; opacity: 0.6; }
 @media (max-width: 768px) {
-  .cross-site-link { bottom: calc(64px + 12px + env(safe-area-inset-bottom)); right: 12px; width: 36px; height: 36px; font-size: 16px; }
+  .cross-site-link { width: 36px; height: 36px; }
 }
+.cross-site-menu {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  right: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow-lg);
+  padding: 6px;
+  min-width: 170px;
+  list-style: none;
+  margin: 0;
+}
+.cross-site-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  background: none;
+  border: none;
+  text-align: left;
+  padding: 8px 10px;
+  border-radius: 7px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+}
+.cross-site-item:hover:not(:disabled) { background: var(--bg); }
+.cross-site-item:disabled { color: var(--muted); cursor: default; }
 
 /* ── UNO's hand row pins to the bottom of a full-height flex column
    (marginTop: auto) -- on mobile that bottom edge lands right under the

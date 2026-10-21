@@ -12,7 +12,7 @@ import PostTypeIcon from './PostTypeIcon';
 import CategoryIcon from './CategoryIcon';
 import GetDealButton from './GetDealButton';
 import { isSuperAdmin } from '../auth';
-import { useNearMe, NearMeShakeControls } from './NearMeShake';
+import { useNearMe, NearMeShakeControls } from '../shared/NearMeShake';
 
 const NEAR_ME_RADIUS_MILES = 25;
 

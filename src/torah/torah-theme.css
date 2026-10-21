@@ -1,0 +1,218 @@
+/* ── "Mantle & Gold" — Gut Torah's own identity ──
+   Scoped entirely under `.torah-theme` (toggled on <body> by the site
+   registry), so none of this leaks onto the other sites. Re-defines the
+   *same* custom-property names the shared gs-* classes already read, same
+   pattern as business/estates/money-theme.css. Deep indigo (evoking a
+   Torah mantle/Aron Kodesh curtain) + a richer antique-gold accent than
+   business's brass, so all four sites stay visually distinct from each
+   other. Frank Ruhl Libre (display) is the same typeface Sefaria itself
+   uses for Hebrew-adjacent display text -- a deliberate, meaningful choice
+   here rather than a generic pairing. */
+
+.torah-theme {
+  --bg: #f4f2f0;
+  --surface: #ffffff;
+  --surface-deep: #ece8e4;
+  --primary: #241b3a;
+  --accent: #241b3a;
+  --accent-hover: #140e22;
+  --text: #211a2e;
+  --muted: #655f72;
+  --muted-faint: #9a93a8;
+  --border: rgba(36, 27, 58, 0.14);
+  --success: #1f7a5c;
+  --shadow-sm: 0 1px 2px rgba(36, 27, 58, 0.05), 0 3px 10px -2px rgba(36, 27, 58, 0.07);
+  --shadow: 0 8px 22px -8px rgba(36, 27, 58, 0.20);
+  --shadow-lg: 0 20px 48px -16px rgba(36, 27, 58, 0.28);
+
+  --gold: #a9781f;
+  --gold-hover: #8a6119;
+  --gold-wash: rgba(169, 120, 31, 0.15);
+  --navy-wash: rgba(36, 27, 58, 0.06);
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-btn: 10px;
+
+  --font-display: 'Frank Ruhl Libre', Georgia, serif;
+  --font-body: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-hebrew: 'Noto Sans Hebrew', 'Frank Ruhl Libre', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', monospace;
+
+  background: var(--bg);
+  font-family: var(--font-body);
+}
+
+.torah-theme h1, .torah-theme h2, .torah-theme h3, .torah-theme h4 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.torah-theme button, .torah-theme input, .torah-theme select, .torah-theme textarea {
+  font-family: var(--font-body);
+}
+.torah-theme code, .torah-theme .tor-mono { font-family: var(--font-mono); }
+.torah-theme .tor-hebrew {
+  direction: rtl;
+  text-align: right;
+  font-family: var(--font-hebrew);
+  line-height: 1.9;
+  unicode-bidi: plaintext;
+}
+
+.torah-theme .gs-btn { border-radius: var(--radius-btn); font-family: var(--font-body); letter-spacing: 0.01em; }
+.torah-theme .gs-card { border-radius: var(--radius-md); }
+
+/* ── Navbar ── */
+.torah-theme .gs-navbar { background: var(--accent); box-shadow: 0 2px 12px rgba(20, 14, 34, 0.18); }
+.torah-theme .gs-navbar .navbar-brand { color: #fff; }
+.torah-theme .gs-navbar .navbar-brand span { color: var(--gold); }
+.torah-theme .gs-navbar .nav-link { color: rgba(255, 255, 255, 0.78); }
+.torah-theme .gs-navbar .nav-link:hover { color: #fff; }
+.torah-theme .gs-navbar .nav-link-pin { background: var(--gold); border: 1.5px solid var(--gold); color: #fff; }
+.torah-theme .gs-navbar .nav-link-pin:hover { background: var(--gold-hover); border-color: var(--gold-hover); }
+.torah-theme .gs-navbar .dropdown-menu { background: var(--surface); color: var(--text); }
+.torah-theme .gs-navbar .navbar-toggler-icon,
+.torah-theme .gs-navbar .navbar-toggler-icon::before,
+.torah-theme .gs-navbar .navbar-toggler-icon::after { background: #fff; }
+
+.torah-theme .biz-a11y-btn,
+.torah-theme .gs-navbar .notif-bell-btn {
+  background: none; border: 1px solid rgba(255, 255, 255, 0.3); color: #fff; border-radius: 999px;
+  width: 30px; height: 30px; padding: 0; display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
+}
+.torah-theme .biz-a11y-menu {
+  position: absolute; right: 0; top: 110%; background: var(--surface); color: var(--text);
+  border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow-lg);
+  padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; z-index: 30; width: 190px;
+}
+.torah-theme .biz-a11y-item { display: flex; gap: 8px; align-items: center; font-size: 13px; }
+:root[data-biz-contrast="high"] .torah-theme { --border: rgba(0, 0, 0, 0.4); --muted: #2e2840; }
+:root[data-biz-tap="large"] .torah-theme button,
+:root[data-biz-tap="large"] .torah-theme .tor-chip,
+:root[data-biz-tap="large"] .torah-theme a.gs-btn { min-height: 44px; min-width: 44px; padding-top: 10px; padding-bottom: 10px; }
+
+/* ── Segmented + chips ── */
+.tor-segmented { display: inline-flex; background: var(--surface-deep); border-radius: 999px; padding: 3px; gap: 2px; }
+.tor-segmented-btn {
+  border: none; background: transparent; color: var(--muted); font-size: 13px; font-weight: 700;
+  padding: 7px 16px; border-radius: 999px; cursor: pointer; white-space: nowrap; transition: all 140ms ease;
+}
+.tor-segmented-btn:hover { color: var(--text); }
+.tor-segmented-btn.active { background: var(--surface); color: var(--accent); box-shadow: var(--shadow-sm); }
+
+.tor-chip-row { display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; overflow-x: auto; }
+.tor-chip {
+  display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; padding: 8px 15px; border-radius: 999px;
+  border: 1.5px solid var(--border); background: var(--surface); color: var(--muted); font-size: 13px;
+  font-weight: 700; cursor: pointer; white-space: nowrap; transition: all 140ms ease;
+}
+.tor-chip:hover { border-color: var(--muted-faint); color: var(--text); }
+.tor-chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.tor-back-link { display: inline-block; margin-bottom: 12px; font-size: 13px; font-weight: 700; color: var(--muted); text-decoration: none; }
+.tor-back-link:hover { color: var(--accent); }
+
+/* ── Masthead ── */
+.tor-masthead {
+  background: linear-gradient(135deg, var(--accent) 0%, #3a2a57 100%);
+  border-radius: var(--radius-lg); padding: 30px 32px 6px; margin-bottom: 18px; position: relative; overflow: hidden;
+}
+.tor-masthead::after {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(circle at 100% 0%, rgba(169, 120, 31, 0.30), transparent 55%); pointer-events: none;
+}
+.tor-masthead-row { position: relative; display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+.tor-masthead-copy { max-width: 640px; }
+.tor-masthead-kicker {
+  display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 11.5px;
+  font-weight: 700; text-transform: uppercase; letter-spacing: 0.09em; color: var(--gold); margin-bottom: 10px;
+}
+.tor-masthead-title { margin: 0 0 10px; font-size: clamp(24px, 3.4vw, 34px); line-height: 1.15; color: #fff; text-wrap: balance; }
+.tor-masthead-sub { margin: 0; color: rgba(255, 255, 255, 0.68); font-size: 14.5px; line-height: 1.55; max-width: 54ch; }
+@media (max-width: 640px) { .tor-masthead { padding: 24px 20px 4px; } }
+
+.tor-stats-bar { position: relative; display: flex; flex-wrap: wrap; margin-top: 22px; padding-top: 14px; border-top: 1px solid rgba(255, 255, 255, 0.14); }
+.tor-stats-tile { display: flex; align-items: baseline; gap: 7px; padding: 6px 20px 10px 0; margin-right: 20px; border-right: 1px solid rgba(255, 255, 255, 0.14); }
+.tor-stats-tile:last-child { border-right: none; margin-right: 0; }
+.tor-stats-value { font-size: 18px; font-weight: 700; font-family: var(--font-mono); color: #fff; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; }
+.tor-stats-value svg { color: var(--gold); flex-shrink: 0; }
+.tor-stats-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: rgba(255, 255, 255, 0.55); white-space: nowrap; }
+
+/* ── Post grid/card ── */
+.tor-post-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+.tor-post-card {
+  display: block; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md);
+  overflow: hidden; text-decoration: none; color: inherit; transition: transform .12s ease, box-shadow .12s ease; position: relative;
+}
+.tor-post-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+.tor-post-card-img { width: 100%; height: 160px; object-fit: cover; display: block; background: var(--surface-deep); }
+.tor-post-card-img-placeholder { display: flex; align-items: center; justify-content: center; color: var(--muted-faint); }
+.tor-post-card-badge {
+  position: absolute; top: 10px; left: 10px; background: rgba(36, 27, 58, 0.82); color: #fff; font-size: 11px;
+  font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; padding: 4px 10px; border-radius: 999px;
+}
+.tor-post-card-body { padding: 12px 14px; }
+.tor-post-card-body h3 { margin: 0 0 4px; font-size: 15.5px; line-height: 1.3; }
+.tor-post-card-body p { margin: 0; font-size: 13px; color: var(--muted); }
+.tor-video-embed { position: relative; width: 100%; padding-top: 56.25%; background: #000; border-radius: var(--radius-md); overflow: hidden; margin-bottom: 18px; }
+.tor-video-embed iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.tor-hero-gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; border-radius: var(--radius-md); overflow: hidden; }
+.tor-hero-gallery img { width: 100%; height: 220px; object-fit: cover; background: var(--surface-deep); display: block; }
+
+/* ── Forms ── */
+.tor-form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
+.tor-form-section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 18px 20px; margin-bottom: 16px; }
+.tor-form-section h3 { margin: 0 0 14px; font-size: 15px; }
+.tor-field-label { display: block; font-size: 12.5px; font-weight: 700; color: var(--muted); margin-bottom: 5px; }
+.tor-radio-row { display: flex; gap: 16px; flex-wrap: wrap; }
+.tor-radio-option { display: flex; align-items: center; gap: 7px; font-size: 14px; cursor: pointer; }
+.tor-error { color: #b3261e; }
+.tor-empty { font-size: 13px; color: var(--muted); margin: 0 0 10px; }
+
+/* ── Photo upload (reuses estates' MAX_PHOTOS pattern/visual language) ── */
+.tor-photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; margin: 8px 0 4px; }
+.tor-photo-slot {
+  position: relative; aspect-ratio: 1; border-radius: var(--radius-sm); overflow: hidden; background: var(--surface-deep);
+  border: 1.5px dashed var(--border); display: flex; align-items: center; justify-content: center;
+}
+.tor-photo-slot img { width: 100%; height: 100%; object-fit: cover; }
+.tor-photo-slot-remove {
+  position: absolute; top: 4px; right: 4px; background: rgba(36, 27, 58, 0.75); color: #fff; border: none;
+  border-radius: 999px; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
+}
+.tor-photo-add { background: none; border: none; color: var(--muted); display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 11px; cursor: pointer; width: 100%; height: 100%; }
+.tor-photo-add input { display: none; }
+.tor-spin { animation: tor-spin 800ms linear infinite; }
+@keyframes tor-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+/* ── Guide / sources (Learn-style pages, reused for zmanim explainer etc.) ── */
+.tor-guide-section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 22px 24px; margin-bottom: 20px; }
+.tor-guide-section h2 { margin: 0 0 4px; font-size: 21px; }
+.tor-guide-kicker { font-family: var(--font-mono); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gold); display: block; margin-bottom: 6px; }
+.tor-guide-section h3 { margin: 18px 0 6px; font-size: 16px; }
+.tor-guide-section p, .tor-guide-section li { font-size: 14.5px; line-height: 1.65; color: var(--text); }
+.tor-guide-note { background: var(--navy-wash); border-left: 3px solid var(--accent); padding: 10px 14px; border-radius: 0 8px 8px 0; font-size: 13.5px; color: var(--muted); margin-top: 10px; }
+.tor-sources { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border); }
+.tor-sources h4 { margin: 0 0 8px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-family: var(--font-mono); font-weight: 700; }
+.tor-sources ol { margin: 0; padding-left: 18px; font-size: 12.5px; color: var(--muted); line-height: 1.8; }
+.tor-sources a { color: var(--accent); }
+
+/* ── Zmanim table ── */
+.tor-zman-row { display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+.tor-zman-row:last-child { border-bottom: none; }
+.tor-zman-label { color: var(--text); }
+.tor-zman-time { font-family: var(--font-mono); font-weight: 700; color: var(--accent); }
+
+/* ── Sefaria text browser ── */
+.tor-browser-list { display: flex; flex-direction: column; gap: 2px; }
+.tor-browser-item {
+  display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; border-radius: 8px;
+  border: 1px solid var(--border); background: var(--surface); cursor: pointer; text-decoration: none; color: var(--text); margin-bottom: 6px;
+}
+.tor-browser-item:hover { border-color: var(--muted-faint); background: var(--bg); }
+.tor-text-block { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 18px 20px; margin-bottom: 14px; }
+.tor-text-block p { margin: 0 0 10px; }
+.tor-text-en { font-size: 15px; line-height: 1.7; color: var(--text); margin-bottom: 6px; }
+.tor-crumbs { font-size: 12.5px; color: var(--muted); margin-bottom: 14px; }
+.tor-crumbs button { background: none; border: none; color: var(--accent); cursor: pointer; font-weight: 700; padding: 0; }

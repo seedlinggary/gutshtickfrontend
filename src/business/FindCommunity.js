@@ -5,7 +5,7 @@ import apiRequest from '../ApiRequest';
 import { isLoggedIn } from '../auth';
 import ErrorBoundary from '../ErrorBoundary';
 import StatsBar from './StatsBar';
-import { useNearMe, NearMeShakeControls } from './NearMeShake';
+import { useNearMe, NearMeShakeControls } from '../shared/NearMeShake';
 
 const BusinessMap = lazy(() => import('./BusinessMap'));
 

@@ -7,7 +7,7 @@ import BusinessCard from './BusinessCard';
 import BusinessPreviewPanel from './BusinessPreviewPanel';
 import StatsBar from './StatsBar';
 import DataDisclaimer from './DataDisclaimer';
-import { getBrowserCoordsDetailed, radiusToBbox, getNearMeErrorMessage, isIOSSafari } from './geolocation';
+import { getBrowserCoordsDetailed, radiusToBbox, getNearMeErrorMessage, isIOSSafari } from '../shared/geolocation';
 import { CATEGORY_LABELS, FOOD_CATEGORIES, LOCATION_TYPE_META } from './categories';
 import CategoryIcon from './CategoryIcon';
 import CompareTray, { useCompareTray } from './CompareTray';

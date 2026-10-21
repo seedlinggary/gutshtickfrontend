@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { MapPin, X, Search } from 'lucide-react';
-import { radiusToBbox } from './geolocation';
+import { radiusToBbox } from '../shared/geolocation';
 
 // OpenFreeMap: free vector tiles, no API key, no rate limits, self-hostable.
 // https://openfreemap.org

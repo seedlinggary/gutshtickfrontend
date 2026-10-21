@@ -1,19 +1,39 @@
-import React, { useState } from 'react';
-import { isBusinessSite, otherSiteHomeUrl } from './siteMode';
+import React, { useEffect, useRef, useState } from 'react';
+import { LayoutGrid, Check } from 'lucide-react';
+import { getCurrentSite, listAllSites } from './siteMode';
 import { isLoggedIn, getEmail } from './auth';
 import apiRequest from './ApiRequest';
 
-/** The one and only way to cross between the consumer site and the business
- * site -- a small fixed icon, not a nav item. If logged in, carries a
- * one-time SSO handoff token so the other side logs the same user in
- * automatically (see SsoBootstrap.js / backend/user/routes/sso.py). */
+/** The *only* way to jump between sites -- a small fixed icon (not a nav
+ * item) that opens a menu listing every site this deployment serves (main
+ * consumer site included), with the current one marked and skipped. If
+ * logged in, the chosen site's link carries a one-time SSO handoff token so
+ * that side logs the same user in automatically (see SsoBootstrap.js /
+ * backend/user/routes/sso.py) -- same mechanism as before, just now able to
+ * target any of N sites instead of a hardcoded "the other one". */
 export default function CrossSiteLink() {
+  const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const business = isBusinessSite();
+  const ref = useRef(null);
+  const currentSite = getCurrentSite();
+  const currentId = currentSite ? currentSite.id : 'main';
+  const sites = listAllSites();
 
-  const go = async () => {
+  useEffect(() => {
+    if (!open) return undefined;
+    const onOutside = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    const onKeyDown = (e) => { if (e.key === 'Escape') setOpen(false); };
+    document.addEventListener('mousedown', onOutside);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', onOutside);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [open]);
+
+  const go = async (base) => {
     if (loading) return;
-    const base = otherSiteHomeUrl();
+    setOpen(false);
     if (!isLoggedIn()) {
       window.location.href = base;
       return;
@@ -31,15 +51,36 @@ export default function CrossSiteLink() {
   };
 
   return (
-    <button
-      type="button"
-      className="cross-site-link"
-      onClick={go}
-      disabled={loading}
-      title={business ? 'Go to Gut Shtick' : 'Go to Gut Community'}
-      aria-label={business ? 'Go to Gut Shtick' : 'Go to Gut Community'}
-    >
-      {business ? '🏠' : '🏪'}
-    </button>
+    <div className="cross-site-wrap" ref={ref}>
+      {open && (
+        <ul className="cross-site-menu" role="menu">
+          {sites.map((site) => (
+            <li key={site.id}>
+              <button
+                type="button"
+                className="cross-site-item"
+                disabled={site.id === currentId || loading}
+                onClick={() => go(site.url)}
+              >
+                {site.id === currentId ? <Check size={14} /> : <span style={{ width: 14, display: 'inline-block' }} />}
+                {site.label}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+      <button
+        type="button"
+        className="cross-site-link"
+        onClick={() => setOpen((o) => !o)}
+        disabled={loading}
+        title="Switch sites"
+        aria-label="Switch sites"
+        aria-haspopup="true"
+        aria-expanded={open}
+      >
+        <LayoutGrid size={18} />
+      </button>
+    </div>
   );
 }

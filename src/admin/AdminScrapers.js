@@ -15,6 +15,7 @@ import { apiRequestRaw } from '../ApiRequest';
  */
 
 const BASE = '/content-pipeline/scrape';
+const NEWS_BASE = '/news/scrape';
 
 const SITES = [
   {
@@ -43,6 +44,25 @@ const SITES = [
   },
 ];
 
+// Gut News's own sources -- same pending-queue pattern, posted as
+// NewsArticle rows via a separate endpoint (backend/news/routes/
+// news_scraper.py) instead of Shtick rows, so they land in Gut News's own
+// review queue, not this site's.
+const NEWS_SITES = [
+  {
+    key: 'npr',
+    name: 'NPR',
+    blurb: "NPR's \"Topics: News\" RSS feed.",
+    defaultCount: 10,
+  },
+  {
+    key: 'bbc',
+    name: 'BBC News (World)',
+    blurb: 'BBC World news RSS feed.',
+    defaultCount: 10,
+  },
+];
+
 const STOP_LABELS = {
   count_reached: 'reached your requested count',
   duplicate_limit: 'hit already-seen articles (duplicate limit)',
@@ -53,11 +73,11 @@ function stopLabel(reason) {
   return STOP_LABELS[reason] || reason || 'done';
 }
 
-function scrapeFetch(source, count) {
-  return apiRequestRaw('POST', { count }, `${BASE}/${source}`);
+function scrapeFetch(base, source, count) {
+  return apiRequestRaw('POST', { count }, `${base}/${source}`);
 }
 
-function SiteScraper({ site }) {
+function SiteScraper({ site, base = BASE }) {
   const [count, setCount] = useState(String(site.defaultCount));
   const [running, setRunning] = useState(false);
   const [error, setError] = useState('');
@@ -70,7 +90,7 @@ function SiteScraper({ site }) {
     const safeCount = Number.isFinite(n) && n > 0 ? n : site.defaultCount;
     setRunning(true);
     try {
-      const resp = await scrapeFetch(site.key, safeCount);
+      const resp = await scrapeFetch(base, site.key, safeCount);
       if (!resp.ok) {
         setError(
           (resp.data && (resp.data.message || resp.data.error)) ||
@@ -159,6 +179,16 @@ export default function AdminScrapers() {
       </div>
       {SITES.map((site) => (
         <SiteScraper key={site.key} site={site} />
+      ))}
+
+      <div style={{ maxWidth: 640, marginTop: 28 }}>
+        <h3 className="shtick-caption" style={{ marginBottom: 6 }}>📰 Gut News Scrapers</h3>
+        <p className="admin-empty" style={{ margin: '0 0 18px' }}>
+          Same pending-queue pattern, feeding Gut News's own article queue instead of Shtick's.
+        </p>
+      </div>
+      {NEWS_SITES.map((site) => (
+        <SiteScraper key={site.key} site={site} base={NEWS_BASE} />
       ))}
     </div>
   );
