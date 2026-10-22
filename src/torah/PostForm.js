@@ -44,6 +44,14 @@ export default function PostForm() {
 
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
 
+  // Switching type clears the OTHER type's fields so stale data (photos
+  // uploaded while on "Photos", a URL typed while on "Video") never gets
+  // silently saved under a post_type that no longer shows that field.
+  const selectType = (post_type) => {
+    setForm((f) => ({ ...f, post_type, ...(post_type !== 'video' ? { youtube_url: '' } : {}) }));
+    if (post_type !== 'image') setPhotos([]);
+  };
+
   const submit = (e) => {
     e.preventDefault();
     setError('');
@@ -77,9 +85,9 @@ export default function PostForm() {
           <div className="tor-form-section">
             <h3>Type &amp; category</h3>
             <div className="tor-radio-row">
-              <label className="tor-radio-option"><input type="radio" checked={form.post_type === 'text'} onChange={() => setForm((f) => ({ ...f, post_type: 'text' }))} /> Text</label>
-              <label className="tor-radio-option"><input type="radio" checked={form.post_type === 'video'} onChange={() => setForm((f) => ({ ...f, post_type: 'video' }))} /> Video</label>
-              <label className="tor-radio-option"><input type="radio" checked={form.post_type === 'image'} onChange={() => setForm((f) => ({ ...f, post_type: 'image' }))} /> Photos</label>
+              <label className="tor-radio-option"><input type="radio" checked={form.post_type === 'text'} onChange={() => selectType('text')} /> Text</label>
+              <label className="tor-radio-option"><input type="radio" checked={form.post_type === 'video'} onChange={() => selectType('video')} /> Video</label>
+              <label className="tor-radio-option"><input type="radio" checked={form.post_type === 'image'} onChange={() => selectType('image')} /> Photos</label>
             </div>
             <div style={{ marginTop: 14 }}>
               <label className="tor-field-label">Category</label>

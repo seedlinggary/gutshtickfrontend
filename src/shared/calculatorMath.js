@@ -38,6 +38,15 @@ export function futureValue(amount, annualRatePct, years) {
   return amount * (1 + annualRatePct / 100) ** years;
 }
 
+/** Present value -- the inverse of futureValue: how big a lump sum today
+ * needs to be to grow into `targetAmount` after `years` at `annualRatePct`,
+ * with no further contributions. Used by the Coast FIRE calculator (how
+ * much do I need *right now* to coast to my number) and the Savings Goal
+ * calculator's "one-time deposit" mode. */
+export function presentValue(targetAmount, annualRatePct, years) {
+  return targetAmount / (1 + annualRatePct / 100) ** years;
+}
+
 /** Total of a monthly amount that grows once a year by `annualGrowthPct`
  * (e.g. rent that goes up every lease renewal), summed over `years`. */
 export function growingAnnualTotal(monthlyAmount, annualGrowthPct, years) {

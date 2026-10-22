@@ -1,6 +1,7 @@
 {
   "rewrites": [
     { "source": "/sitemap.xml", "destination": "/api/sitemap" },
+
     { "source": "/business/:slug", "destination": "/api/render?kind=business&slug=:slug" },
     { "source": "/communities/:slug", "destination": "/api/render?kind=community&slug=:slug" },
     { "source": "/community", "destination": "/api/static-meta?route=community" },
@@ -8,6 +9,50 @@
     { "source": "/activities", "destination": "/api/static-meta?route=activities" },
     { "source": "/deals", "destination": "/api/static-meta?route=deals" },
     { "source": "/minyanim", "destination": "/api/static-meta?route=minyanim" },
+
+    { "source": "/listings/:slug", "destination": "/api/render?kind=estates_listing&slug=:slug" },
+    { "source": "/group-buy/:slug", "destination": "/api/render?kind=estates_groupbuy&slug=:slug" },
+    { "source": "/group-buy", "destination": "/api/static-meta?route=estates_groupbuy" },
+    { "source": "/calculators", "destination": "/api/static-meta?route=estates_calculators" },
+
+    { "source": "/investing", "destination": "/api/static-meta?route=money_investing" },
+    { "source": "/budgeting", "destination": "/api/static-meta?route=money_budgeting" },
+
+    { "source": "/posts/:slug", "destination": "/api/render?kind=torah_post&slug=:slug" },
+    { "source": "/zmanim", "destination": "/api/static-meta?route=torah_zmanim" },
+    { "source": "/sources", "destination": "/api/static-meta?route=torah_sources" },
+    { "source": "/prayers", "destination": "/api/static-meta?route=torah_prayers" },
+    { "source": "/sheets/public", "destination": "/api/static-meta?route=torah_sheets_public" },
+    { "source": "/sheets/:sheetId", "destination": "/api/render?kind=torah_sheet&slug=:sheetId" },
+
+    { "source": "/hock", "destination": "/api/static-meta?route=main_hock" },
+    { "source": "/hock/post/:id", "destination": "/api/render?kind=hock_post&slug=:id" },
+    { "source": "/tachlis", "destination": "/api/static-meta?route=main_tachlis" },
+    { "source": "/tachlis/post/:id", "destination": "/api/render?kind=tachlis_post&slug=:id" },
+    { "source": "/about", "destination": "/api/static-meta?route=main_about" },
+    { "source": "/post/:id", "destination": "/api/render?kind=shtick_post&slug=:id" },
+
+    {
+      "source": "/learn",
+      "has": [{ "type": "host", "value": "gutestates.com" }],
+      "destination": "/api/static-meta?route=estates_learn"
+    },
+    {
+      "source": "/learn",
+      "has": [{ "type": "host", "value": "www.gutestates.com" }],
+      "destination": "/api/static-meta?route=estates_learn"
+    },
+    {
+      "source": "/learn",
+      "has": [{ "type": "host", "value": "gutmoney.com" }],
+      "destination": "/api/static-meta?route=money_learn"
+    },
+    {
+      "source": "/learn",
+      "has": [{ "type": "host", "value": "www.gutmoney.com" }],
+      "destination": "/api/static-meta?route=money_learn"
+    },
+
     {
       "source": "/",
       "has": [{ "type": "host", "value": "gutcommunity.com" }],
@@ -18,6 +63,47 @@
       "has": [{ "type": "host", "value": "www.gutcommunity.com" }],
       "destination": "/api/static-meta?route=home"
     },
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "gutestates.com" }],
+      "destination": "/api/static-meta?route=estates_home"
+    },
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "www.gutestates.com" }],
+      "destination": "/api/static-meta?route=estates_home"
+    },
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "gutmoney.com" }],
+      "destination": "/api/static-meta?route=money_home"
+    },
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "www.gutmoney.com" }],
+      "destination": "/api/static-meta?route=money_home"
+    },
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "guttorah.com" }],
+      "destination": "/api/static-meta?route=torah_home"
+    },
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "www.guttorah.com" }],
+      "destination": "/api/static-meta?route=torah_home"
+    },
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "gutshtick.com" }],
+      "destination": "/api/static-meta?route=main_home"
+    },
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "www.gutshtick.com" }],
+      "destination": "/api/static-meta?route=main_home"
+    },
+
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [

@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import apiRequest from '../ApiRequest';
 import UploadFile from '../Uploadfile';
 import HoursEditor from './HoursEditor';
-import AddressAutocomplete from './AddressAutocomplete';
+import AddressAutocomplete from '../shared/AddressAutocomplete';
 import TypeTagPicker from './TypeTagPicker';
 import LocationTypeIcon from './LocationTypeIcon';
 import { CATEGORY_LABELS, FOOD_CATEGORIES, LOCATION_TYPE_META } from './categories';

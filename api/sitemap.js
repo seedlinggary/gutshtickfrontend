@@ -1,32 +1,41 @@
-// Dynamically generated sitemap.xml, served at the site's own domain via the
-// /sitemap.xml rewrite in vercel.json (a sitemap has to live under the same
-// host as the pages it lists -- it can't just point at the API's domain).
-// Pulls lean {slug, updated} rows from the backend rather than the full
-// business/community payloads, since a sitemap only needs enough to print
-// <url> entries.
+// Dynamically generated sitemap.xml, served at EVERY site's own domain via
+// the single unconditional `/sitemap.xml -> /api/sitemap` rewrite in
+// vercel.json (a sitemap has to live under the same host as the pages it
+// lists -- it can't just point at the API's domain, and since this is one
+// shared deployment for every site, that one rewrite fires for all of them).
+// So unlike render.js/static-meta.js (routed to the right per-site builder
+// by vercel.json's own host-gated rewrites), THIS file has to work out which
+// site it's serving itself, from req.headers.host -- see _sites.js.
+//
+// Pulls lean {slug/id, updated} rows from the backend rather than full
+// record payloads, since a sitemap only needs enough to print <url> entries.
 //
 // Single flat file stays correct up to ~50,000 URLs (the sitemap protocol's
-// hard cap); businesses + communities are already in the 30-40k range, so
-// this will need splitting into a <sitemapindex> of several sitemap-N.xml
-// files once that's crossed -- not needed yet, but the next maintainer
-// should watch BUSINESS_COUNT/COMMUNITY_COUNT logs below.
+// hard cap); Gut Community's businesses + communities are already in the
+// 30-40k range, so that one site will need splitting into a <sitemapindex>
+// of several sitemap-N.xml files once it crosses that -- not needed yet, but
+// the next maintainer should watch its logged counts. Every other site here
+// is nowhere close.
+
+const { siteForHost } = require('./_sites');
 
 const API_BASE = process.env.SEO_API_URL || process.env.VITE_API_URL;
 
-const STATIC_PATHS = [
-  { path: '/', changefreq: 'daily', priority: '1.0' },
-  { path: '/community', changefreq: 'daily', priority: '0.9' },
-  { path: '/communities', changefreq: 'daily', priority: '0.9' },
-  { path: '/activities', changefreq: 'weekly', priority: '0.7' },
-  { path: '/deals', changefreq: 'daily', priority: '0.8' },
-  { path: '/minyanim', changefreq: 'weekly', priority: '0.6' },
-];
+async function fetchJson(path) {
+  if (!API_BASE) return null;
+  try {
+    const res = await fetch(`${API_BASE}${path}`);
+    return res.ok ? await res.json() : null;
+  } catch (e) {
+    return null; // a slow/down backend shouldn't take the whole sitemap offline
+  }
+}
 
 function escapeXml(s) {
   return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' }[c]));
 }
 
-function urlEntry(loc, { lastmod, changefreq, priority }) {
+function urlEntry(loc, { lastmod, changefreq, priority } = {}) {
   return [
     '  <url>',
     `    <loc>${escapeXml(loc)}</loc>`,
@@ -37,34 +46,114 @@ function urlEntry(loc, { lastmod, changefreq, priority }) {
   ].filter(Boolean).join('\n');
 }
 
+async function businessEntries(origin) {
+  const [b, c] = await Promise.all([
+    fetchJson('/business/sitemap-data'),
+    fetchJson('/business/communities/sitemap-data'),
+  ]);
+  const businesses = (b && b.businesses) || [];
+  const communities = (c && c.communities) || [];
+  return [
+    ...[
+      { path: '/', changefreq: 'daily', priority: '1.0' },
+      { path: '/community', changefreq: 'daily', priority: '0.9' },
+      { path: '/communities', changefreq: 'daily', priority: '0.9' },
+      { path: '/activities', changefreq: 'weekly', priority: '0.7' },
+      { path: '/deals', changefreq: 'daily', priority: '0.8' },
+      { path: '/minyanim', changefreq: 'weekly', priority: '0.6' },
+    ].map((p) => urlEntry(`${origin}${p.path}`, p)),
+    ...businesses.filter((x) => x.slug).map((x) => urlEntry(`${origin}/business/${x.slug}`, { lastmod: x.updated, changefreq: 'weekly', priority: '0.6' })),
+    ...communities.filter((x) => x.slug).map((x) => urlEntry(`${origin}/communities/${x.slug}`, { lastmod: x.updated, changefreq: 'weekly', priority: '0.6' })),
+  ];
+}
+
+async function estatesEntries(origin) {
+  const [l, g] = await Promise.all([
+    fetchJson('/estates/sitemap-data'),
+    fetchJson('/estates/group-buys/sitemap-data'),
+  ]);
+  const listings = (l && l.listings) || [];
+  const groupBuys = (g && g.group_buys) || [];
+  return [
+    ...[
+      { path: '/', changefreq: 'daily', priority: '1.0' },
+      { path: '/group-buy', changefreq: 'daily', priority: '0.7' },
+      { path: '/learn', changefreq: 'monthly', priority: '0.5' },
+      { path: '/calculators', changefreq: 'monthly', priority: '0.6' },
+    ].map((p) => urlEntry(`${origin}${p.path}`, p)),
+    ...listings.filter((x) => x.slug).map((x) => urlEntry(`${origin}/listings/${x.slug}`, { lastmod: x.updated, changefreq: 'weekly', priority: '0.7' })),
+    ...groupBuys.filter((x) => x.slug).map((x) => urlEntry(`${origin}/group-buy/${x.slug}`, { lastmod: x.updated, changefreq: 'weekly', priority: '0.6' })),
+  ];
+}
+
+async function moneyEntries(origin) {
+  // No per-record pages -- quotes are looked up by ticker on the fly, not
+  // canonical indexable URLs, so this is just the fixed page set.
+  return [
+    { path: '/', changefreq: 'weekly', priority: '1.0' },
+    { path: '/investing', changefreq: 'weekly', priority: '0.6' },
+    { path: '/budgeting', changefreq: 'monthly', priority: '0.6' },
+    { path: '/learn', changefreq: 'monthly', priority: '0.6' },
+  ].map((p) => urlEntry(`${origin}${p.path}`, p));
+}
+
+async function torahEntries(origin) {
+  const [p, s] = await Promise.all([
+    fetchJson('/torah/posts/sitemap-data'),
+    fetchJson('/torah/sheets/sitemap-data'),
+  ]);
+  const posts = (p && p.posts) || [];
+  const sheets = (s && s.sheets) || [];
+  return [
+    ...[
+      { path: '/', changefreq: 'daily', priority: '1.0' },
+      { path: '/zmanim', changefreq: 'monthly', priority: '0.6' },
+      { path: '/sources', changefreq: 'weekly', priority: '0.8' },
+      { path: '/prayers', changefreq: 'monthly', priority: '0.5' },
+      { path: '/sheets/public', changefreq: 'daily', priority: '0.7' },
+    ].map((x) => urlEntry(`${origin}${x.path}`, x)),
+    ...posts.filter((x) => x.slug).map((x) => urlEntry(`${origin}/posts/${x.slug}`, { lastmod: x.updated, changefreq: 'monthly', priority: '0.6' })),
+    ...sheets.filter((x) => x.id != null).map((x) => urlEntry(`${origin}/sheets/${x.id}`, { lastmod: x.updated, changefreq: 'monthly', priority: '0.5' })),
+  ];
+}
+
+async function mainEntries(origin) {
+  const [shtick, hock, tachlis] = await Promise.all([
+    fetchJson('/shtick/sitemap-data'),
+    fetchJson('/hock/posts/sitemap-data'),
+    fetchJson('/tachlis/posts/sitemap-data'),
+  ]);
+  const shtickPosts = (shtick && shtick.posts) || [];
+  const hockPosts = (hock && hock.posts) || [];
+  const tachlisPosts = (tachlis && tachlis.posts) || [];
+  return [
+    ...[
+      { path: '/', changefreq: 'daily', priority: '1.0' },
+      { path: '/hock', changefreq: 'daily', priority: '0.8' },
+      { path: '/tachlis', changefreq: 'daily', priority: '0.7' },
+      { path: '/about', changefreq: 'yearly', priority: '0.3' },
+    ].map((p) => urlEntry(`${origin}${p.path}`, p)),
+    ...shtickPosts.filter((x) => x.id != null).map((x) => urlEntry(`${origin}/post/${x.id}`, { lastmod: x.updated, changefreq: 'monthly', priority: '0.5' })),
+    ...hockPosts.filter((x) => x.id != null).map((x) => urlEntry(`${origin}/hock/post/${x.id}`, { lastmod: x.updated, changefreq: 'monthly', priority: '0.5' })),
+    ...tachlisPosts.filter((x) => x.id != null).map((x) => urlEntry(`${origin}/tachlis/post/${x.id}`, { lastmod: x.updated, changefreq: 'weekly', priority: '0.5' })),
+  ];
+}
+
+const ENTRY_BUILDERS = {
+  business: businessEntries,
+  estates: estatesEntries,
+  money: moneyEntries,
+  torah: torahEntries,
+  main: mainEntries,
+  // Gut News is locked to super_admin only -- nothing public to index, so it
+  // intentionally has no entry here and falls through to an empty sitemap.
+};
+
 module.exports = async function handler(req, res) {
   const origin = `https://${req.headers.host}`;
-
-  let businesses = [];
-  let communities = [];
-  if (API_BASE) {
-    try {
-      const [bRes, cRes] = await Promise.all([
-        fetch(`${API_BASE}/business/sitemap-data`),
-        fetch(`${API_BASE}/business/communities/sitemap-data`),
-      ]);
-      if (bRes.ok) businesses = (await bRes.json()).businesses || [];
-      if (cRes.ok) communities = (await cRes.json()).communities || [];
-    } catch (e) {
-      // Fall through and still serve the static pages below -- a slow/down
-      // backend shouldn't take the whole sitemap offline.
-    }
-  }
-
-  const entries = [
-    ...STATIC_PATHS.map((p) => urlEntry(`${origin}${p.path}`, p)),
-    ...businesses
-      .filter((b) => b.slug)
-      .map((b) => urlEntry(`${origin}/business/${b.slug}`, { lastmod: b.updated, changefreq: 'weekly', priority: '0.6' })),
-    ...communities
-      .filter((c) => c.slug)
-      .map((c) => urlEntry(`${origin}/communities/${c.slug}`, { lastmod: c.updated, changefreq: 'weekly', priority: '0.6' })),
-  ];
+  const site = siteForHost(req.headers.host);
+  const build = ENTRY_BUILDERS[site];
+  const entries = build ? await build(origin) : [];
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${entries.join('\n')}\n</urlset>\n`;
 

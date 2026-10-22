@@ -64,6 +64,8 @@ export default function EstatesDirectory() {
   const [ownerOnly, setOwnerOnly] = useState(false);
   const [sort, setSort] = useState('');
   const [nearCoords, setNearCoords] = useState(null);
+  const [bbox, setBbox] = useState(null);
+  const [nearbySelection, setNearbySelection] = useState(null);
   const [shakeSeed, setShakeSeed] = useState(0);
   const [shaking, setShaking] = useState(false);
   const [results, setResults] = useState(null);
@@ -101,12 +103,16 @@ export default function EstatesDirectory() {
       params.set('lat', nearCoords.lat);
       params.set('lng', nearCoords.lng);
     }
+    if (bbox) {
+      params.set('north', bbox.north); params.set('south', bbox.south);
+      params.set('east', bbox.east); params.set('west', bbox.west);
+    }
     apiRequest('GET', null, `/estates/listings?${params.toString()}`)
       .then((d) => { setResults(d.listings || []); setHasMore(!!d.has_more); })
       .catch(() => setResults([]))
       .finally(() => setLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [listingType, q, city, agentOnly, ownerOnly, page, sort, nearCoords, shakeSeed]);
+  }, [listingType, q, city, agentOnly, ownerOnly, page, sort, nearCoords, bbox, shakeSeed]);
 
   useEffect(() => { resultsRef.current = results || []; }, [results]);
 
@@ -143,6 +149,9 @@ export default function EstatesDirectory() {
       <Suspense fallback={<div className="gs-loading"><div className="gs-spinner" /> Loading map…</div>}>
         <BusinessMap
           businesses={toMapPoints(results || [])}
+          onBoundsSearch={(box) => { setBbox(box); setNearbySelection(null); }}
+          onNearbySearch={({ bbox: box, point, radius }) => { setBbox(box); setNearbySelection({ point, radius }); }}
+          initialNearby={nearbySelection}
           onSelectBusiness={(id) => {
             const l = resultsRef.current.find((x) => x.id === id);
             if (l) navigate(`/listings/${l.slug}`);
@@ -184,7 +193,7 @@ export default function EstatesDirectory() {
               key={t.key || 'all'}
               type="button"
               className={`est-chip${listingType === t.key ? ' active' : ''}`}
-              onClick={() => { setPage(1); setListingType(t.key); }}
+              onClick={() => { setPage(1); setListingType(t.key); setBbox(null); setNearbySelection(null); }}
             >
               {t.label}
             </button>
@@ -199,12 +208,12 @@ export default function EstatesDirectory() {
               style={{ paddingLeft: 32, width: '100%' }}
               placeholder="Search by title or description"
               value={q}
-              onChange={(e) => { setPage(1); setQ(e.target.value); }}
+              onChange={(e) => { setPage(1); setQ(e.target.value); setBbox(null); setNearbySelection(null); }}
             />
           </div>
           <input
             className="gs-input" style={{ width: 160 }} placeholder="City"
-            value={city} onChange={(e) => { setPage(1); setCity(e.target.value); }}
+            value={city} onChange={(e) => { setPage(1); setCity(e.target.value); setBbox(null); setNearbySelection(null); }}
           />
           <select
             className="gs-input" style={{ width: 170 }} value={sort || 'random'}
@@ -217,13 +226,13 @@ export default function EstatesDirectory() {
           </select>
           <button
             type="button" className={`est-chip${agentOnly ? ' active' : ''}`}
-            onClick={() => { setPage(1); setAgentOnly((v) => !v); setOwnerOnly(false); }}
+            onClick={() => { setPage(1); setAgentOnly((v) => !v); setOwnerOnly(false); setBbox(null); setNearbySelection(null); }}
           >
             <BadgeCheck size={13} /> Agent listings
           </button>
           <button
             type="button" className={`est-chip${ownerOnly ? ' active' : ''}`}
-            onClick={() => { setPage(1); setOwnerOnly((v) => !v); setAgentOnly(false); }}
+            onClick={() => { setPage(1); setOwnerOnly((v) => !v); setAgentOnly(false); setBbox(null); setNearbySelection(null); }}
           >
             Owner listings
           </button>

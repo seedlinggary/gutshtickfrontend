@@ -5,6 +5,8 @@ import RetirementCalculator from './calculators/RetirementCalculator';
 import DebtPayoffCalculator from './calculators/DebtPayoffCalculator';
 import EmergencyFundCalculator from './calculators/EmergencyFundCalculator';
 import SavingsGoalCalculator from './calculators/SavingsGoalCalculator';
+import FireNumberCalculator from './calculators/FireNumberCalculator';
+import CoastFireCalculator from './calculators/CoastFireCalculator';
 
 const TABS = [
   { key: 'compound', label: 'Compound Interest', Component: CompoundInterestCalculator },
@@ -12,6 +14,8 @@ const TABS = [
   { key: 'debt', label: 'Debt Payoff', Component: DebtPayoffCalculator },
   { key: 'emergency', label: 'Emergency Fund', Component: EmergencyFundCalculator },
   { key: 'goal', label: 'Savings Goal', Component: SavingsGoalCalculator },
+  { key: 'fire_number', label: 'FIRE Number (4% Rule)', Component: FireNumberCalculator },
+  { key: 'coast_fire', label: 'Coast FIRE', Component: CoastFireCalculator },
 ];
 
 export default function Calculators() {

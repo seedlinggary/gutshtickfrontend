@@ -73,6 +73,7 @@
 .torah-theme .gs-navbar .nav-link-pin { background: var(--gold); border: 1.5px solid var(--gold); color: #fff; }
 .torah-theme .gs-navbar .nav-link-pin:hover { background: var(--gold-hover); border-color: var(--gold-hover); }
 .torah-theme .gs-navbar .dropdown-menu { background: var(--surface); color: var(--text); }
+.torah-theme .gs-navbar .navbar-collapse.show { background: var(--accent); border-bottom: 1px solid rgba(255, 255, 255, 0.12); }
 .torah-theme .gs-navbar .navbar-toggler-icon,
 .torah-theme .gs-navbar .navbar-toggler-icon::before,
 .torah-theme .gs-navbar .navbar-toggler-icon::after { background: #fff; }
@@ -216,3 +217,74 @@
 .tor-text-en { font-size: 15px; line-height: 1.7; color: var(--text); margin-bottom: 6px; }
 .tor-crumbs { font-size: 12.5px; color: var(--muted); margin-bottom: 14px; }
 .tor-crumbs button { background: none; border: none; color: var(--accent); cursor: pointer; font-weight: 700; padding: 0; }
+
+/* ── Chapter/daf/siman picker -- a real clickable list of what exists,
+   from /torah/sefaria/shape, not a blind text box ── */
+.tor-section-grid {
+  display: flex; flex-wrap: wrap; gap: 6px; max-height: 260px; overflow-y: auto;
+  padding: 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg);
+}
+.tor-section-btn {
+  min-width: 42px; padding: 6px 8px; font-size: 13px; font-family: var(--font-mono);
+  border: 1px solid var(--border); border-radius: 6px; background: var(--surface); color: var(--text); cursor: pointer;
+}
+.tor-section-btn:hover { border-color: var(--accent); color: var(--accent); }
+.tor-section-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.tor-subsection-picker {
+  margin-top: 10px; padding: 10px; border: 1px dashed var(--border); border-radius: var(--radius-sm); background: var(--surface);
+}
+
+/* ── Sources page layout + "add to source sheet" sidebar ── */
+.tor-sources-layout { display: grid; grid-template-columns: minmax(0, 1fr) 270px; gap: 20px; align-items: start; }
+@media (max-width: 860px) { .tor-sources-layout { grid-template-columns: 1fr; } }
+.tor-sheet-panel {
+  position: sticky; top: 80px; background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-md); padding: 16px;
+}
+@media (max-width: 860px) { .tor-sheet-panel { position: static; } }
+.tor-sheet-panel h4 { margin: 0 0 12px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
+.tor-sheet-panel-list { display: flex; flex-direction: column; gap: 6px; max-height: 240px; overflow-y: auto; }
+.tor-sheet-panel-item {
+  display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 8px;
+  border: 1px solid var(--border); border-radius: 6px; background: var(--bg); font-size: 12px;
+}
+.tor-sheet-panel-item span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tor-sheet-panel-item button { background: none; border: none; cursor: pointer; color: var(--muted); flex-shrink: 0; }
+.tor-sheet-panel-item button:hover { color: #b3261e; }
+.tor-add-to-sheet-btn {
+  display: flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 700; color: var(--accent);
+  background: var(--navy-wash); border: none; border-radius: 999px; padding: 4px 10px; cursor: pointer;
+}
+.tor-add-to-sheet-btn:hover { background: var(--gold-wash); color: var(--gold-hover); }
+.tor-add-to-sheet-hint {
+  position: absolute; top: 100%; right: 0; margin-top: 4px; background: var(--text); color: var(--surface);
+  font-size: 11px; padding: 4px 8px; border-radius: 6px; white-space: nowrap; z-index: 5;
+}
+
+/* ── Source sheets ── */
+.tor-sheet-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+.tor-sheet-card {
+  display: block; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md);
+  padding: 16px 18px; text-decoration: none; color: var(--text); transition: transform 150ms, box-shadow 150ms;
+}
+.tor-sheet-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+.tor-sheet-card h3 { margin: 0 0 4px; font-size: 15.5px; line-height: 1.3; }
+.tor-sheet-card p { margin: 0; font-size: 12.5px; color: var(--muted); }
+.tor-sheet-card-badge {
+  display: inline-flex; align-items: center; gap: 4px; font-size: 10.5px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.04em; padding: 2px 8px; border-radius: 999px; background: var(--navy-wash); color: var(--accent); margin-top: 8px;
+}
+.tor-sheet-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px 20px; margin-bottom: 12px; position: relative; }
+.tor-sheet-item-note { background: var(--bg); border-style: dashed; }
+.tor-sheet-item-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
+.tor-sheet-item-title { margin: 0; font-size: 14px; font-weight: 700; color: var(--text); }
+.tor-sheet-item-controls { display: flex; gap: 4px; flex-shrink: 0; }
+.tor-sheet-item-btn {
+  background: none; border: 1px solid var(--border); border-radius: 6px; width: 26px; height: 26px;
+  display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--muted);
+}
+.tor-sheet-item-btn:hover { color: var(--text); border-color: var(--muted-faint); }
+.tor-sheet-note-text { font-size: 14px; font-weight: 700; color: var(--text); margin: 0; }
+.tor-sheet-comment { font-size: 12.5px; color: var(--muted); font-style: italic; margin: 8px 0 0; padding-top: 8px; border-top: 1px solid var(--border); }
+.tor-sheet-export-row { display: flex; gap: 10px; flex-wrap: wrap; margin: 16px 0; }
+.tor-sheet-add-form { display: flex; flex-direction: column; gap: 10px; }

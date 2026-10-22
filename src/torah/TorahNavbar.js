@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  BookOpen, Sunrise, Library, Scroll, User, Plus, Settings, Plug, ShieldCheck, LogOut, ChevronDown,
+  BookOpen, Sunrise, Library, Scroll, ScrollText, User, Plus, Settings, Plug, ShieldCheck, LogOut, ChevronDown,
 } from 'lucide-react';
 import { getEmail, isAdmin, isSuperAdmin, clearAuth } from '../auth';
 import NotificationBell from '../NotificationBell';
@@ -51,6 +51,7 @@ export default function TorahNavbar() {
             <li className="nav-item"><button className="nav-link" onClick={() => go('/zmanim')}><Sunrise size={15} /> Zmanim</button></li>
             <li className="nav-item"><button className="nav-link" onClick={() => go('/sources')}><Library size={15} /> Sources</button></li>
             <li className="nav-item"><button className="nav-link" onClick={() => go('/prayers')}><Scroll size={15} /> Prayers</button></li>
+            <li className="nav-item"><button className="nav-link" onClick={() => go('/sheets')}><ScrollText size={15} /> Source Sheets</button></li>
           </ul>
           <ul className="navbar-nav navbar-nav-end">
             <li className="nav-item"><AccessibilityToggle /></li>

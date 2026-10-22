@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Sunrise, MapPin, Loader2 } from 'lucide-react';
+import { Sunrise, MapPin, Loader2, Search, X } from 'lucide-react';
 import apiRequest from '../ApiRequest';
 import { getBrowserCoordsDetailed, getNearMeErrorMessage } from '../shared/geolocation';
+import AddressAutocomplete from '../shared/AddressAutocomplete';
 
 const ZMAN_LABELS = [
   ['alotHaShachar', 'Alot HaShachar (dawn)'],
@@ -18,29 +19,40 @@ const ZMAN_LABELS = [
   ['tzeit85deg', 'Tzeit HaKochavim'],
 ];
 
-function formatTime(iso) {
+// Formats in the LOOKED-UP location's own timezone, not the viewer's --
+// zmanim are local solar times at that place, so a user in New York
+// checking Jerusalem's zmanim needs Jerusalem's clock time, not NY's. tzid
+// comes back from Hebcal itself (it auto-detects from lat/lng when no tzid
+// is sent, confirmed live), rather than being assumed from the browser.
+function formatTime(iso, tzid) {
   if (!iso) return '—';
   const d = new Date(iso);
-  return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', timeZone: tzid || undefined });
 }
 
 export default function Zmanim() {
   const [coords, setCoords] = useState(null);
+  const [locationLabel, setLocationLabel] = useState('');
+  const [tzid, setTzid] = useState(null);
   const [locating, setLocating] = useState(false);
+  const [citySearchOpen, setCitySearchOpen] = useState(false);
   const [error, setError] = useState('');
   const [zmanim, setZmanim] = useState(null);
   const [shabbat, setShabbat] = useState(null);
 
-  const tzid = Intl.DateTimeFormat().resolvedOptions().timeZone;
-
-  const load = async (lat, lng) => {
+  const load = async (lat, lng, label) => {
     setError('');
+    setCoords({ lat, lng });
+    setLocationLabel(label);
+    setCitySearchOpen(false);
     try {
+      // No tzid sent -- let Hebcal infer it from lat/lng (see formatTime).
       const [z, s] = await Promise.all([
-        apiRequest('GET', null, `/torah/zmanim?lat=${lat}&lng=${lng}&tzid=${encodeURIComponent(tzid)}`),
-        apiRequest('GET', null, `/torah/shabbat-times?lat=${lat}&lng=${lng}&tzid=${encodeURIComponent(tzid)}`),
+        apiRequest('GET', null, `/torah/zmanim?lat=${lat}&lng=${lng}`),
+        apiRequest('GET', null, `/torah/shabbat-times?lat=${lat}&lng=${lng}`),
       ]);
       setZmanim(z.times);
+      setTzid(z.location?.tzid || null);
       setShabbat(s.items || []);
     } catch (e) {
       setError('Could not load zmanim for this location right now.');
@@ -53,8 +65,19 @@ export default function Zmanim() {
     const { coords: c, error: err } = await getBrowserCoordsDetailed();
     setLocating(false);
     if (err) { setError(getNearMeErrorMessage(err)); return; }
-    setCoords(c);
-    load(c.lat, c.lng);
+    load(c.lat, c.lng, 'your current location');
+  };
+
+  const pickCity = (loc) => {
+    const label = [loc.city, loc.state, loc.country].filter(Boolean).join(', ') || 'this location';
+    load(loc.lat, loc.lng, label);
+  };
+
+  const changeLocation = () => {
+    setCoords(null);
+    setZmanim(null);
+    setShabbat(null);
+    setCitySearchOpen(false);
   };
 
   const candle = shabbat && shabbat.find((i) => i.category === 'candles');
@@ -72,16 +95,31 @@ export default function Zmanim() {
 
         {!coords && (
           <div className="tor-form-section" style={{ textAlign: 'center' }}>
-            <p style={{ marginTop: 0 }}>Share your location to see today's zmanim and this week's Shabbat times.</p>
-            <button type="button" className="gs-btn gs-btn-primary" onClick={findMe} disabled={locating}>
-              {locating ? <Loader2 size={15} className="tor-spin" /> : <MapPin size={15} />} {locating ? 'Locating…' : 'Use my location'}
-            </button>
+            <p style={{ marginTop: 0 }}>Share your location, or search any city, to see today's zmanim and this week's Shabbat times.</p>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+              <button type="button" className="gs-btn gs-btn-primary" onClick={findMe} disabled={locating}>
+                {locating ? <Loader2 size={15} className="tor-spin" /> : <MapPin size={15} />} {locating ? 'Locating…' : 'Use my location'}
+              </button>
+              <button type="button" className="gs-btn gs-btn-outline" onClick={() => setCitySearchOpen((o) => !o)}>
+                <Search size={15} /> Search a city
+              </button>
+            </div>
+            {citySearchOpen && (
+              <div style={{ maxWidth: 420, margin: '14px auto 0', textAlign: 'left' }}>
+                <AddressAutocomplete onSelect={pickCity} />
+              </div>
+            )}
             {error && <p className="tor-error" style={{ whiteSpace: 'pre-line', marginTop: 12 }}>{error}</p>}
           </div>
         )}
 
         {coords && (
           <>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, flexWrap: 'wrap', gap: 8 }}>
+              <p style={{ margin: 0, color: 'var(--muted)', fontSize: 13.5 }}>Showing zmanim for <strong style={{ color: 'var(--text)' }}>{locationLabel}</strong>.</p>
+              <button type="button" className="gs-btn gs-btn-outline gs-btn-sm" onClick={changeLocation}><X size={13} /> Change location</button>
+            </div>
+
             {parasha && (
               <div className="tor-form-section">
                 <h3 style={{ marginTop: 0 }}>This week: {parasha.title}</h3>
@@ -96,7 +134,7 @@ export default function Zmanim() {
                 {ZMAN_LABELS.map(([key, label]) => (
                   <div className="tor-zman-row" key={key}>
                     <span className="tor-zman-label">{label}</span>
-                    <span className="tor-zman-time">{formatTime(zmanim[key])}</span>
+                    <span className="tor-zman-time">{formatTime(zmanim[key], tzid)}</span>
                   </div>
                 ))}
               </div>

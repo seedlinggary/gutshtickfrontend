@@ -4,6 +4,7 @@ import apiRequest from '../ApiRequest';
 import { isLoggedIn } from '../auth';
 import { LineChart } from '../shared/SimpleCharts';
 import { computeInsights, GLOSSARY } from './stockInsights';
+import { INDICATOR_META, RANGE_GLOSSARY, changeOverYears, rangeOverYears } from './economicInsights';
 
 // Ranges under 6M are sliced from the daily series (free-tier daily history
 // only covers the latest ~100 trading days -- about 4-5 months); 6M and up
@@ -30,11 +31,38 @@ const INDICATORS = [
   { key: 'unemployment', label: 'Unemployment Rate', unitSuffix: '%' },
   { key: 'federal_funds_rate', label: 'Federal Funds Rate', unitSuffix: '%' },
   { key: 'real_gdp', label: 'Real GDP', unitSuffix: '' },
+].map((ind) => ({ ...ind, ...INDICATOR_META[ind.key] }));
+
+// These 4 endpoints return FULL history with no outputsize cap (confirmed
+// live -- CPI alone goes back to 1913), so "large" ranges are real options
+// here, unlike stock daily data.
+const INDICATOR_RANGES = [
+  { key: '1Y', label: '1Y', years: 1 },
+  { key: '5Y', label: '5Y', years: 5 },
+  { key: '10Y', label: '10Y', years: 10 },
+  { key: '25Y', label: '25Y', years: 25 },
+  { key: 'MAX', label: 'Max', years: null },
 ];
+
+function sliceByYears(points, years) {
+  if (years == null || points.length === 0) return points;
+  // Measured from the latest DATA point, not today -- see
+  // economicInsights.js's changeOverYears for why (annual series like real
+  // GDP lag real-time by a year or more).
+  const cutoff = new Date(points[points.length - 1].date).getTime() - years * 365 * 24 * 60 * 60 * 1000;
+  return points.filter((p) => new Date(p.date).getTime() >= cutoff);
+}
+
+function formatIndicatorValue(value, unitSuffix) {
+  return `${Number(value).toLocaleString(undefined, { maximumFractionDigits: 2 })}${unitSuffix}`;
+}
 
 function IndicatorCard({ indicator }) {
   const [data, setData] = useState(null);
   const [error, setError] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  const [range, setRange] = useState(INDICATOR_RANGES[1]); // 5Y default
+  const [glossaryOpen, setGlossaryOpen] = useState(false);
 
   useEffect(() => {
     apiRequest('GET', null, `/finance/indicator/${indicator.key}`)
@@ -45,22 +73,118 @@ function IndicatorCard({ indicator }) {
   if (error) return <div className="fin-indicator-card"><h4>{indicator.label}</h4><p className="fin-empty">Unavailable right now.</p></div>;
   if (!data) return <div className="fin-indicator-card"><h4>{indicator.label}</h4><p className="fin-empty">Loading…</p></div>;
 
-  const points = (data.data || []).slice(0, 24).reverse().map((d, i) => ({ x: i, y: Number(d.value), date: d.date }));
+  // AV returns these newest-first; flip to oldest-first once, used for both
+  // the compact sparkline and (sliced further) the expanded chart/metrics.
+  const allPoints = (data.data || []).slice().reverse().map((d) => ({ date: d.date, value: d.value }));
   const latest = data.data && data.data[0];
 
+  if (!expanded) {
+    const miniPoints = allPoints.slice(-24).map((p, i) => ({ x: i, y: Number(p.value), date: p.date }));
+    return (
+      <div className="fin-indicator-card">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <h4>{indicator.label}</h4>
+          <button type="button" className="fin-indicator-expand" onClick={() => setExpanded(true)}>
+            View details <ChevronDown size={13} />
+          </button>
+        </div>
+        <div className="fin-indicator-value">{latest ? formatIndicatorValue(latest.value, indicator.unitSuffix) : '—'}</div>
+        {miniPoints.length > 1 && (
+          <LineChart
+            points={miniPoints} height={120} compact
+            formatY={(v) => `${v.toFixed(1)}${indicator.unitSuffix}`}
+            xLabel={(p) => p.date}
+            ariaLabel={`${indicator.label} trend`}
+          />
+        )}
+        <p style={{ fontSize: 11.5, color: 'var(--muted)', margin: '6px 0 0' }}>As of {latest ? latest.date : '—'}</p>
+      </div>
+    );
+  }
+
+  const rangedPoints = sliceByYears(allPoints, range.years);
+  const chartPoints = rangedPoints.map((p, i) => ({ x: i, y: Number(p.value), date: p.date }));
+  const change1Y = changeOverYears(allPoints, 1, indicator.kind);
+  const change5Y = changeOverYears(allPoints, 5, indicator.kind);
+  const rangeStats = rangeOverYears(allPoints, range.years ?? 200);
+  const change1YLabel = indicator.key === 'cpi' ? 'Annual inflation rate' : '1-year change';
+
   return (
-    <div className="fin-indicator-card">
-      <h4>{indicator.label}</h4>
-      <div className="fin-indicator-value">{latest ? `${latest.value}${indicator.unitSuffix}` : '—'}</div>
-      {points.length > 1 && (
-        <LineChart
-          points={points} height={120} compact
-          formatY={(v) => `${v.toFixed(1)}${indicator.unitSuffix}`}
-          xLabel={(p) => p.date}
-          ariaLabel={`${indicator.label} trend`}
-        />
+    <div className="fin-indicator-card fin-indicator-card-expanded" style={{ gridColumn: '1 / -1' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <h4>{indicator.label}</h4>
+        <button type="button" className="fin-indicator-expand" onClick={() => setExpanded(false)}>
+          Collapse <ChevronUp size={13} />
+        </button>
+      </div>
+      <div className="fin-indicator-value">{latest ? formatIndicatorValue(latest.value, indicator.unitSuffix) : '—'}</div>
+      <p style={{ fontSize: 11.5, color: 'var(--muted)', margin: '-6px 0 10px' }}>As of {latest ? latest.date : '—'}</p>
+
+      <div className="fin-chip-row" style={{ marginBottom: 0 }}>
+        {INDICATOR_RANGES.map((r) => (
+          <button key={r.key} type="button" className={`fin-chip${range.key === r.key ? ' active' : ''}`} onClick={() => setRange(r)}>
+            {r.label}
+          </button>
+        ))}
+      </div>
+      {chartPoints.length > 1 && (
+        <div style={{ marginTop: 10 }}>
+          <LineChart points={chartPoints} formatY={(v) => `${v.toFixed(1)}${indicator.unitSuffix}`} xLabel={(p) => p.date} ariaLabel={`${indicator.label} history`} />
+        </div>
       )}
-      <p style={{ fontSize: 11.5, color: 'var(--muted)', margin: '6px 0 0' }}>As of {latest ? latest.date : '—'}</p>
+
+      <div className="fin-insight-section">
+        <h4 className="fin-insight-heading">In-depth: what this data actually means</h4>
+        <div className="fin-insight-grid">
+          <div className="fin-insight-tile">
+            <div className="fin-insight-tile-label">Range over selected period</div>
+            {rangeStats ? (
+              <div className="fin-insight-tile-value">
+                {formatIndicatorValue(rangeStats.min, indicator.unitSuffix)} – {formatIndicatorValue(rangeStats.max, indicator.unitSuffix)}
+              </div>
+            ) : <div className="fin-insight-tile-value" style={{ color: 'var(--muted)' }}>—</div>}
+          </div>
+          <div className="fin-insight-tile">
+            <div className="fin-insight-tile-label">{change1YLabel}</div>
+            {change1Y ? (
+              <div className={`fin-insight-tile-value ${(change1Y.pctChange ?? change1Y.pointChange) >= 0 ? 'up' : 'down'}`}>
+                {indicator.kind === 'rate'
+                  ? `${change1Y.pointChange >= 0 ? '+' : ''}${change1Y.pointChange.toFixed(2)} pts`
+                  : `${change1Y.pctChange >= 0 ? '+' : ''}${change1Y.pctChange.toFixed(1)}%`}
+              </div>
+            ) : <div className="fin-insight-tile-value" style={{ color: 'var(--muted)' }}>Not enough history</div>}
+            <div className="fin-insight-tile-note">vs. ~1 year ago</div>
+          </div>
+          <div className="fin-insight-tile">
+            <div className="fin-insight-tile-label">5-year change</div>
+            {change5Y ? (
+              <div className={`fin-insight-tile-value ${(change5Y.pctChange ?? change5Y.pointChange) >= 0 ? 'up' : 'down'}`}>
+                {indicator.kind === 'rate'
+                  ? `${change5Y.pointChange >= 0 ? '+' : ''}${change5Y.pointChange.toFixed(2)} pts`
+                  : `${change5Y.pctChange >= 0 ? '+' : ''}${change5Y.pctChange.toFixed(1)}%`}
+              </div>
+            ) : <div className="fin-insight-tile-value" style={{ color: 'var(--muted)' }}>Not enough history</div>}
+            <div className="fin-insight-tile-note">vs. ~5 years ago</div>
+          </div>
+        </div>
+
+        <div className="fin-glossary">
+          <button type="button" className="fin-glossary-toggle" onClick={() => setGlossaryOpen((o) => !o)}>
+            {glossaryOpen ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+            What do these terms mean?
+          </button>
+          {glossaryOpen && (
+            <div className="fin-glossary-list">
+              {[indicator.glossary, ...RANGE_GLOSSARY].map((g) => (
+                <div key={g.term}>
+                  <div className="fin-glossary-term">{g.term}</div>
+                  <p className="fin-glossary-def">{g.definition}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

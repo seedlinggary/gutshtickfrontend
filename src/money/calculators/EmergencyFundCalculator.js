@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { formatMoney } from '../../shared/calculatorMath';
+import SavedScenarios from '../SavedScenarios';
 
 const DEFAULTS = { monthlyExpenses: 3000, monthsCoverage: 4, currentSavings: 2000, monthlySavings: 300 };
 
@@ -48,6 +49,7 @@ export default function EmergencyFundCalculator() {
           <div className="fin-calc-row total"><span className="fin-calc-row-label">Months to reach goal</span><span className="fin-calc-row-value">{isFinite(monthsToGoal) ? monthsToGoal : '—'}</span></div>
         </div>
       </div>
+      <SavedScenarios calculatorKey="emergency" inputs={f} onLoad={setF} />
     </div>
   );
 }

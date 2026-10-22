@@ -43,10 +43,47 @@ export default function Learn() {
           <p>A <strong>stock</strong> is a small ownership share in one company -- its value rises and falls with that company's prospects, which makes a single stock risky on its own. A <strong>bond</strong> is a loan you make to a company or government in exchange for regular interest payments, generally steadier but with lower long-term returns than stocks. An <strong>index fund</strong> pools money to buy a whole basket of stocks or bonds at once (e.g. "the S&amp;P 500"), spreading your risk across hundreds of companies instead of betting on one -- this diversification is why index funds are a common default recommendation for long-term investors who don't want to pick individual stocks.</p>
           <h3>Retirement accounts (US)</h3>
           <p>A <strong>401(k)</strong> is an employer-sponsored account, often with an employer match (effectively free money up to a limit -- a common piece of advice is to contribute at least enough to get the full match before anything else). An <strong>IRA</strong> (Individual Retirement Account) is opened on your own, independent of an employer. Both come in traditional (contributions reduce your taxable income now, withdrawals are taxed later) and Roth (contributions are taxed now, withdrawals in retirement are tax-free) versions. For 2026, the IRS set the 401(k) employee contribution limit at $24,500/year ($32,500 if you're 50+), and the IRA limit at $7,500/year ($8,600 if you're 50+) -- these are adjusted most years, so check the current IRS figures before planning around them.</p>
-          <p>Use the <Link to="/investing">Investing page</Link> to look up real quotes and charts for specific tickers, and the <Link to="/calculators">Retirement calculator</Link> to project what consistent contributions could grow into.</p>
+          <p>Use the <Link to="/investing">Investing page</Link> to look up real quotes and charts for specific tickers, and the <Link to="/">Retirement calculator</Link> to project what consistent contributions could grow into.</p>
           <Sources items={[
             { label: 'IRS reveals new 401(k), IRA contribution limits for 2026 (InvestmentNews)', url: 'https://www.investmentnews.com/retirement-planning/irs-reveals-new-401k-ira-contribution-limits-for-2026/263029' },
             { label: '401(k) and IRAs: 2026 Contribution Limits (Vision Retirement)', url: 'https://www.visionretirement.com/401k-and-ira-contribution-limits' },
+          ]} />
+        </div>
+
+        <div className="fin-guide-section">
+          <span className="fin-guide-kicker">Retiring early</span>
+          <h2>FIRE, Coast FIRE, and the 4% rule</h2>
+          <h3>The 4% rule</h3>
+          <p>
+            The <strong>4% rule</strong> is a rule of thumb for how much you can safely withdraw from a retirement
+            portfolio each year without running out of money. It traces back to financial planner William Bengen's
+            1994 research, then the 1998 "Trinity Study" (three professors analyzing US stock/bond returns from 1926
+            to 1995): a 4% first-year withdrawal, increased for inflation every year after, survived 95% of every
+            rolling 30-year historical period they tested with a 50/50 stock-bond portfolio. Flip it around and it
+            tells you your <strong>"FIRE number"</strong> -- the portfolio size you'd need -- by dividing your annual
+            spending by 4% (equivalently, multiplying it by 25). It's a historical rule of thumb based on US market
+            data, not a guarantee: it doesn't account for taxes or fees, and some planners now suggest 3-3.5% for
+            extra safety, especially for a retirement likely to run longer than 30 years.
+          </p>
+          <h3>FIRE and Coast FIRE</h3>
+          <p>
+            <strong>FIRE</strong> ("Financial Independence, Retire Early") is the broader movement of saving
+            aggressively toward that FIRE number well before traditional retirement age. <strong>Coast FIRE</strong>{' '}
+            is the specific milestone where you've saved <em>enough</em> that, even if you stopped contributing to
+            retirement entirely today, compound growth alone would carry that balance to your full FIRE number by a
+            normal retirement age -- from that point on you only need to earn enough to cover current living costs
+            ("coast"), not to keep saving for retirement too. It doesn't mean stopping work altogether, just that
+            further retirement saving becomes optional rather than necessary.
+          </p>
+          <p>
+            Use the <Link to="/">FIRE Number calculator</Link> to find your own number from the 4% rule,
+            and the <Link to="/">Coast FIRE calculator</Link> to see whether you've already reached it or
+            how much more you'd need as a lump sum today.
+          </p>
+          <Sources items={[
+            { label: '4% rule (Wikipedia)', url: 'https://en.wikipedia.org/wiki/4%25_rule' },
+            { label: 'Trinity study (Wikipedia)', url: 'https://en.wikipedia.org/wiki/Trinity_study' },
+            { label: 'What is Coast FIRE? (ChooseFI)', url: 'https://choosefi.com/coast-fire' },
           ]} />
         </div>
 
@@ -58,7 +95,7 @@ export default function Learn() {
           <p>Mathematically optimal -- the debt costing you the most in interest gets paid off first, which minimizes the total interest you'll pay over time.</p>
           <h3>Snowball: smallest balance first</h3>
           <p>Pays off the smallest balance first regardless of its interest rate, to get a quick win and build momentum -- can cost a bit more in total interest than avalanche, but the early payoffs can make it easier to actually stick with the plan.</p>
-          <div className="fin-guide-note">Run your own numbers on the <Link to="/calculators">Debt Payoff calculator</Link> to see exactly how much a given payment amount costs you in interest and how long it takes.</div>
+          <div className="fin-guide-note">Run your own numbers on the <Link to="/">Debt Payoff calculator</Link> to see exactly how much a given payment amount costs you in interest and how long it takes.</div>
           <Sources items={[
             { label: 'Debt snowball method vs. debt avalanche: What\'s the difference? (Fox Business)', url: 'https://www.foxbusiness.com/fox-money/personal-loans/debt-snowball-method-vs-debt-avalanche' },
             { label: 'Debt snowball vs. avalanche: which payoff method works best (Chase)', url: 'https://www.chase.com/personal/banking/education/basics/debt-snowball-vs-avalanche' },

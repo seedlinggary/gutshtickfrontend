@@ -46,6 +46,8 @@ function toMapPoints(groupBuys) {
 export default function GroupBuy() {
   const navigate = useNavigate();
   const [q, setQ] = useState('');
+  const [bbox, setBbox] = useState(null);
+  const [nearbySelection, setNearbySelection] = useState(null);
   const [results, setResults] = useState(null);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
@@ -58,11 +60,15 @@ export default function GroupBuy() {
     setLoading(true);
     const params = new URLSearchParams({ page: String(page) });
     if (q.trim()) params.set('q', q.trim());
+    if (bbox) {
+      params.set('north', bbox.north); params.set('south', bbox.south);
+      params.set('east', bbox.east); params.set('west', bbox.west);
+    }
     apiRequest('GET', null, `/estates/group-buys?${params.toString()}`)
       .then((d) => { setResults(d.group_buys || []); setHasMore(!!d.has_more); })
       .catch(() => setResults([]))
       .finally(() => setLoading(false));
-  }, [q, page]);
+  }, [q, page, bbox]);
 
   useEffect(() => { resultsRef.current = results || []; }, [results]);
 
@@ -71,6 +77,9 @@ export default function GroupBuy() {
       <Suspense fallback={<div className="gs-loading"><div className="gs-spinner" /> Loading map…</div>}>
         <BusinessMap
           businesses={toMapPoints(results || [])}
+          onBoundsSearch={(box) => { setBbox(box); setNearbySelection(null); }}
+          onNearbySearch={({ bbox: box, point, radius }) => { setBbox(box); setNearbySelection({ point, radius }); }}
+          initialNearby={nearbySelection}
           onSelectBusiness={(id) => {
             const g = resultsRef.current.find((x) => x.id === id);
             if (g) navigate(`/group-buy/${g.slug}`);
@@ -121,7 +130,7 @@ export default function GroupBuy() {
           <input
             className="gs-input" style={{ paddingLeft: 32, width: '100%' }}
             placeholder="Search by project or city"
-            value={q} onChange={(e) => { setPage(1); setQ(e.target.value); }}
+            value={q} onChange={(e) => { setPage(1); setQ(e.target.value); setBbox(null); setNearbySelection(null); }}
           />
         </div>
 

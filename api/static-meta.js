@@ -1,51 +1,171 @@
-// Per-page title/description/OG for the business site's own *listing* pages
-// (home, Shuls & Orgs, Community, Activities, Deals, Minyan search) -- these
-// have no per-record data to fetch (see render.js for the business/community
-// detail pages, which do), just fixed copy that's still unique per page
-// instead of every one of them sharing index.html's single site-wide
-// "Gut Shtick -- curated content worth sharing" title.
+// Per-page title/description/OG for every site's own *listing/static* pages
+// (home, category pages, etc.) -- these have no per-record data to fetch
+// (see render.js for detail pages, which do), just fixed copy that's still
+// unique per page instead of every one of them sharing index.html's single
+// site-wide "Gut Shtick -- curated content worth sharing" title.
 //
-// Only "/" is wired through vercel.json with a host check (see the
-// gutcommunity.com/www entries there) -- it's the one path this shared
-// deployment's OTHER site (the main Gut Shtick consumer site, same repo,
-// same build, picked by hostname at runtime in the client) also uses for its
-// own homepage, so this must never fire for that domain. The other routes
-// here (/community, /communities, /activities, /deals, /minyanim) don't
-// exist in the consumer site's own route table at all, so they're safe
-// unconditionally.
-
-const SITE_NAME = 'Gut Community';
+// Every entry's `route` key is site-prefixed (estates_home, money_home, ...)
+// so one flat PAGES map can serve every site with no key collisions, even
+// where two sites happen to have the same path (e.g. both Estates and Money
+// have a "/learn") -- vercel.json's rewrites are what pick the right key per
+// site/host, this file just has to not collide once they do. A `siteName`
+// per entry (rather than one shared constant) is what makes that safe.
+//
+// Each site's own "/" entry is wired through vercel.json with a host check
+// (see e.g. the gutcommunity.com/www entries there) -- every site here is
+// one shared deployment (same repo, same build, picked by hostname at
+// runtime in the client), and "/" is the one path EVERY site uses for its
+// own homepage, so each "/" rewrite has to be scoped to that site's own
+// hostnames or it would fire for the wrong site. Every other route here is
+// unique to its own site's route table, so those are safe unconditionally.
 
 const PAGES = {
+  // ── Gut Community ──────────────────────────────────────────────────────
   home: {
+    siteName: 'Gut Community',
     title: 'Gut Community — The Real Jewish Business Directory',
     description: 'Find real, community-sourced Jewish-owned businesses near you: restaurants, grocery, retail and services, searchable by city or "near me."',
     path: '/',
   },
   community: {
+    siteName: 'Gut Community',
     title: 'Shuls & Chessed Organizations Near You | Gut Community',
     description: 'Find a shul, mikvah, school or chessed organization in your area -- real, community-sourced listings, searchable by city or "near me."',
     path: '/community',
   },
   communities: {
+    siteName: 'Gut Community',
     title: 'Find a Jewish Community | Gut Community',
     description: 'Look up any Jewish community by city: shuls, mikvahs, schools, kosher businesses and local activities, all pulled together in one place.',
     path: '/communities',
   },
   activities: {
+    siteName: 'Gut Community',
     title: 'Jewish Family Activities & Attractions Near You | Gut Community',
     description: 'Find kid-friendly attractions and things to do, sourced from the same real local directory data as the rest of Gut Community.',
     path: '/activities',
   },
   deals: {
+    siteName: 'Gut Community',
     title: 'Local Deals from Jewish-Owned Businesses | Gut Community',
     description: 'Real deals and promotions posted directly by Jewish-owned businesses near you -- updated daily.',
     path: '/deals',
   },
   minyanim: {
+    siteName: 'Gut Community',
     title: 'Find a Minyan Time Near You | Gut Community',
     description: 'Search shacharis, mincha and maariv times at shuls near you, including seasonal and sun-relative minyanim.',
     path: '/minyanim',
+  },
+
+  // ── Gut Estates ─────────────────────────────────────────────────────────
+  estates_home: {
+    siteName: 'Gut Estates',
+    title: 'Gut Estates — Real Listings Posted Directly by Owners & Agents',
+    description: 'Buy, rent, or find a short-term rental -- real listings posted directly by owners and agents, searchable by city, price or "near me."',
+    path: '/',
+  },
+  estates_groupbuy: {
+    siteName: 'Gut Estates',
+    title: 'Group Buys — Pre-Construction Deals | Gut Estates',
+    description: "Band together with other buyers on the same pre-construction project for a real bulk discount -- common in Israel's \"al haneyar\" market. Browse open projects or start your own.",
+    path: '/group-buy',
+  },
+  estates_learn: {
+    siteName: 'Gut Estates',
+    title: 'Home Buying & Renting, Explained Plainly | Gut Estates',
+    description: 'Mortgages, closing costs, rent vs. buy, and what agents and owners actually mean -- the basics, with sources.',
+    path: '/learn',
+  },
+  estates_calculators: {
+    siteName: 'Gut Estates',
+    title: 'Mortgage, Affordability & Rent-vs-Buy Calculators | Gut Estates',
+    description: 'Free calculators for a mortgage payment, how much home you can afford, closing costs, purchase tax, and whether renting or buying wins for your numbers.',
+    path: '/calculators',
+  },
+
+  // ── Gut Money ───────────────────────────────────────────────────────────
+  money_home: {
+    siteName: 'Gut Money',
+    title: 'Gut Money — Budgeting, Investing & Retirement Calculators',
+    description: 'Free calculators for compound interest, retirement, debt payoff, a savings goal, your FIRE number and Coast FIRE -- plus real stock quotes and a budgeting tool.',
+    path: '/',
+  },
+  money_investing: {
+    siteName: 'Gut Money',
+    title: 'Stock Quotes & Charts | Gut Money',
+    description: 'Look up real quotes and charts for any ticker, and track the ones you care about in a watchlist.',
+    path: '/investing',
+  },
+  money_budgeting: {
+    siteName: 'Gut Money',
+    title: 'Budgeting Tool | Gut Money',
+    description: 'Build a category-by-category monthly budget, see the breakdown as a chart, and set a real savings goal against it.',
+    path: '/budgeting',
+  },
+  money_learn: {
+    siteName: 'Gut Money',
+    title: 'Money Basics, Explained Plainly | Gut Money',
+    description: 'Budgeting, investing, debt, credit, FIRE and the 4% rule -- enough to make sense of the decisions ahead of you, with sources.',
+    path: '/learn',
+  },
+
+  // ── Gut Torah ───────────────────────────────────────────────────────────
+  torah_home: {
+    siteName: 'Gut Torah',
+    title: 'Gut Torah — Divrei Torah, Zmanim, Sources & Source Sheets',
+    description: 'Share and read divrei Torah, look up zmanim for any city, browse the full Tanach/Talmud/Halacha library, and build shareable source sheets.',
+    path: '/',
+  },
+  torah_zmanim: {
+    siteName: 'Gut Torah',
+    title: 'Zmanim — Halachic Times for Any City | Gut Torah',
+    description: 'Look up shacharis, mincha, maariv, candle-lighting and every other halachic time for any city, searchable by name.',
+    path: '/zmanim',
+  },
+  torah_sources: {
+    siteName: 'Gut Torah',
+    title: 'Tanach, Talmud & Halacha Library | Gut Torah',
+    description: 'The full Tanach, Talmud Bavli and Yerushalmi, and Halacha (Rambam, Tur, Shulchan Aruch) with their classic commentaries, down to a single pasuk or sif katan.',
+    path: '/sources',
+  },
+  torah_prayers: {
+    siteName: 'Gut Torah',
+    title: 'Siddur — Weekday Prayers | Gut Torah',
+    description: 'The weekday siddur, laid out for actual davening.',
+    path: '/prayers',
+  },
+  torah_sheets_public: {
+    siteName: 'Gut Torah',
+    title: 'Browse Public Source Sheets | Gut Torah',
+    description: "Source sheets shared by other users -- browse, and copy any of them into your own sheets to edit freely.",
+    path: '/sheets/public',
+  },
+
+  // ── Gut Shtick (main) ───────────────────────────────────────────────────
+  main_home: {
+    siteName: 'Gut Shtick',
+    title: 'Gut Shtick — Curated Content Worth Sharing',
+    description: 'A daily feed of posts worth sharing, a Hock discussion forum, a Tachlis jobs/services board, and dozens of free browser games.',
+    path: '/',
+  },
+  main_hock: {
+    siteName: 'Gut Shtick',
+    title: 'Hock — Discussion Forum | Gut Shtick',
+    description: 'A discussion forum for whatever\'s on your mind -- post, comment, and reply in threads.',
+    path: '/hock',
+  },
+  main_tachlis: {
+    siteName: 'Gut Shtick',
+    title: 'Tachlis — Jobs, Resumes & Services Board | Gut Shtick',
+    description: 'Post or browse job openings, resumes, and services offered -- a straightforward classifieds board.',
+    path: '/tachlis',
+  },
+  main_about: {
+    siteName: 'Gut Shtick',
+    title: 'About | Gut Shtick',
+    description: 'What Gut Shtick is and who it\'s for.',
+    path: '/about',
   },
 };
 
@@ -59,7 +179,7 @@ function injectMeta(html, meta, url) {
     <meta name="description" content="${escapeHtml(meta.description)}" />
     <link rel="canonical" href="${url}" />
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="${escapeHtml(SITE_NAME)}" />
+    <meta property="og:site_name" content="${escapeHtml(meta.siteName)}" />
     <meta property="og:title" content="${escapeHtml(meta.title)}" />
     <meta property="og:description" content="${escapeHtml(meta.description)}" />
     <meta property="og:url" content="${url}" />

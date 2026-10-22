@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { monthsToPayoff, formatMoney } from '../../shared/calculatorMath';
 import { LineChart } from '../../shared/SimpleCharts';
+import SavedScenarios from '../SavedScenarios';
 
 const DEFAULTS = { balance: 8000, rate: 22, monthlyPayment: 300 };
 
@@ -75,6 +76,7 @@ export default function DebtPayoffCalculator() {
           )}
         </div>
       </div>
+      <SavedScenarios calculatorKey="debt" inputs={f} onLoad={setF} />
     </div>
   );
 }

@@ -1714,6 +1714,15 @@ iframe {
 .sa-activity-section h4 { font-size: 14px; font-weight: 700; margin-bottom: 10px; color: var(--primary); }
 .sa-activity-item { display: flex; gap: 10px; align-items: center; font-size: 12px; padding: 4px 0; border-bottom: 1px solid var(--border); }
 .sa-activity-item:last-child { border-bottom: none; }
+.sa-session-row {
+  display: grid; grid-template-columns: 140px 110px 100px 140px 140px 90px 130px;
+  gap: 12px; padding: 10px 16px; align-items: center;
+  border-bottom: 1px solid var(--border); font-size: 13px;
+  min-width: 850px;
+}
+.sa-session-row.header { background: var(--bg); font-weight: 700; font-size: 11px; text-transform: uppercase; color: var(--muted); }
+.sa-session-row:last-child { border-bottom: none; }
+.sa-session-row:not(.header):hover { background: rgba(245,158,11,0.04); }
 
 @media (max-width: 768px) {
   .admin-page { padding: 24px 14px 60px; }

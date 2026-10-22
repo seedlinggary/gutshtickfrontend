@@ -20,6 +20,12 @@ export const clearAuth = () => {
   // localStorage (see VisitorTracker.js), so this is just a local removal --
   // no backend round-trip needed, unlike when this was cookie-based.
   localStorage.removeItem('anon_id');
+
+  // Gut Torah's "active source sheet" (see torah/sheets/useActiveSheet.js)
+  // is a global, not per-user, localStorage key -- without clearing it here,
+  // the next person to log in on this browser would have someone else's
+  // sheet pre-selected as "active" the moment they open Sources.
+  localStorage.removeItem('torah_active_sheet_id');
 };
 
 export const saveAuth = (data, email) => {

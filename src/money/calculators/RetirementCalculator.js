@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { futureValueWithContributions, formatMoney } from '../../shared/calculatorMath';
 import { LineChart } from '../../shared/SimpleCharts';
+import SavedScenarios from '../SavedScenarios';
 
 const DEFAULTS = { currentAge: 30, retireAge: 65, currentSavings: 20000, monthlyContribution: 500, rate: 7, withdrawalRatePct: 4 };
 
@@ -65,6 +66,7 @@ export default function RetirementCalculator() {
           <div className="fin-calc-row total"><span className="fin-calc-row-label">≈ per month</span><span className="fin-calc-row-value">{formatMoney(sustainableMonthly)}</span></div>
         </div>
       </div>
+      <SavedScenarios calculatorKey="retirement" inputs={f} onLoad={setF} />
     </div>
   );
 }

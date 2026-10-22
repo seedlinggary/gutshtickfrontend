@@ -1,25 +1,25 @@
-// Backend-injected per-page <title>/meta/Open Graph/JSON-LD for business and
-// community detail pages. Vite builds this into a single static index.html
-// with one site-wide title (see good-shtick/index.html) -- fine for a plain
-// SPA, but it means every /business/:slug and /communities/:slug page would
-// otherwise show identical text in search results and link previews
-// (Facebook/WhatsApp/iMessage unfurls don't run the SPA's JS, so a
+// Backend-injected per-page <title>/meta/Open Graph/JSON-LD for every site's
+// detail pages (a business/community/listing/group-buy/post/sheet). Vite
+// builds this into a single static index.html with one site-wide title (see
+// good-shtick/index.html) -- fine for a plain SPA, but it means every detail
+// page would otherwise show identical text in search results and link
+// previews (Facebook/WhatsApp/iMessage unfurls don't run the SPA's JS, so a
 // document.title set after mount never reaches them).
 //
-// vercel.json rewrites /business/:slug and /communities/:slug here instead of
-// straight to index.html. This fetches the real record from the API, stitches
-// real meta into the built index.html (self-fetched so we never have to deal
-// with locating the hashed asset-referencing file on disk at runtime), and
-// falls back to the plain SPA shell untouched for anything that isn't a real
-// record -- in particular /business/new and /communities/new, which match the
-// same single-segment rewrite pattern but are app routes, not slugs.
+// vercel.json rewrites each site's own detail-page pattern here (passing
+// `kind` + the record's slug/id) instead of straight to index.html. This
+// fetches the real record from the API, stitches real meta into the built
+// index.html (self-fetched so we never have to deal with locating the
+// hashed asset-referencing file on disk at runtime), and falls back to the
+// plain SPA shell untouched for anything that isn't a real record -- in
+// particular .../new and .../:id/edit, which match the same rewrite pattern
+// but are app routes, not real records.
 //
-// Response is edge-cached per slug (see Cache-Control below) so this extra
+// Response is edge-cached per record (see Cache-Control below) so this extra
 // hop (index.html + API fetch) only costs latency for the first visitor to a
 // given page per cache window, not every visitor.
 
 const API_BASE = process.env.SEO_API_URL || process.env.VITE_API_URL;
-const SITE_NAME = 'Gut Community';
 const RESERVED_SLUGS = new Set(['new']);
 const DESCRIPTION_MAX = 160;
 
@@ -49,6 +49,7 @@ function truncate(s, n) {
 }
 
 async function buildBusinessMeta(slug, origin) {
+  const SITE_NAME = 'Gut Community';
   const apiRes = await fetch(`${API_BASE}/business/businesses/${encodeURIComponent(slug)}`);
   if (!apiRes.ok) return null;
   const b = await apiRes.json();
@@ -85,10 +86,11 @@ async function buildBusinessMeta(slug, origin) {
     ...(b.rating_count > 0 ? { aggregateRating: { '@type': 'AggregateRating', ratingValue: b.rating_avg, reviewCount: b.rating_count } } : {}),
   };
 
-  return { title, description, url, image, jsonLd };
+  return { siteName: SITE_NAME, title, description, url, image, jsonLd };
 }
 
 async function buildCommunityMeta(slug, origin) {
+  const SITE_NAME = 'Gut Community';
   const apiRes = await fetch(`${API_BASE}/business/communities/${encodeURIComponent(slug)}`);
   if (!apiRes.ok) return null;
   const c = await apiRes.json();
@@ -109,8 +111,211 @@ async function buildCommunityMeta(slug, origin) {
     ...(c.lat != null && c.lng != null ? { geo: { '@type': 'GeoCoordinates', latitude: c.lat, longitude: c.lng } } : {}),
   };
 
-  return { title, description, url, image, jsonLd };
+  return { siteName: SITE_NAME, title, description, url, image, jsonLd };
 }
+
+const LISTING_TYPE_LABEL = { sale: 'For Sale', long_term_lease: 'For Rent', short_term_lease: 'Short-Term Rental' };
+
+async function buildEstatesListingMeta(idOrSlug, origin) {
+  const SITE_NAME = 'Gut Estates';
+  const apiRes = await fetch(`${API_BASE}/estates/listings/${encodeURIComponent(idOrSlug)}/seo`);
+  if (!apiRes.ok) return null;
+  const l = await apiRes.json();
+  const cityState = [l.neighborhood || l.city, l.state].filter(Boolean).join(', ');
+  const typeLabel = LISTING_TYPE_LABEL[l.listing_type] || 'Listing';
+  const priceStr = l.price != null ? `${l.currency === 'ILS' ? '₪' : '$'}${Math.round(l.price).toLocaleString()}` : null;
+  const title = `${l.title}${cityState ? ` — ${cityState}` : ''} | ${typeLabel} | ${SITE_NAME}`;
+  const description = truncate(
+    `${l.title}${cityState ? ` in ${cityState}` : ''}${priceStr ? `, ${priceStr}` : ''} -- a real listing posted directly on ${SITE_NAME}.`,
+    DESCRIPTION_MAX,
+  );
+  const url = `${origin}/listings/${l.slug}`;
+  const image = l.cover_photo_url || `${origin}/logo192.png`;
+
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': l.listing_type === 'sale' ? 'Product' : 'Apartment',
+    name: l.title,
+    url,
+    image,
+    ...(l.address || l.city ? { address: {
+      '@type': 'PostalAddress',
+      ...(l.address ? { streetAddress: l.address } : {}),
+      ...(l.city ? { addressLocality: l.city } : {}),
+      ...(l.state ? { addressRegion: l.state } : {}),
+      ...(l.country ? { addressCountry: l.country } : {}),
+    } } : {}),
+    ...(l.lat != null && l.lng != null ? { geo: { '@type': 'GeoCoordinates', latitude: l.lat, longitude: l.lng } } : {}),
+    ...(l.price != null ? { offers: { '@type': 'Offer', price: l.price, priceCurrency: l.currency || 'USD' } } : {}),
+  };
+
+  return { siteName: SITE_NAME, title, description, url, image, jsonLd };
+}
+
+async function buildEstatesGroupBuyMeta(slug, origin) {
+  const SITE_NAME = 'Gut Estates';
+  const apiRes = await fetch(`${API_BASE}/estates/group-buys/${encodeURIComponent(slug)}`);
+  if (!apiRes.ok) return null;
+  const g = await apiRes.json();
+  const cityState = [g.neighborhood || g.city, g.state].filter(Boolean).join(', ');
+  const title = `${g.title}${cityState ? ` — ${cityState}` : ''} | Group Buy | ${SITE_NAME}`;
+  const description = truncate(
+    g.description || `A group buy${cityState ? ` in ${cityState}` : ''}${g.developer_name ? ` by ${g.developer_name}` : ''} -- band together with other buyers for a bulk discount, on ${SITE_NAME}.`,
+    DESCRIPTION_MAX,
+  );
+  const url = `${origin}/group-buy/${g.slug}`;
+  const image = (g.photos && g.photos[0] && g.photos[0].url) || `${origin}/logo192.png`;
+
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'RealEstateListing',
+    name: g.title,
+    url,
+    image,
+    ...(g.city ? { address: { '@type': 'PostalAddress', addressLocality: g.city, ...(g.state ? { addressRegion: g.state } : {}) } } : {}),
+    ...(g.lat != null && g.lng != null ? { geo: { '@type': 'GeoCoordinates', latitude: g.lat, longitude: g.lng } } : {}),
+  };
+
+  return { siteName: SITE_NAME, title, description, url, image, jsonLd };
+}
+
+const TORAH_CATEGORY_LABEL = { parsha: 'Parsha', halacha: 'Halacha', mussar: 'Mussar', stories: 'Stories', holidays: 'Holidays', other: 'Torah' };
+
+async function buildTorahPostMeta(slug, origin) {
+  const SITE_NAME = 'Gut Torah';
+  const apiRes = await fetch(`${API_BASE}/torah/posts/${encodeURIComponent(slug)}/seo`);
+  if (!apiRes.ok) return null;
+  const p = await apiRes.json();
+  const label = TORAH_CATEGORY_LABEL[p.category] || 'Torah';
+  const title = `${p.title} | ${label} | ${SITE_NAME}`;
+  const description = truncate(p.excerpt || `A ${label.toLowerCase()} dvar Torah shared on ${SITE_NAME}.`, DESCRIPTION_MAX);
+  const url = `${origin}/posts/${p.slug}`;
+  const image = p.cover_photo_url || `${origin}/logo192.png`;
+
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: p.title,
+    url,
+    image,
+    ...(p.pub_date ? { datePublished: p.pub_date } : {}),
+    articleSection: label,
+  };
+
+  return { siteName: SITE_NAME, title, description, url, image, jsonLd };
+}
+
+async function buildTorahSheetMeta(sheetId, origin) {
+  const SITE_NAME = 'Gut Torah';
+  const apiRes = await fetch(`${API_BASE}/torah/sheets/${encodeURIComponent(sheetId)}`);
+  if (!apiRes.ok) return null;
+  const s = await apiRes.json();
+  if (!s.is_public) return null; // private sheets get no special meta -- plain SPA shell, same 404-after-hydration UX as before
+  const title = `${s.title} — Source Sheet | ${SITE_NAME}`;
+  const description = truncate(
+    `A source sheet${s.author_name ? ` by ${s.author_name}` : ''} with ${s.items.length} source${s.items.length === 1 ? '' : 's'}, shared on ${SITE_NAME}.`,
+    DESCRIPTION_MAX,
+  );
+  const url = `${origin}/sheets/${s.id}`;
+  const image = `${origin}/logo192.png`;
+
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'CreativeWork',
+    name: s.title,
+    url,
+    ...(s.author_name ? { author: { '@type': 'Person', name: s.author_name } } : {}),
+    ...(s.updated_at ? { dateModified: s.updated_at } : {}),
+  };
+
+  return { siteName: SITE_NAME, title, description, url, image, jsonLd };
+}
+
+async function buildShtickPostMeta(id, origin) {
+  const SITE_NAME = 'Gut Shtick';
+  const apiRes = await fetch(`${API_BASE}/shtick/post/${encodeURIComponent(id)}`);
+  if (!apiRes.ok) return null;
+  const p = await apiRes.json();
+  const category = p.generalc && p.generalc.name;
+  const title = `${p.caption}${category ? ` | ${category}` : ''} | ${SITE_NAME}`;
+  const bodySnippet = p.content && p.content.stuff;
+  const description = truncate(bodySnippet || p.caption || `Shared on ${SITE_NAME}.`, DESCRIPTION_MAX);
+  const url = `${origin}/post/${p.id}`;
+  const image = (p.picture && p.picture.url) || `${origin}/logo192.png`;
+
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'SocialMediaPosting',
+    headline: p.caption,
+    url,
+    image,
+    ...(p.pub_date ? { datePublished: p.pub_date } : {}),
+  };
+
+  return { siteName: SITE_NAME, title, description, url, image, jsonLd };
+}
+
+async function buildHockPostMeta(id, origin) {
+  const SITE_NAME = 'Gut Shtick';
+  const apiRes = await fetch(`${API_BASE}/hock/posts/${encodeURIComponent(id)}`);
+  if (!apiRes.ok) return null;
+  const p = await apiRes.json();
+  if (!p.approved_to_publish) return null;
+  const title = `${p.title} | Hock | ${SITE_NAME}`;
+  const description = truncate(p.body || `A Hock forum post on ${SITE_NAME}.`, DESCRIPTION_MAX);
+  const url = `${origin}/hock/post/${p.id}`;
+  const image = p.image_url || `${origin}/logo192.png`;
+
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'DiscussionForumPosting',
+    headline: p.title,
+    url,
+    image,
+    ...(p.pub_date ? { datePublished: p.pub_date } : {}),
+  };
+
+  return { siteName: SITE_NAME, title, description, url, image, jsonLd };
+}
+
+const TACHLIS_TYPE_LABEL = { job: 'Job', resume: 'Resume', service: 'Service' };
+
+async function buildTachlisPostMeta(id, origin) {
+  const SITE_NAME = 'Gut Shtick';
+  const apiRes = await fetch(`${API_BASE}/tachlis/posts/${encodeURIComponent(id)}`);
+  if (!apiRes.ok) return null;
+  const p = await apiRes.json();
+  if (p.approved_to_publish !== true) return null;
+  const label = TACHLIS_TYPE_LABEL[p.post_type] || 'Listing';
+  const title = `${p.title}${p.location ? ` — ${p.location}` : ''} | Tachlis ${label} | ${SITE_NAME}`;
+  const description = truncate(p.body || `A Tachlis ${label.toLowerCase()} listing on ${SITE_NAME}.`, DESCRIPTION_MAX);
+  const url = `${origin}/tachlis/post/${p.id}`;
+  const image = `${origin}/logo192.png`;
+
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': p.post_type === 'job' ? 'JobPosting' : 'Article',
+    ...(p.post_type === 'job'
+      ? { title: p.title, description: p.body, ...(p.location ? { jobLocation: { '@type': 'Place', address: p.location } } : {}) }
+      : { headline: p.title }),
+    url,
+    ...(p.pub_date ? { datePosted: p.pub_date, datePublished: p.pub_date } : {}),
+  };
+
+  return { siteName: SITE_NAME, title, description, url, image, jsonLd };
+}
+
+const BUILDERS = {
+  business: buildBusinessMeta,
+  community: buildCommunityMeta,
+  estates_listing: buildEstatesListingMeta,
+  estates_groupbuy: buildEstatesGroupBuyMeta,
+  torah_post: buildTorahPostMeta,
+  torah_sheet: buildTorahSheetMeta,
+  shtick_post: buildShtickPostMeta,
+  hock_post: buildHockPostMeta,
+  tachlis_post: buildTachlisPostMeta,
+};
 
 function injectMeta(html, meta) {
   const headExtra = `
@@ -118,7 +323,7 @@ function injectMeta(html, meta) {
     <meta name="description" content="${escapeHtml(meta.description)}" />
     <link rel="canonical" href="${meta.url}" />
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="${escapeHtml(SITE_NAME)}" />
+    <meta property="og:site_name" content="${escapeHtml(meta.siteName)}" />
     <meta property="og:title" content="${escapeHtml(meta.title)}" />
     <meta property="og:description" content="${escapeHtml(meta.description)}" />
     <meta property="og:url" content="${meta.url}" />
@@ -141,10 +346,11 @@ module.exports = async function handler(req, res) {
   const shellRes = await fetch(`${origin}/index.html`);
   const shellHtml = await shellRes.text();
 
+  const builder = BUILDERS[kind];
   let meta = null;
-  if (slug && !RESERVED_SLUGS.has(slug) && API_BASE) {
+  if (slug && !RESERVED_SLUGS.has(slug) && API_BASE && builder) {
     try {
-      meta = kind === 'community' ? await buildCommunityMeta(slug, origin) : await buildBusinessMeta(slug, origin);
+      meta = await builder(slug, origin);
     } catch (e) {
       meta = null; // backend hiccup -- still serve the plain SPA shell below
     }

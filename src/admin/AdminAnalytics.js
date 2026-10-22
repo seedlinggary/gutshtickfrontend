@@ -5,11 +5,28 @@ const NEW_COLOR = 'var(--info, #3b82f6)';
 const RETURNING_COLOR = 'var(--accent, #f59e0b)';
 const CHART_HEIGHT = 100;
 
+const SITES = [
+  { key: '', label: 'All sites' },
+  { key: 'main', label: 'Gut Shtick' },
+  { key: 'business', label: 'Gut Community' },
+  { key: 'estates', label: 'Gut Estates' },
+  { key: 'money', label: 'Gut Money' },
+  { key: 'torah', label: 'Gut Torah' },
+  { key: 'news', label: 'Gut News' },
+];
+
 function formatShortDate(isoDate) {
   // isoDate comes back as 'YYYY-MM-DD' from the backend's daily aggregates.
   const d = new Date(`${isoDate}T00:00:00`);
   if (Number.isNaN(d.getTime())) return isoDate;
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+function formatDateTime(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '—';
+  return d.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
 }
 
 function Legend() {
@@ -29,50 +46,77 @@ function Legend() {
 
 /**
  * Self-contained SuperAdmin panel: visitor/session analytics for reporting
- * to advertisers (unique visitors, geography, new-vs-returning). Same
- * self-contained-panel pattern as AdminAiPosts.js -- no required props,
- * fetches its own data. Meant to be dropped into its own SuperAdminDashboard
- * tab (e.g. alongside 'overview', 'users', 'ads', ...).
+ * to advertisers (unique visitors, geography, new-vs-returning), PLUS a
+ * filterable, named list of actual sessions ("who's coming", and which of
+ * them are repeat visitors) -- the aggregate counts above answer "how
+ * many," this answers "who." Same self-contained-panel pattern as
+ * AdminAiPosts.js -- no required props, fetches its own data.
  *
- * Backed by GET /analytics/dashboard, which is server-side cached for 60s
- * (@cache.cached), so "Refresh" won't show brand-new numbers more often
- * than that -- expected, not a bug. Localhost traffic and admin/super_admin
- * accounts' own activity are both excluded server-side, so these numbers
- * reflect real visitors only.
+ * Backed by GET /analytics/dashboard (cached 60s server-side, varying by
+ * `site`) and GET /analytics/sessions. Localhost traffic and every
+ * admin/super_admin account's own activity (including any bot account,
+ * since bots are given the `admin` role -- see the account-creation note
+ * in memory) are excluded server-side from both, so these numbers and this
+ * list reflect real visitors only, never your own testing or local dev.
  */
 export default function AdminAnalytics() {
+  const [site, setSite] = useState('');
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    load();
-  }, []);
+  const [sessions, setSessions] = useState(null);
+  const [sessionsLoading, setSessionsLoading] = useState(true);
+  const [days, setDays] = useState(30);
+  const [loggedInFilter, setLoggedInFilter] = useState('');
+  const [repeatOnly, setRepeatOnly] = useState(false);
+  const [page, setPage] = useState(1);
 
-  function load() {
+  function loadDashboard() {
     setLoading(true);
     setError('');
-    apiRequest('GET', null, '/analytics/dashboard')
+    apiRequest('GET', null, `/analytics/dashboard?site=${encodeURIComponent(site)}`)
       .then((d) => setData(d))
       .catch((e) => setError(typeof e === 'string' ? e : 'Failed to load visitor analytics.'))
       .finally(() => setLoading(false));
   }
+
+  function loadSessions() {
+    setSessionsLoading(true);
+    const params = new URLSearchParams({ days: String(days), page: String(page) });
+    if (site) params.set('site', site);
+    if (loggedInFilter) params.set('logged_in', loggedInFilter);
+    if (repeatOnly) params.set('repeat_only', '1');
+    apiRequest('GET', null, `/analytics/sessions?${params.toString()}`)
+      .then((d) => setSessions(d))
+      .catch(() => setSessions({ sessions: [], total: 0 }))
+      .finally(() => setSessionsLoading(false));
+  }
+
+  useEffect(loadDashboard, [site]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(loadSessions, [site, days, loggedInFilter, repeatOnly, page]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { setPage(1); }, [site, days, loggedInFilter, repeatOnly]);
 
   const dailyNewReturning = data?.daily_new_vs_returning || [];
   const maxDaily = dailyNewReturning.reduce((m, d) => Math.max(m, d.new + d.returning), 0) || 1;
 
   return (
     <div className="admin-analytics">
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, flexWrap: 'wrap', gap: 10 }}>
         <div>
           <h3 className="shtick-caption" style={{ marginBottom: 4 }}>📈 Visitor Analytics</h3>
-          <p className="admin-empty" style={{ margin: 0 }}>
-            Anonymous + logged-in traffic. Localhost/dev traffic and admin activity are excluded automatically.
+          <p className="admin-empty" style={{ margin: 0, padding: 0, textAlign: 'left' }}>
+            Anonymous + logged-in traffic. Localhost/dev traffic and any admin or bot account's own activity are excluded automatically.
           </p>
         </div>
-        <button className="gs-btn gs-btn-outline gs-btn-sm" onClick={load} disabled={loading}>
-          ↻ Refresh
-        </button>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <select className="gs-select" value={site} onChange={(e) => setSite(e.target.value)}>
+            {SITES.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
+          </select>
+          <button className="gs-btn gs-btn-outline gs-btn-sm" onClick={() => { loadDashboard(); loadSessions(); }} disabled={loading || sessionsLoading}>
+            ↻ Refresh
+          </button>
+        </div>
       </div>
 
       {loading && (
@@ -185,6 +229,73 @@ export default function AdminAnalytics() {
           </div>
         </div>
       )}
+
+      {/* ── Who's coming -- filterable session list ── */}
+      <div className="sa-activity" style={{ marginTop: 28 }}>
+        <h2>Who's Coming</h2>
+        <p className="admin-empty" style={{ margin: '0 0 12px', padding: 0, textAlign: 'left' }}>
+          Every real visitor session, named when they're logged in. "Returning" uses the same 2+ distinct days
+          definition as the chart above, so this list and that chart always agree.
+        </p>
+
+        <div className="sa-user-filters" style={{ alignItems: 'center' }}>
+          <select className="gs-select" value={days} onChange={(e) => setDays(Number(e.target.value))}>
+            <option value={7}>Last 7 days</option>
+            <option value={30}>Last 30 days</option>
+            <option value={90}>Last 90 days</option>
+          </select>
+          {[
+            { key: '', label: 'All' },
+            { key: 'true', label: 'Logged-in' },
+            { key: 'false', label: 'Anonymous' },
+          ].map((o) => (
+            <button key={o.key} className={`difficulty-btn${loggedInFilter === o.key ? ' active' : ''}`} onClick={() => setLoggedInFilter(o.key)}>
+              {o.label}
+            </button>
+          ))}
+          <button className={`difficulty-btn${repeatOnly ? ' active' : ''}`} onClick={() => setRepeatOnly((v) => !v)}>
+            Repeat visitors only
+          </button>
+        </div>
+
+        {sessionsLoading && <div className="gs-loading"><div className="gs-spinner" /></div>}
+
+        {!sessionsLoading && sessions && sessions.sessions.length === 0 && (
+          <div className="admin-empty">No matching visitor sessions in this window.</div>
+        )}
+
+        {!sessionsLoading && sessions && sessions.sessions.length > 0 && (
+          <>
+            <div className="sa-user-table">
+              <div className="sa-session-row header">
+                <span>Who</span><span>Site</span><span>Country</span><span>First seen</span><span>Last seen</span><span>Page views</span><span>Status</span>
+              </div>
+              {sessions.sessions.map((s, i) => (
+                <div key={i} className="sa-session-row">
+                  <span className="sa-profile">{s.user_name || 'Anonymous'}</span>
+                  <span>{s.site_label}</span>
+                  <span>{s.country}</span>
+                  <span>{formatDateTime(s.first_seen)}</span>
+                  <span>{formatDateTime(s.last_seen)}</span>
+                  <span>{s.page_view_count}</span>
+                  <span>
+                    {s.is_returning
+                      ? <span className="admin-badge approved">Returning · {s.days_active}d</span>
+                      : <span className="admin-badge pending">New</span>}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 }}>
+              <span style={{ fontSize: 12, color: 'var(--muted)' }}>{sessions.total} total</span>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button className="gs-btn gs-btn-outline gs-btn-sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>Newer</button>
+                <button className="gs-btn gs-btn-outline gs-btn-sm" disabled={!sessions.has_more} onClick={() => setPage((p) => p + 1)}>Older</button>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }

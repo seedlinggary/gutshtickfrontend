@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { futureValueWithContributions, formatMoney } from '../../shared/calculatorMath';
 import { LineChart } from '../../shared/SimpleCharts';
+import SavedScenarios from '../SavedScenarios';
 
 const DEFAULTS = { principal: 5000, monthlyContribution: 200, rate: 7, years: 20 };
 
@@ -62,6 +63,7 @@ export default function CompoundInterestCalculator() {
           <div className="fin-calc-row total"><span className="fin-calc-row-label">Final balance</span><span className="fin-calc-row-value">{formatMoney(finalValue)}</span></div>
         </div>
       </div>
+      <SavedScenarios calculatorKey="compound" inputs={f} onLoad={setF} />
     </div>
   );
 }

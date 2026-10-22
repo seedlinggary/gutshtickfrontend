@@ -67,6 +67,7 @@
 .money-theme .gs-navbar .nav-link-pin { background: var(--gold); border: 1.5px solid var(--gold); color: #fff; }
 .money-theme .gs-navbar .nav-link-pin:hover { background: var(--gold-hover); border-color: var(--gold-hover); }
 .money-theme .gs-navbar .dropdown-menu { background: var(--surface); color: var(--text); }
+.money-theme .gs-navbar .navbar-collapse.show { background: var(--accent); border-bottom: 1px solid rgba(255, 255, 255, 0.12); }
 .money-theme .gs-navbar .navbar-toggler-icon,
 .money-theme .gs-navbar .navbar-toggler-icon::before,
 .money-theme .gs-navbar .navbar-toggler-icon::after { background: #fff; }
@@ -155,6 +156,10 @@
 
 /* ── Forms ── */
 .fin-form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
+.fin-budget-row { display: grid; grid-template-columns: 1fr 160px 36px; gap: 14px; align-items: center; }
+@media (max-width: 480px) {
+  .fin-budget-row { grid-template-columns: 1fr; gap: 8px; }
+}
 .fin-form-section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 18px 20px; margin-bottom: 16px; }
 .fin-form-section h3 { margin: 0 0 14px; font-size: 15px; }
 .fin-field-label { display: block; font-size: 12.5px; font-weight: 700; color: var(--muted); margin-bottom: 5px; }
@@ -182,6 +187,11 @@
 .fin-indicator-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px; }
 .fin-indicator-card h4 { margin: 0 0 2px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
 .fin-indicator-value { font-family: var(--font-mono); font-weight: 700; font-size: 22px; color: var(--accent); margin-bottom: 8px; }
+.fin-indicator-expand {
+  display: flex; align-items: center; gap: 4px; background: none; border: none; cursor: pointer;
+  font-size: 11.5px; font-weight: 700; color: var(--accent); padding: 2px 0; white-space: nowrap;
+}
+.fin-indicator-card-expanded { padding: 20px; }
 
 /* ── In-depth insights panel ── */
 .fin-insight-section { margin-top: 18px; }
@@ -216,6 +226,12 @@
 .fin-calc-row-label { color: rgba(255, 255, 255, 0.75); }
 .fin-calc-row-value { font-family: var(--font-mono); font-weight: 600; text-align: right; }
 .fin-calc-row.total { border-top: 2px solid rgba(255, 255, 255, 0.35); margin-top: 4px; font-weight: 700; font-size: 14.5px; }
+.fin-goal-bar { height: 8px; border-radius: 999px; background: rgba(255,255,255,0.18); overflow: hidden; margin-top: 12px; }
+.fin-goal-bar-fill { height: 100%; border-radius: 999px; background: var(--gold); transition: width 300ms ease; }
+.fin-goal-bar-fill.met { background: #4ade80; }
+.fin-goal-status { font-size: 13px; font-weight: 700; margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.14); }
+.fin-goal-status.up { color: #4ade80; }
+.fin-goal-status.down { color: #fca5a5; }
 .fin-calc-field { margin-bottom: 14px; }
 .fin-calc-field-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 5px; }
 .fin-calc-field-row label { font-size: 12.5px; font-weight: 700; color: var(--muted); }
@@ -223,3 +239,24 @@
 .fin-calc-help { font-size: 12px; color: var(--muted-faint); margin: 4px 0 0; line-height: 1.5; }
 .fin-calc-slider { width: 100%; accent-color: var(--gold); }
 .fin-chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 18px 20px; margin-bottom: 16px; }
+
+/* ── Saved calculator scenarios ── */
+.fin-saved-scenarios { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border); }
+.fin-saved-scenario-list { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+.fin-saved-scenario-row {
+  display: flex; justify-content: space-between; align-items: center; padding: 8px 12px;
+  border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg);
+}
+.fin-saved-scenario-row button:first-child { background: none; border: none; cursor: pointer; font-weight: 700; font-size: 13px; color: var(--text); text-align: left; flex: 1; }
+.fin-saved-scenario-row button:last-child { background: none; border: none; cursor: pointer; color: var(--muted); padding: 4px; }
+.fin-saved-scenario-row button:last-child:hover { color: #b3261e; }
+
+/* ── Budget list ── */
+.fin-budget-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+.fin-budget-card {
+  display: block; text-align: left; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md);
+  padding: 16px 18px; cursor: pointer; transition: transform 150ms, box-shadow 150ms; font-family: inherit;
+}
+.fin-budget-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+.fin-budget-card h3 { margin: 0 0 4px; font-size: 15.5px; line-height: 1.3; color: var(--text); }
+.fin-budget-card p { margin: 0; font-size: 12.5px; color: var(--muted); font-family: var(--font-mono); }

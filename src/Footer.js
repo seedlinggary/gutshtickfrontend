@@ -46,6 +46,7 @@ const SITE_NAV = {
     { label: "Zmanim", path: "/zmanim" },
     { label: "Sources", path: "/sources" },
     { label: "Prayers", path: "/prayers" },
+    { label: "Source Sheets", path: "/sheets", authOnly: true },
     { label: "Share Torah", path: "/posts/new" },
     { label: "My Posts", path: "/my-posts", authOnly: true },
   ],
