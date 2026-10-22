@@ -166,6 +166,7 @@ function SectionPicker({ bookRef, style, onSelect }) {
  * which sheet is "active"). */
 function AddToSheetButton({ refValue, title, sheetState }) {
   const [state, setState] = useState('idle'); // idle | adding | added | error
+  const [includeTranslation, setIncludeTranslation] = useState(true);
 
   const add = async () => {
     if (!sheetState.activeId) {
@@ -175,7 +176,7 @@ function AddToSheetButton({ refValue, title, sheetState }) {
     }
     setState('adding');
     try {
-      await sheetState.addSource(refValue, title);
+      await sheetState.addSource(refValue, title, includeTranslation);
       setState('added');
       setTimeout(() => setState('idle'), 1800);
     } catch (_) {
@@ -187,7 +188,11 @@ function AddToSheetButton({ refValue, title, sheetState }) {
   if (!sheetState.loggedIn) return null;
 
   return (
-    <span style={{ position: 'relative', display: 'inline-block' }}>
+    <span style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+      <label style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--muted)', cursor: 'pointer' }}>
+        <input type="checkbox" checked={includeTranslation} onChange={(e) => setIncludeTranslation(e.target.checked)} />
+        Translation
+      </label>
       <button type="button" className="tor-add-to-sheet-btn" onClick={add} disabled={state === 'adding'}>
         {state === 'added' ? <><Check size={12} /> Added</> : <><BookmarkPlus size={12} /> Add to sheet</>}
       </button>

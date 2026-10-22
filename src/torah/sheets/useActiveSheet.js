@@ -51,10 +51,12 @@ export default function useActiveSheet() {
     return sheet;
   };
 
-  const addSource = async (ref, customTitle) => {
+  const addSource = async (ref, customTitle, includeTranslation = true) => {
     if (!activeId) throw new Error('No active sheet selected');
     const updated = await apiRequest(
-      'POST', { item_type: 'source', ref, custom_title: customTitle || undefined }, `/torah/sheets/${activeId}/items`,
+      'POST',
+      { item_type: 'source', ref, custom_title: customTitle || undefined, include_translation: includeTranslation },
+      `/torah/sheets/${activeId}/items`,
     );
     setActiveSheet(updated);
     return updated;

@@ -16,6 +16,7 @@ function AddItemForm({ sheetId, onAdded }) {
   const [ref, setRef] = useState('');
   const [customTitle, setCustomTitle] = useState('');
   const [noteText, setNoteText] = useState('');
+  const [includeTranslation, setIncludeTranslation] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -27,7 +28,7 @@ function AddItemForm({ sheetId, onAdded }) {
     setSaving(true);
     try {
       const body = kind === 'source'
-        ? { item_type: 'source', ref: ref.trim(), custom_title: customTitle.trim() || undefined, note_text: noteText.trim() || undefined }
+        ? { item_type: 'source', ref: ref.trim(), custom_title: customTitle.trim() || undefined, note_text: noteText.trim() || undefined, include_translation: includeTranslation }
         : { item_type: 'note', custom_title: customTitle.trim() || undefined, note_text: noteText.trim() };
       const sheet = await apiRequest('POST', body, `/torah/sheets/${sheetId}/items`);
       onAdded(sheet);
@@ -67,6 +68,10 @@ function AddItemForm({ sheetId, onAdded }) {
               <label className="tor-field-label">Your own note under this source (optional)</label>
               <textarea className="gs-input" style={{ minHeight: 60 }} value={noteText} onChange={(e) => setNoteText(e.target.value)} />
             </div>
+            <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, cursor: 'pointer' }}>
+              <input type="checkbox" checked={includeTranslation} onChange={(e) => setIncludeTranslation(e.target.checked)} />
+              Include English translation for this source
+            </label>
           </>
         ) : (
           <>
