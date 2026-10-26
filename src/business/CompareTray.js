@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { CATEGORY_LABELS } from './categories';
 import { describeKashrut } from './kashrutInfo';
-import { useLanguage } from './i18n';
 
 const MAX_COMPARE = 3;
 
@@ -29,14 +28,13 @@ export function useCompareTray() {
 }
 
 export default function CompareTray({ items, onRemove, onClear }) {
-  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   if (!items.length) return null;
 
   return (
     <>
       <div className="biz-compare-tray">
-        <span className="biz-compare-tray-label">{t('compare')} ({items.length}/{MAX_COMPARE})</span>
+        <span className="biz-compare-tray-label">Compare ({items.length}/{MAX_COMPARE})</span>
         <div className="biz-compare-tray-chips">
           {items.map((b) => (
             <span key={b.id} className="biz-compare-chip">

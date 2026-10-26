@@ -56,8 +56,8 @@ export default function ListingCard({ listing, initiallyLiked, onUnlike }) {
       {listing.is_expired && <div className="est-listing-card-expired">No longer available</div>}
       <div className="est-listing-card-body">
         <div className="est-listing-card-price">{formatPrice(listing)}</div>
-        <h3>{listing.title}</h3>
-        <p>{[listing.neighborhood, listing.city, listing.state || listing.country].filter(Boolean).join(', ')}</p>
+        <h3 dir="auto">{listing.title}</h3>
+        <p dir="auto">{[listing.neighborhood, listing.city, listing.state || listing.country].filter(Boolean).join(', ')}</p>
         {(listing.bedrooms || listing.bathrooms || listing.size_value) && (
           <div className="est-listing-card-specs">
             {listing.bedrooms ? <span>{listing.bedrooms} bd</span> : null}

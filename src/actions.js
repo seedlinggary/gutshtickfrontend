@@ -19,7 +19,7 @@ export const fetchData = () => async (dispatch, getState) => {
     // limitsloaded is now a real 1-indexed page number (backend does true
     // OFFSET/LIMIT paging) -- page 1 is a fresh load, anything after is a
     // "Load more" click, which should append rather than replace the feed.
-    // The Daily Board's recency-weighted, Hock/Tachlis-mixed feed only
+    // The Daily Board's recency-weighted, Hock-mixed feed only
     // applies at the true root ("/") -- category browsing, "/feed/all", and
     // every other page stay plain reverse-chronological Shtick. This is
     // several places (Home, Footer, Navbar, a category click from

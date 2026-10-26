@@ -157,7 +157,7 @@ export default function Prayers() {
             {currentNodes.map((n) => (
               <div key={n.title} className="tor-browser-item" onClick={() => selectChild(n)}>
                 <span>{n.title}</span>
-                <span className="tor-hebrew" style={{ fontSize: 14 }}>{n.heTitle}</span>
+                <span className="tor-hebrew" data-no-translate style={{ fontSize: 14 }}>{n.heTitle}</span>
               </div>
             ))}
           </div>
@@ -168,10 +168,10 @@ export default function Prayers() {
             {Array.from({ length: textSegmentCount(textData) }).map((_, i) => (
               <div key={i} className="tor-text-block">
                 {showEnglish && textData.text && textData.text[i] && (
-                  <p className="tor-text-en" dangerouslySetInnerHTML={{ __html: textData.text[i] }} />
+                  <p className="tor-text-en" data-no-translate dangerouslySetInnerHTML={{ __html: textData.text[i] }} />
                 )}
                 {textData.he && textData.he[i] && (
-                  <p className="tor-hebrew" dangerouslySetInnerHTML={{ __html: textData.he[i] }} />
+                  <p className="tor-hebrew" data-no-translate dangerouslySetInnerHTML={{ __html: textData.he[i] }} />
                 )}
               </div>
             ))}

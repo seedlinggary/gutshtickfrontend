@@ -87,7 +87,7 @@ const Footer = () => {
       <div className="gs-container">
         <div className="gs-footer-grid">
           <div>
-            <div className="gs-footer-brand">
+            <div className="gs-footer-brand" data-no-translate>
               {brand ? brand.name : <>Gut <span>Shtick</span></>}
             </div>
             <p className="gs-footer-tagline">
@@ -143,7 +143,7 @@ const Footer = () => {
 
         <div className="gs-footer-bottom">
           <span className="gs-footer-copy">
-            &copy; {new Date().getFullYear()} {brand ? brand.plain : "Gut Shtick"}. All rights reserved.
+            &copy; {new Date().getFullYear()} <span data-no-translate>{brand ? brand.plain : "Gut Shtick"}</span>. All rights reserved.
           </span>
         </div>
       </div>

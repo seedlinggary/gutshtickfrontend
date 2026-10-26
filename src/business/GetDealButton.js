@@ -2,13 +2,11 @@ import React, { useEffect, useState } from 'react';
 import apiRequest from '../ApiRequest';
 import { isLoggedIn } from '../auth';
 import { trackBusinessEvent } from './analytics';
-import { useLanguage } from './i18n';
 
 /** Shared by DealsFeed.js and BusinessProfile.js's Deals tab. `referralCode`
  * (captured from a ?ref= link, see ReferralWidget.js) is passed through so
  * the backend can credit whoever referred this customer. */
 export default function GetDealButton({ post, referralCode }) {
-  const { t } = useLanguage();
   const [redemption, setRedemption] = useState(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
@@ -33,7 +31,7 @@ export default function GetDealButton({ post, referralCode }) {
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
       <button type="button" className="biz-get-deal-btn" onClick={getDeal} disabled={busy}>
-        {busy ? '…' : t('getThisDeal')}
+        {busy ? '…' : 'Get This Deal'}
       </button>
       {error && <span style={{ fontSize: 11, color: 'var(--error, #c0392b)' }}>{error}</span>}
     </span>

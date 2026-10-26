@@ -28,7 +28,7 @@ export default function DailyBoardHero() {
     setShaking(true);
     try {
       // Reshuffles the board you're already looking at (a fresh random
-      // order, new Hock/Tachlis picks) rather than jumping away to one
+      // order, a new Hock pick) rather than jumping away to one
       // unrelated post -- see actions.js's shakeBoard for why this needs
       // its own action instead of reusing fetchData().
       await dispatch(shakeBoard());

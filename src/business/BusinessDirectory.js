@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState, Suspense, lazy } from 'react';
 import apiRequest from '../ApiRequest';
 import PinSomethingCard from '../PinSomethingCard';
-import AdSlot from '../ads/AdSlot';
+import { AdCard, useInThreadAds } from '../ads/AdSlot';
 import ErrorBoundary from '../ErrorBoundary';
 import BusinessCard from './BusinessCard';
 import BusinessPreviewPanel from './BusinessPreviewPanel';
@@ -11,7 +11,6 @@ import { getBrowserCoordsDetailed, radiusToBbox, getNearMeErrorMessage, isIOSSaf
 import { CATEGORY_LABELS, FOOD_CATEGORIES, LOCATION_TYPE_META } from './categories';
 import CategoryIcon from './CategoryIcon';
 import CompareTray, { useCompareTray } from './CompareTray';
-import { useLanguage } from './i18n';
 import {
   Shuffle, Map, Store, Search, SlidersHorizontal, MapPin, UtensilsCrossed,
   Clock, ShieldCheck, Menu, HeartHandshake, X,
@@ -138,7 +137,6 @@ export default function BusinessDirectory({ mode = 'business' }) {
   const [locating, setLocating] = useState(false);
   const [nearMeError, setNearMeError] = useState(null);
   const compareTray = useCompareTray();
-  const { t } = useLanguage();
   const [shakeSeed, setShakeSeed] = useState(0);
   const [mobileView, setMobileView] = useState('list');
   const [bbox, setBbox] = useState(saved.bbox || null);
@@ -166,6 +164,7 @@ export default function BusinessDirectory({ mode = 'business' }) {
   // worth skipping the initial fetch for.
   const hasSavedResults = Array.isArray(saved.businesses) && saved.businesses.length > 0;
   const [businesses, setBusinesses] = useState(saved.businesses || []);
+  const { adAt, dismiss: dismissAd } = useInThreadAds('business_directory', businesses.length > 3 ? 1 : 0);
   const [page, setPage] = useState(saved.page || 1);
   const [hasMore, setHasMore] = useState(saved.hasMore || false);
   // The true count of businesses matching the current filters (from the
@@ -437,7 +436,7 @@ export default function BusinessDirectory({ mode = 'business' }) {
             business={b} onHover={setHoveredId} active={hoveredId === b.id}
             onCompareToggle={compareTray.toggle} isComparing={compareTray.isSelected(b.id)}
           />
-          {i === 3 && <AdSlot placement="business_directory" />}
+          {i === 3 && <AdCard ad={adAt(0)} onDismiss={() => dismissAd(0)} />}
         </React.Fragment>
       ))}
       {!loading && !error && hasMore && (
@@ -494,7 +493,7 @@ export default function BusinessDirectory({ mode = 'business' }) {
                   disabled={locating}
                   title={nearMeActive ? 'Turn off the nearby filter' : `Show only listings within ${NEAR_ME_RADIUS_MILES} miles of your location`}
                 >
-                  {nearMeActive ? <X size={15} /> : <MapPin size={15} />} {locating ? 'Locating…' : t('nearMe')}
+                  {nearMeActive ? <X size={15} /> : <MapPin size={15} />} {locating ? 'Locating…' : 'Near me'}
                 </button>
                 <button className="biz-shake-btn" onClick={shake} disabled={shaking}>
                   <Shuffle size={15} className={shaking ? 'biz-shake-spin' : ''} /> {shaking ? 'Shaking…' : 'Shake the board'}
@@ -590,7 +589,7 @@ export default function BusinessDirectory({ mode = 'business' }) {
                           disabled={locating}
                           title={nearMeActive ? 'Turn off the nearby filter' : `Show only listings within ${NEAR_ME_RADIUS_MILES} miles of your location`}
                         >
-                          {nearMeActive ? <X size={13} /> : <MapPin size={13} />} {locating ? 'Locating…' : t('nearMe')}
+                          {nearMeActive ? <X size={13} /> : <MapPin size={13} />} {locating ? 'Locating…' : 'Near me'}
                         </button>
                         {showKashrutOption && (
                           <button type="button" className={`biz-chip gold-active${kashrutOnly ? ' active' : ''}`} onClick={() => setKashrutOnly((v) => !v)}><ShieldCheck size={13} /> Kosher info</button>

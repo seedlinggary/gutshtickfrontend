@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { Tag, Search, MapPin, Percent } from 'lucide-react';
 import apiRequest from '../ApiRequest';
 import ShareButton from '../ShareButton';
-import AdSlot from '../ads/AdSlot';
+import { AdCard, useInThreadAds } from '../ads/AdSlot';
 import timeAgo from '../utils/timeAgo';
 import DataDisclaimer from './DataDisclaimer';
 import StatsBar from './StatsBar';
@@ -82,6 +82,7 @@ export default function DealsFeed() {
   const [shakeSeed, setShakeSeed] = useState(0);
   const [shaking, setShaking] = useState(false);
   const [posts, setPosts] = useState([]);
+  const { adAt, dismiss: dismissAd } = useInThreadAds('deals_feed', posts.length > 3 ? 1 : 0);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -215,7 +216,7 @@ export default function DealsFeed() {
         {!loading && !error && posts.map((post, i) => (
           <React.Fragment key={post.id}>
             <PostCard post={post} />
-            {i === 3 && <AdSlot placement="deals_feed" />}
+            {i === 3 && <AdCard ad={adAt(0)} onDismiss={() => dismissAd(0)} />}
           </React.Fragment>
         ))}
 

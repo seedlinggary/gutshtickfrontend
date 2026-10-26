@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import apiRequest from '../ApiRequest';
 import { isAdmin, isSuperAdmin } from '../auth';
 import ShowUrl from '../feed/ShowURL';
-import { TypeBadge } from '../tachlis/Tachlis';
+import { TypeBadge } from '../money/Tachlis';
 import timeAgo from '../utils/timeAgo';
 
 function formatDate(d) {

@@ -4,7 +4,7 @@ import { Home, Search, Plus, Map, Menu, BadgeCheck } from 'lucide-react';
 import apiRequest from '../ApiRequest';
 import { isLoggedIn } from '../auth';
 import ErrorBoundary from '../ErrorBoundary';
-import AdSlot from '../ads/AdSlot';
+import { AdCard, useInThreadAds } from '../ads/AdSlot';
 import EstatesStatsBar from './EstatesStatsBar';
 import ListingCard from './ListingCard';
 import { useNearMe, NearMeShakeControls } from '../shared/NearMeShake';
@@ -62,7 +62,7 @@ export default function EstatesDirectory() {
   const [city, setCity] = useState('');
   const [agentOnly, setAgentOnly] = useState(false);
   const [ownerOnly, setOwnerOnly] = useState(false);
-  const [sort, setSort] = useState('');
+  const [sort, setSort] = useState('newest');
   const [nearCoords, setNearCoords] = useState(null);
   const [bbox, setBbox] = useState(null);
   const [nearbySelection, setNearbySelection] = useState(null);
@@ -78,7 +78,7 @@ export default function EstatesDirectory() {
 
   const { locating, nearMeActive, nearMeError, findNearMe } = useNearMe(
     (coords) => { setNearCoords(coords); setSort('distance'); setPage(1); },
-    () => { setNearCoords(null); setSort(''); setPage(1); }
+    () => { setNearCoords(null); setSort('newest'); setPage(1); }
   );
 
   const shake = () => {
@@ -116,6 +116,9 @@ export default function EstatesDirectory() {
 
   useEffect(() => { resultsRef.current = results || []; }, [results]);
 
+  const neededAdCount = results ? Math.floor(results.length / 6) : 0;
+  const { adAt, dismiss: dismissAd } = useInThreadAds('estates_listings', neededAdCount);
+
   const listView = (
     <>
       {loading && <p style={{ color: 'var(--muted)' }}>Loading listings…</p>}
@@ -126,12 +129,15 @@ export default function EstatesDirectory() {
 
       {!loading && results && results.length > 0 && (
         <div className="est-listing-grid">
-          {results.map((l, i) => (
-            <React.Fragment key={l.id}>
-              <ListingCard listing={l} />
-              {i % 6 === 5 && <AdSlot placement="estates_listings" />}
-            </React.Fragment>
-          ))}
+          {results.map((l, i) => {
+            const slotIdx = i % 6 === 5 ? Math.floor(i / 6) : null;
+            return (
+              <React.Fragment key={l.id}>
+                <ListingCard listing={l} />
+                {slotIdx !== null && <AdCard ad={adAt(slotIdx)} onDismiss={() => dismissAd(slotIdx)} />}
+              </React.Fragment>
+            );
+          })}
         </div>
       )}
 
@@ -216,10 +222,10 @@ export default function EstatesDirectory() {
             value={city} onChange={(e) => { setPage(1); setCity(e.target.value); setBbox(null); setNearbySelection(null); }}
           />
           <select
-            className="gs-input" style={{ width: 170 }} value={sort || 'random'}
-            onChange={(e) => { setPage(1); setSort(e.target.value === 'random' ? '' : e.target.value); }}
+            className="gs-input" style={{ width: 170 }} value={sort || 'newest'}
+            onChange={(e) => { setPage(1); setSort(e.target.value); }}
           >
-            <option value="random">Newest first</option>
+            <option value="newest">Newest first</option>
             <option value="alpha">A–Z</option>
             <option value="price_asc">Price: low to high</option>
             <option value="price_desc">Price: high to low</option>

@@ -1,6 +1,5 @@
 import React, { useCallback, useState } from 'react';
 import { trackBusinessEvent } from './analytics';
-import { useLanguage } from './i18n';
 
 const CARD_W = 1080;
 const CARD_H = 1080;
@@ -55,7 +54,6 @@ function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
 }
 
 export default function ShareCard({ businessId, title, subtitle, url }) {
-  const { t } = useLanguage();
   const shareUrl = url || (typeof window !== 'undefined' ? window.location.href : '');
   const [copied, setCopied] = useState(false);
 
@@ -85,7 +83,7 @@ export default function ShareCard({ businessId, title, subtitle, url }) {
 
   return (
     <button type="button" className="biz-share-btn" onClick={handleShare}>
-      {copied ? 'Link copied!' : <>↗ {t('share')}</>}
+      {copied ? 'Link copied!' : <>↗ Share</>}
     </button>
   );
 }

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiRequest from '../ApiRequest';
 import { isSuperAdmin } from '../auth';
+import { siteUrl } from '../siteMode';
 import UploadFile from '../Uploadfile';
 import AdminAiPosts from './AdminAiPosts';
 import AdminScrapers from './AdminScrapers';
@@ -21,19 +22,43 @@ const DESTINATION_LABELS = {
   internal: 'Internal path (e.g. /games)*',
 };
 
-const PLACEMENT_LABELS = {
-  feed: '📰 Feed',
-  games_hub: '🎮 Games Hub',
-  game_page: '🕹️ In-Game (while playing)',
-  top: '⬆️ Home Top',
-  bottom: '⬇️ Home Bottom',
-  sidebar_left: '◀️ Sidebar Left',
-  sidebar_right: '▶️ Sidebar Right',
-};
+// One entry per site, listing every page/placement that site can show an ad
+// on -- this is what lets a SuperAdmin put one ad on one or many pages
+// across any of the 5 sites. `kind` just labels whether that spot is a
+// fixed single banner or a repeating in-thread slot inside a scrolling
+// list; it doesn't change how targeting works, only how it's described here.
+const PLACEMENT_GROUPS = [
+  { site: 'Gut Shtick', items: [
+    { value: 'top', label: 'Home — top banner', kind: 'fixed' },
+    { value: 'bottom', label: 'Home — bottom banner', kind: 'fixed' },
+    { value: 'sidebar_left', label: 'Sidebar — left', kind: 'fixed' },
+    { value: 'sidebar_right', label: 'Sidebar — right', kind: 'fixed' },
+    { value: 'feed', label: 'Feed (Hock + Shtick board)', kind: 'in-thread' },
+    { value: 'games_hub', label: 'Games Hub banner', kind: 'fixed' },
+    { value: 'game_page', label: 'In-Game banner (while playing)', kind: 'fixed' },
+  ]},
+  { site: 'Gut Community', items: [
+    { value: 'business_directory', label: 'Business directory', kind: 'in-thread' },
+    { value: 'deals_feed', label: 'Deals feed', kind: 'in-thread' },
+  ]},
+  { site: 'Gut Estates', items: [
+    { value: 'estates_listings', label: 'Property listings', kind: 'in-thread' },
+    { value: 'estates_group_buy', label: 'Group buy listings', kind: 'in-thread' },
+  ]},
+  { site: 'Gut Money', items: [
+    { value: 'tachlis_board', label: 'Tachlis job board', kind: 'in-thread' },
+  ]},
+  { site: 'Gut Torah', items: [
+    { value: 'torah_feed', label: 'Posts feed', kind: 'in-thread' },
+  ]},
+];
+const PLACEMENT_LABELS = Object.fromEntries(
+  PLACEMENT_GROUPS.flatMap((g) => g.items.map((it) => [it.value, it.label]))
+);
 
 const EMPTY_AD_FORM = {
   name: '', advertiser_name: '', headline: '', body_text: '', cta_label: 'Learn More',
-  destination_type: 'url', destination_value: '', placement: 'feed',
+  destination_type: 'url', destination_value: '', allPages: true, placements: [],
   target_age_min: '', target_age_max: '', target_gender: '', target_countries: '',
   start_date: '', end_date: '', weight: 1,
 };
@@ -186,7 +211,8 @@ export default function SuperAdminDashboard() {
       cta_label: ad.cta_label || 'Learn More',
       destination_type: ad.destination_type || 'url',
       destination_value: ad.destination_value || '',
-      placement: ad.placement || 'feed',
+      allPages: !ad.placements,
+      placements: ad.placements ? ad.placements.split(',') : [],
       target_age_min: ad.target_age_min ?? '',
       target_age_max: ad.target_age_max ?? '',
       target_gender: ad.target_gender || '',
@@ -203,9 +229,20 @@ export default function SuperAdminDashboard() {
     setEditingAdId(null);
   }
 
+  function toggleAdPlacement(value) {
+    setAdForm((prev) => ({
+      ...prev,
+      placements: prev.placements.includes(value)
+        ? prev.placements.filter((p) => p !== value)
+        : [...prev.placements, value],
+    }));
+  }
+
   async function saveAd() {
+    const { allPages, ...rest } = adForm;
     const body = {
-      ...adForm,
+      ...rest,
+      placements: allPages ? [] : adForm.placements,
       target_age_min: adForm.target_age_min === '' ? null : Number(adForm.target_age_min),
       target_age_max: adForm.target_age_max === '' ? null : Number(adForm.target_age_max),
       weight: Number(adForm.weight) || 1,
@@ -408,7 +445,7 @@ export default function SuperAdminDashboard() {
                       <div className="admin-card-meta">
                         <span>Type: <b>{t.post_type}</b> · By: <b>{t.submitted_by || 'Unknown'}</b></span>
                         {' · '}
-                        <a href={`/tachlis/post/${t.id}`} target="_blank" rel="noreferrer">View on site ↗</a>
+                        <a href={siteUrl('money', `/tachlis/post/${t.id}`)} target="_blank" rel="noopener noreferrer">View on site ↗</a>
                       </div>
                     </div>
                   ))}
@@ -602,20 +639,6 @@ export default function SuperAdminDashboard() {
                       onChange={(e) => setAdForm({ ...adForm, cta_label: e.target.value })} />
                   </div>
                   <div className="auth-field">
-                    <label className="auth-label">Placement</label>
-                    <select className="auth-input" value={adForm.placement}
-                      onChange={(e) => setAdForm({ ...adForm, placement: e.target.value })}>
-                      <option value="feed">Feed (between posts)</option>
-                      <option value="games_hub">Games Hub (banner)</option>
-                      <option value="game_page">In-Game (while actually playing)</option>
-                      <option value="top">Home page — top banner</option>
-                      <option value="bottom">Home page — bottom banner</option>
-                      <option value="sidebar_left">Sidebar — left</option>
-                      <option value="sidebar_right">Sidebar — right</option>
-                    </select>
-                  </div>
-
-                  <div className="auth-field">
                     <label className="auth-label">Click destination type</label>
                     <select className="auth-input" value={adForm.destination_type}
                       onChange={(e) => setAdForm({ ...adForm, destination_type: e.target.value })}>
@@ -630,6 +653,34 @@ export default function SuperAdminDashboard() {
                     <label className="auth-label">{DESTINATION_LABELS[adForm.destination_type]}</label>
                     <input className="auth-input" value={adForm.destination_value}
                       onChange={(e) => setAdForm({ ...adForm, destination_value: e.target.value })} />
+                  </div>
+
+                  <div className="auth-field full-span" style={{ borderTop: '1px solid var(--border)', paddingTop: 14, marginTop: 4 }}>
+                    <label className="auth-label" style={{ fontWeight: 700 }}>Pages</label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6, fontSize: 13 }}>
+                      <input type="checkbox" checked={adForm.allPages}
+                        onChange={(e) => setAdForm({ ...adForm, allPages: e.target.checked })} />
+                      All pages (every site, every placement)
+                    </label>
+                    {!adForm.allPages && (
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 20, marginTop: 10 }}>
+                        {PLACEMENT_GROUPS.map((group) => (
+                          <div key={group.site} style={{ minWidth: 180 }}>
+                            <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--muted)', marginBottom: 4 }}>{group.site}</div>
+                            {group.items.map((item) => (
+                              <label key={item.value} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, marginBottom: 4 }}>
+                                <input type="checkbox" checked={adForm.placements.includes(item.value)}
+                                  onChange={() => toggleAdPlacement(item.value)} />
+                                {item.label}
+                                <span style={{ fontSize: 10, color: 'var(--muted)' }}>
+                                  {item.kind === 'in-thread' ? '(in-thread)' : '(fixed)'}
+                                </span>
+                              </label>
+                            ))}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   <div className="auth-field full-span" style={{ borderTop: '1px solid var(--border)', paddingTop: 14, marginTop: 4 }}>
@@ -711,7 +762,11 @@ export default function SuperAdminDashboard() {
                     <span className={`ad-status-badge status-${ad.status}`}>{ad.status}</span>
                   </div>
                   <div className="ad-manager-meta">
-                    <span>{PLACEMENT_LABELS[ad.placement] || ad.placement}</span>
+                    <span>
+                      {ad.placements
+                        ? ad.placements.split(',').map((p) => PLACEMENT_LABELS[p] || p).join(', ')
+                        : 'All pages'}
+                    </span>
                     <span>· {ad.destination_type} → {ad.destination_value}</span>
                     {ad.advertiser_name && <span>· {ad.advertiser_name}</span>}
                   </div>

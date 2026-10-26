@@ -44,8 +44,6 @@ const CreateShtick        = lazy(() => import('./shtick/CreateShtick'));
 const PostPage            = lazy(() => import('./feed/PostPage'));
 const Hock                = lazy(() => import('./hock/Hock'));
 const HockPostPage        = lazy(() => import('./hock/HockPostPage'));
-const Tachlis             = lazy(() => import('./tachlis/Tachlis'));
-const TachlisPostPage     = lazy(() => import('./tachlis/TachlisPostPage'));
 const AdminDashboard      = lazy(() => import('./admin/AdminDashboard'));
 const SuperAdminDashboard = lazy(() => import('./admin/SuperAdminDashboard'));
 const VersusWrapper       = lazy(() => import('./games/versus/VersusWrapper'));
@@ -120,6 +118,9 @@ import { getCurrentSite } from './siteMode';
 import { SITES } from './sites/registry';
 import SsoBootstrap from './SsoBootstrap';
 import RequireAuth from './RequireAuth';
+import { useFixedAds, FIXED_BANNER_PLACEMENTS } from './ads/AdSlot';
+import { HomeAdSlot } from './ads/HomeAdSlots';
+import { LanguageSelect } from '@guttools/translation-tool';
 
 function GameFallback() {
   return (
@@ -134,6 +135,7 @@ function GameFallback() {
 
 function App() {
   const site = getCurrentSite();
+  const { ads: bannerAds, dismiss: dismissBanner } = useFixedAds(FIXED_BANNER_PLACEMENTS);
   useEffect(() => {
     // Only one site's theme class is ever active at a time -- clear every
     // registered site's class first so switching (via the ?site= dev
@@ -147,8 +149,30 @@ function App() {
         <ScrollToTop />
         <VisitorTracker />
         <SsoBootstrap />
+        {/* One shared instance for every site, pinned to the corner instead
+            of living inline in each navbar's own nav-item list -- having it
+            compete for space there with each site's own differently-sized
+            set of nav links was what threw off the tabs' even spacing. Its
+            own opaque background (see .lang-select-corner) also means it no
+            longer depends on bleeding through the navbar's background color,
+            which was unreadable on the main site's light navbar. */}
+        <span className="lang-select-corner-wrap" data-no-translate>
+          <LanguageSelect className="lang-select-corner" />
+        </span>
+        {/* Fixed to the viewport, not to any page's scroll flow -- mounted once
+            here (not per-page) so these 4 banners show up on every route of
+            every site, instead of only the main site's homepage. */}
+        <HomeAdSlot ads={bannerAds} dismiss={dismissBanner} placement="top" className="ad-slot-top" />
+        <HomeAdSlot ads={bannerAds} dismiss={dismissBanner} placement="bottom" className="ad-slot-bottom" />
+        <HomeAdSlot ads={bannerAds} dismiss={dismissBanner} placement="sidebar_left" className="ad-slot-sidebar ad-slot-sidebar-left" />
+        <HomeAdSlot ads={bannerAds} dismiss={dismissBanner} placement="sidebar_right" className="ad-slot-sidebar ad-slot-sidebar-right" />
         {site ? <site.Navbar /> : <><AppNavbar /><MobileTabBar /></>}
-        <main className="main-content">
+        {/* The top banner is `position: fixed`, so by default it floats over
+            whatever's at the top of the page underneath it (a heading, a
+            masthead) instead of pushing it down -- only reserve that extra
+            space when a top-banner ad is actually loaded, so pages don't
+            carry permanent dead space when there's no ad to show there. */}
+        <main className={`main-content${bannerAds.top ? ' has-top-ad' : ''}`}>
           <GameErrorBoundary>
           <Suspense fallback={<GameFallback />}>
             <Routes>
@@ -163,10 +187,6 @@ function App() {
                   {/* ── Hock discussion forum (public to browse; posting/commenting gated server-side) ── */}
                   <Route path="/hock" element={<Hock />} />
                   <Route path="/hock/post/:id" element={<HockPostPage />} />
-
-                  {/* ── Tachlis jobs/resumes/services board (public to browse; posting gated server-side) ── */}
-                  <Route path="/tachlis" element={<Tachlis />} />
-                  <Route path="/tachlis/post/:id" element={<TachlisPostPage />} />
 
                   {/* ── Auth-gated ── */}
                   <Route path="/CreateShtick" element={

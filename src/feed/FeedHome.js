@@ -1,15 +1,16 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import ShowMessage from './ShowMessage';
 import BoardHockCard from './BoardHockCard';
-import BoardTachlisCard from './BoardTachlisCard';
-import { AdCard, getDismissedIds, dismissAdId } from '../ads/AdSlot';
-import apiRequest from '../ApiRequest';
+import CrossSiteCard from './CrossSiteCard';
+import { AdCard, useInThreadAds } from '../ads/AdSlot';
 import { connect } from 'react-redux';
 import { fetchLimitsLoaded, fetchData } from '../actions';
 import PinSomethingCard from '../PinSomethingCard';
+import apiRequest from '../ApiRequest';
 
 const AD_EVERY_N_POSTS = 5;
+const CROSS_SITE_EVERY_N_POSTS = 6;
 
 const FeedHome = ({ feed, error, isLoading, fetchLimitsLoaded, fetchData }) => {
   const { category_id } = useParams();
@@ -20,48 +21,21 @@ const FeedHome = ({ feed, error, isLoading, fetchLimitsLoaded, fetchData }) => {
     fetchData();
   };
 
-  // One batched request per newly-needed batch of in-feed ad slots, instead
-  // of every <AdSlot> firing its own /ads/serve call -- this used to scale
-  // with feed length (every "Load more" added more independent ad requests).
-  // Slots are indexed by position and never removed on dismiss (only nulled
-  // out), so earlier slots stay stable as later ones get appended.
-  const [feedAds, setFeedAds] = useState([]);
-  const feedAdsRef = useRef(feedAds);
-  feedAdsRef.current = feedAds;
-  const fetchingRef = useRef(false);
   const neededAdCount = feed ? Math.floor(feed.length / AD_EVERY_N_POSTS) : 0;
+  const { adAt, dismiss: dismissFeedAd } = useInThreadAds('feed', neededAdCount);
 
+  // Mixes in the most recent Gut Money/Estates/Community/Torah activity
+  // alongside Shtick+Hock, the same "everything in one board" idea as the
+  // Hock mix-in above -- root page only (a category page is specifically
+  // Shtick, not the whole network). One fetch of the aggregate feed's first
+  // page is plenty of inventory to sprinkle through a normal scroll session.
+  const [crossItems, setCrossItems] = useState([]);
   useEffect(() => {
-    const current = feedAdsRef.current;
-    if (neededAdCount <= current.length || fetchingRef.current) return;
-    const toFetch = neededAdCount - current.length;
-    fetchingRef.current = true;
-    const exclude = [...getDismissedIds(), ...current.filter(Boolean).map((a) => a.id)].join(',');
-    const qs = `?placement=feed&count=${toFetch}${exclude ? `&exclude=${exclude}` : ''}`;
-    apiRequest('GET', null, `/ads/serve_many${qs}`)
-      .then((data) => {
-        // Only touch state (and thus feedAds) when there's genuinely
-        // something new. This effect depends on neededAdCount alone, not
-        // feedAds itself -- reacting to feedAds too used to mean an empty
-        // response (ad inventory exhausted for this placement/targeting)
-        // still produced a *new* array reference via the spread below,
-        // which re-triggered this same effect, which fetched again, forever
-        // -- an actual infinite request loop once a visitor's eligible ad
-        // pool ran dry, hammering /ads/serve_many and re-rendering non-stop.
-        if (Array.isArray(data) && data.length > 0) {
-          setFeedAds((prev) => [...prev, ...data]);
-        }
-      })
-      .catch(() => {})
-      .finally(() => { fetchingRef.current = false; });
-  }, [neededAdCount]);
-
-  const dismissFeedAd = (slotIdx) => {
-    const ad = feedAds[slotIdx];
-    if (!ad) return;
-    dismissAdId(ad.id);
-    setFeedAds((prev) => prev.map((a, i) => (i === slotIdx ? null : a)));
-  };
+    if (!isRoot) return;
+    apiRequest('GET', null, '/feed/aggregate?page=1')
+      .then((res) => setCrossItems(res.items || []))
+      .catch(() => {});
+  }, [isRoot]);
 
   if (isLoading && !feed) {
     return (
@@ -98,8 +72,7 @@ const FeedHome = ({ feed, error, isLoading, fetchLimitsLoaded, fetchData }) => {
   // page you already fetched -- no extra request, just a different
   // treatment for the post that's clearly resonating right now. Only ever a
   // Shtick (ShowMessage renders a Shtick's shape) -- the board feed also
-  // mixes in Hock/Tachlis items (kind: 'hock' | 'tachlis'), which aren't
-  // eligible for the pin slot.
+  // mixes in Hock items (kind: 'hock'), which aren't eligible for the pin slot.
   const isShtick = (m) => !m.kind || m.kind === 'shtick';
   const pinned = isRoot
     ? feed.filter(isShtick).reduce((best, m) => {
@@ -128,6 +101,8 @@ const FeedHome = ({ feed, error, isLoading, fetchLimitsLoaded, fetchData }) => {
           if (isRoot && pinned && isShtick(message) && message.id === pinned.id) return null;
           const isAdSlot = (idx + 1) % AD_EVERY_N_POSTS === 0;
           const slotIdx = isAdSlot ? Math.floor(idx / AD_EVERY_N_POSTS) : null;
+          const isCrossSlot = isRoot && crossItems.length > 0 && (idx + 1) % CROSS_SITE_EVERY_N_POSTS === 0;
+          const crossItem = isCrossSlot ? crossItems[Math.floor(idx / CROSS_SITE_EVERY_N_POSTS) % crossItems.length] : null;
           const showNudge = isRoot && !nudgeShown && message.kind === 'hock';
           if (showNudge) nudgeShown = true;
           return (
@@ -140,14 +115,13 @@ const FeedHome = ({ feed, error, isLoading, fetchLimitsLoaded, fetchData }) => {
               )}
               {message.kind === 'hock' ? (
                 <BoardHockCard post={message} />
-              ) : message.kind === 'tachlis' ? (
-                <BoardTachlisCard post={message} />
               ) : (
                 <ShowMessage message={message} />
               )}
               {isAdSlot && (
-                <AdCard ad={feedAds[slotIdx]} onDismiss={() => dismissFeedAd(slotIdx)} />
+                <AdCard ad={adAt(slotIdx)} onDismiss={() => dismissFeedAd(slotIdx)} />
               )}
+              {crossItem && <CrossSiteCard item={crossItem} />}
             </React.Fragment>
           );
         });

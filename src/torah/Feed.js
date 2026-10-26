@@ -5,6 +5,7 @@ import apiRequest from '../ApiRequest';
 import { isLoggedIn } from '../auth';
 import TorahStatsBar from './TorahStatsBar';
 import PostCard from './PostCard';
+import { AdCard, useInThreadAds } from '../ads/AdSlot';
 
 const CATEGORY_TABS = [
   { key: '', label: 'All' },
@@ -24,6 +25,8 @@ export default function Feed() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(true);
+  const neededAdCount = results ? Math.floor(results.length / 6) : 0;
+  const { adAt, dismiss: dismissAd } = useInThreadAds('torah_feed', neededAdCount);
 
   useEffect(() => {
     setLoading(true);
@@ -85,7 +88,15 @@ export default function Feed() {
         {!loading && results && results.length === 0 && <p className="tor-empty">No posts found. Be the first to share something.</p>}
         {!loading && results && results.length > 0 && (
           <div className="tor-post-grid">
-            {results.map((p) => <PostCard key={p.id} post={p} />)}
+            {results.map((p, i) => {
+              const slotIdx = i % 6 === 5 ? Math.floor(i / 6) : null;
+              return (
+                <React.Fragment key={p.id}>
+                  <PostCard post={p} />
+                  {slotIdx !== null && <AdCard ad={adAt(slotIdx)} onDismiss={() => dismissAd(slotIdx)} />}
+                </React.Fragment>
+              );
+            })}
           </div>
         )}
 

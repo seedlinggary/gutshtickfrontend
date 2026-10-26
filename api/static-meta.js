@@ -19,6 +19,8 @@
 // hostnames or it would fire for the wrong site. Every other route here is
 // unique to its own site's route table, so those are safe unconditionally.
 
+const { siteForHost } = require('./_sites');
+
 const PAGES = {
   // ── Gut Community ──────────────────────────────────────────────────────
   home: {
@@ -88,8 +90,14 @@ const PAGES = {
   money_home: {
     siteName: 'Gut Money',
     title: 'Gut Money — Budgeting, Investing & Retirement Calculators',
-    description: 'Free calculators for compound interest, retirement, debt payoff, a savings goal, your FIRE number and Coast FIRE -- plus real stock quotes and a budgeting tool.',
+    description: 'Free calculators for compound interest, retirement, debt payoff, a savings goal, your FIRE number and Coast FIRE -- plus real stock quotes, a budgeting tool, and a jobs board.',
     path: '/',
+  },
+  money_tachlis: {
+    siteName: 'Gut Money',
+    title: 'Tachlis — Jobs & Resumes Board | Gut Money',
+    description: 'Post or browse job openings and resumes -- a straightforward classifieds board.',
+    path: '/tachlis',
   },
   money_investing: {
     siteName: 'Gut Money',
@@ -146,7 +154,7 @@ const PAGES = {
   main_home: {
     siteName: 'Gut Shtick',
     title: 'Gut Shtick — Curated Content Worth Sharing',
-    description: 'A daily feed of posts worth sharing, a Hock discussion forum, a Tachlis jobs/services board, and dozens of free browser games.',
+    description: 'Discover the latest jobs, real estate, businesses, deals and Torah posts from across the Gut Shtick network, plus a daily feed of posts worth sharing, a Hock discussion forum, and dozens of free browser games.',
     path: '/',
   },
   main_hock: {
@@ -155,17 +163,30 @@ const PAGES = {
     description: 'A discussion forum for whatever\'s on your mind -- post, comment, and reply in threads.',
     path: '/hock',
   },
-  main_tachlis: {
-    siteName: 'Gut Shtick',
-    title: 'Tachlis — Jobs, Resumes & Services Board | Gut Shtick',
-    description: 'Post or browse job openings, resumes, and services offered -- a straightforward classifieds board.',
-    path: '/tachlis',
-  },
-  main_about: {
-    siteName: 'Gut Shtick',
-    title: 'About | Gut Shtick',
-    description: 'What Gut Shtick is and who it\'s for.',
+};
+
+const SITE_LABELS = {
+  business: 'Gut Community', estates: 'Gut Estates', money: 'Gut Money',
+  torah: 'Gut Torah', news: 'Gut News', main: 'Gut Shtick',
+};
+
+// Pages reachable on EVERY site by the app's own design (see
+// api/_routes.js's UNIVERSAL_PREFIXES) -- these need their og:site_name/
+// title to match whichever domain they're actually being viewed on, not a
+// single fixed brand. Keyed by route value, built dynamically per-request
+// below instead of as fixed PAGES entries (which would need a full
+// site x page cross-product -- 5 sites x N pages -- for no real benefit,
+// since the copy itself doesn't otherwise vary by site).
+const UNIVERSAL_PAGES = {
+  about: {
+    title: (siteName) => `About | ${siteName}`,
+    description: (siteName) => `What ${siteName} is and who it's for.`,
     path: '/about',
+  },
+  contact: {
+    title: (siteName) => `Contact | ${siteName}`,
+    description: () => 'Get in touch.',
+    path: '/contact',
   },
 };
 
@@ -196,7 +217,13 @@ function injectMeta(html, meta, url) {
 module.exports = async function handler(req, res) {
   const { route } = req.query;
   const origin = `https://${req.headers.host}`;
-  const meta = PAGES[route];
+
+  let meta = PAGES[route];
+  if (!meta && UNIVERSAL_PAGES[route]) {
+    const siteName = SITE_LABELS[siteForHost(req.headers.host)] || SITE_LABELS.main;
+    const page = UNIVERSAL_PAGES[route];
+    meta = { siteName, title: page.title(siteName), description: page.description(siteName), path: page.path };
+  }
 
   const shellRes = await fetch(`${origin}/index.html`);
   const shellHtml = await shellRes.text();

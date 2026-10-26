@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import apiRequest from '../ApiRequest';
 import ShareButton from '../ShareButton';
 import { isLoggedIn } from '../auth';
 import timeAgo from '../utils/timeAgo';
 import PinSomethingCard from '../PinSomethingCard';
+import { AdCard, useInThreadAds } from '../ads/AdSlot';
 
 const TITLE_MAX = 150;
 const BODY_MAX = 8000;
@@ -16,12 +17,15 @@ const TABS = [
   { key: '', label: 'All' },
   { key: 'job', label: 'Jobs' },
   { key: 'resume', label: 'Resumes' },
-  { key: 'service', label: 'Services' },
 ];
 
 const TYPE_META = {
   job: { label: 'Job', color: 'var(--accent)' },
   resume: { label: 'Resume', color: 'var(--success)' },
+  // Services-offered posts are retired (Gut Community already covers this
+  // via its own business/vendor listings) -- kept here only so any
+  // already-posted service listing still renders with a real label/color
+  // instead of falling back to TypeBadge's generic muted default.
   service: { label: 'Service', color: '#6366f1' },
 };
 
@@ -159,7 +163,7 @@ function CreatePostForm({ onCreated, onCancel }) {
           <div className="gs-field">
             <label className="gs-label">Type</label>
             <div className="content-type-tabs">
-              {['job', 'resume', 'service'].map((t) => (
+              {['job', 'resume'].map((t) => (
                 <button
                   key={t}
                   type="button"
@@ -184,7 +188,7 @@ function CreatePostForm({ onCreated, onCancel }) {
           <div className="gs-field">
             <textarea
               className="gs-input gs-textarea"
-              placeholder="Details — describe the job, your experience, or the service you offer…"
+              placeholder="Details — describe the job or your experience…"
               value={body}
               maxLength={BODY_MAX}
               rows={5}
@@ -234,8 +238,11 @@ function CreatePostForm({ onCreated, onCancel }) {
 
 export default function Tachlis() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [type, setType] = useState('');
   const [posts, setPosts] = useState([]);
+  const neededAdCount = Math.floor(posts.length / 5);
+  const { adAt, dismiss: dismissAd } = useInThreadAds('tachlis_board', neededAdCount);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -245,6 +252,16 @@ export default function Tachlis() {
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const loggedIn = isLoggedIn();
+
+  // Lets MoneyNavbar's "Post to Tachlis" button jump straight into compose
+  // mode (via /tachlis?new=1) without needing a separate /tachlis/new
+  // route -- this form is simple enough (5 flat fields, no photo upload)
+  // that it doesn't need its own dedicated page the way Estates/Business's
+  // heavier create flows do.
+  useEffect(() => {
+    if (searchParams.get('new') === '1') setComposing(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- read once on mount only
+  }, []);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search.trim()), 350);
@@ -291,7 +308,7 @@ export default function Tachlis() {
           </button>
         </div>
         <p style={{ color: 'var(--muted)', marginTop: 0 }}>
-          Gut Shtick's classifieds board — post a job, a resume, or a service. Every post is contact-first: reach out directly.
+          Gut Money's classifieds board — post a job opening or your resume. Every post is contact-first: reach out directly.
         </p>
 
         {composing && loggedIn && (
@@ -338,13 +355,19 @@ export default function Tachlis() {
 
         {!loading && !error && posts.length > 0 && (
           <div style={{ marginBottom: 20 }}>
-            <PinSomethingCard to="/tachlis" prompt="Hiring, looking for work, or offering a service? Post a flyer." cta="Post a flyer" />
+            <PinSomethingCard to="/tachlis" prompt="Hiring, or looking for work? Post a flyer." cta="Post a flyer" />
           </div>
         )}
 
-        {!loading && !error && posts.map((post) => (
-          <PostCard key={post.id} post={post} />
-        ))}
+        {!loading && !error && posts.map((post, i) => {
+          const slotIdx = i % 5 === 4 ? Math.floor(i / 5) : null;
+          return (
+            <React.Fragment key={post.id}>
+              <PostCard post={post} />
+              {slotIdx !== null && <AdCard ad={adAt(slotIdx)} onDismiss={() => dismissAd(slotIdx)} />}
+            </React.Fragment>
+          );
+        })}
 
         {!loading && !error && hasMore && (
           <div style={{ textAlign: 'center', paddingTop: 8, paddingBottom: 24 }}>

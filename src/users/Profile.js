@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import apiRequest from '../ApiRequest';
 import timeAgo from '../utils/timeAgo';
+import { siteUrl } from '../siteMode';
 
 const GENDERS = [
   { value: '', label: 'Prefer not to say' },
@@ -125,9 +126,12 @@ function MyActivity() {
               <StatusBadge v={t.approved_to_publish} />
               <span className="admin-date">{timeAgo(t.pub_date)}</span>
             </div>
-            <Link to={`/tachlis/post/${t.id}`} className="admin-caption" style={{ display: 'block', marginTop: 4 }}>
+            <a
+              href={siteUrl('money', `/tachlis/post/${t.id}`)} target="_blank" rel="noopener noreferrer"
+              className="admin-caption" style={{ display: 'block', marginTop: 4 }}
+            >
               {t.title}
-            </Link>
+            </a>
           </div>
         ))}
       </section>

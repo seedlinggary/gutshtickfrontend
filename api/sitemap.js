@@ -87,14 +87,21 @@ async function estatesEntries(origin) {
 }
 
 async function moneyEntries(origin) {
-  // No per-record pages -- quotes are looked up by ticker on the fly, not
-  // canonical indexable URLs, so this is just the fixed page set.
+  // Quotes are looked up by ticker on the fly, not canonical indexable
+  // URLs -- the only per-record pages here are Tachlis posts (moved here
+  // from the main site).
+  const tachlis = await fetchJson('/tachlis/posts/sitemap-data');
+  const tachlisPosts = (tachlis && tachlis.posts) || [];
   return [
-    { path: '/', changefreq: 'weekly', priority: '1.0' },
-    { path: '/investing', changefreq: 'weekly', priority: '0.6' },
-    { path: '/budgeting', changefreq: 'monthly', priority: '0.6' },
-    { path: '/learn', changefreq: 'monthly', priority: '0.6' },
-  ].map((p) => urlEntry(`${origin}${p.path}`, p));
+    ...[
+      { path: '/', changefreq: 'weekly', priority: '1.0' },
+      { path: '/investing', changefreq: 'weekly', priority: '0.6' },
+      { path: '/budgeting', changefreq: 'monthly', priority: '0.6' },
+      { path: '/learn', changefreq: 'monthly', priority: '0.6' },
+      { path: '/tachlis', changefreq: 'daily', priority: '0.7' },
+    ].map((p) => urlEntry(`${origin}${p.path}`, p)),
+    ...tachlisPosts.filter((x) => x.id != null).map((x) => urlEntry(`${origin}/tachlis/post/${x.id}`, { lastmod: x.updated, changefreq: 'weekly', priority: '0.5' })),
+  ];
 }
 
 async function torahEntries(origin) {
@@ -118,24 +125,20 @@ async function torahEntries(origin) {
 }
 
 async function mainEntries(origin) {
-  const [shtick, hock, tachlis] = await Promise.all([
+  const [shtick, hock] = await Promise.all([
     fetchJson('/shtick/sitemap-data'),
     fetchJson('/hock/posts/sitemap-data'),
-    fetchJson('/tachlis/posts/sitemap-data'),
   ]);
   const shtickPosts = (shtick && shtick.posts) || [];
   const hockPosts = (hock && hock.posts) || [];
-  const tachlisPosts = (tachlis && tachlis.posts) || [];
   return [
     ...[
       { path: '/', changefreq: 'daily', priority: '1.0' },
       { path: '/hock', changefreq: 'daily', priority: '0.8' },
-      { path: '/tachlis', changefreq: 'daily', priority: '0.7' },
       { path: '/about', changefreq: 'yearly', priority: '0.3' },
     ].map((p) => urlEntry(`${origin}${p.path}`, p)),
     ...shtickPosts.filter((x) => x.id != null).map((x) => urlEntry(`${origin}/post/${x.id}`, { lastmod: x.updated, changefreq: 'monthly', priority: '0.5' })),
     ...hockPosts.filter((x) => x.id != null).map((x) => urlEntry(`${origin}/hock/post/${x.id}`, { lastmod: x.updated, changefreq: 'monthly', priority: '0.5' })),
-    ...tachlisPosts.filter((x) => x.id != null).map((x) => urlEntry(`${origin}/tachlis/post/${x.id}`, { lastmod: x.updated, changefreq: 'weekly', priority: '0.5' })),
   ];
 }
 

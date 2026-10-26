@@ -84,18 +84,18 @@ export default function GroupBuyProfile() {
           {gb.is_closed && <span className="est-badge agent">Closed</span>}
         </div>
 
-        <h1 style={{ margin: '0 0 4px' }}>{gb.title}</h1>
-        <p style={{ color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: 5, margin: '0 0 8px' }}>
+        <h1 dir="auto" style={{ margin: '0 0 4px' }}>{gb.title}</h1>
+        <p dir="auto" style={{ color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: 5, margin: '0 0 8px' }}>
           <MapPin size={14} /> {[gb.address, gb.neighborhood, gb.city, gb.state, gb.country].filter(Boolean).join(', ')}
         </p>
-        {gb.developer_name && <p style={{ margin: '0 0 8px', fontSize: 13.5, color: 'var(--muted)' }}>Developer: {gb.developer_name}</p>}
+        {gb.developer_name && <p dir="auto" style={{ margin: '0 0 8px', fontSize: 13.5, color: 'var(--muted)' }}>Developer: {gb.developer_name}</p>}
         {gb.expected_completion && <p style={{ margin: '0 0 8px', fontSize: 13.5, color: 'var(--muted)' }}>Expected completion: {gb.expected_completion}</p>}
 
         {gb.price_per_unit_estimate != null && (
           <div className="est-price-line">~{gb.currency === 'ILS' ? '₪' : '$'}{gb.price_per_unit_estimate.toLocaleString()} <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--muted)' }}>per unit, estimated</span></div>
         )}
 
-        {gb.description && <p style={{ lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{gb.description}</p>}
+        {gb.description && <p dir="auto" style={{ lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{gb.description}</p>}
 
         <div className="est-form-section">
           <h3>Group progress</h3>

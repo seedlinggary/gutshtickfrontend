@@ -110,6 +110,19 @@ iframe {
   flex: 1;
   padding-top: 72px;
 }
+/* Reserves room for the fixed top-banner ad (see .ad-slot-top) only while
+   one is actually showing -- added/removed in App.js based on whether the
+   top placement actually has an ad loaded, see HomeAdSlot there. Desktop
+   banner is ~71px tall; the mobile layout (see .ad-slot-top's own
+   max-width:640px rule) drops the image/label and is noticeably shorter. */
+.main-content.has-top-ad {
+  padding-top: 144px;
+}
+@media (max-width: 640px) {
+  .main-content.has-top-ad {
+    padding-top: 118px;
+  }
+}
 
 /* ── Mobile tab bar -- a ticket strip standing in for a hamburger menu on
    small screens. Hidden entirely on desktop, where the top nav already
@@ -133,6 +146,35 @@ iframe {
 @media (max-width: 768px) {
   .mobile-tabbar { display: flex; }
   .main-content { padding-bottom: 64px; }
+}
+
+/* ── Language select -- pinned to the top-right corner of every page on
+   every site (mounted once in App.js), not inside any one navbar's own
+   nav-item list. An opaque background of its own (not the translucent
+   white-on-dark look a colored navbar background would allow) means it
+   stays readable regardless of which site's navbar -- including the main
+   site's light one, where the old translucent-white style was invisible. ── */
+.lang-select-corner-wrap {
+  position: fixed;
+  top: 14px;
+  right: 16px;
+  z-index: 1001;
+}
+@media (max-width: 768px) {
+  .lang-select-corner-wrap { top: 10px; right: 10px; }
+}
+.lang-select-corner {
+  background: #ffffff;
+  color: #1f2430;
+  border: 1px solid rgba(0,0,0,0.15);
+  border-radius: 8px;
+  padding: 4px 8px;
+  font-size: 12px;
+  box-shadow: var(--shadow-sm);
+}
+.lang-select-corner option {
+  background-color: #ffffff;
+  color: #1f2430;
 }
 
 /* ── Cross-site link -- the *only* way to jump between sites, deliberately a
@@ -580,13 +622,6 @@ iframe {
 .cross-heat-bar { width: 56px; height: 5px; border-radius: 3px; background: var(--border); overflow: hidden; }
 .cross-heat-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--hot)); }
 .cross-heat-label { font-family: var(--font-mono); font-size: 10.5px; color: var(--muted); text-transform: uppercase; }
-.tachlis-fresh-row { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 2px; }
-.tachlis-fresh-item {
-  flex: 0 0 auto; min-width: 180px; max-width: 220px; border: 1px dashed var(--muted-faint);
-  border-radius: var(--radius-sm); padding: 10px 12px; text-decoration: none; color: var(--text);
-}
-.tachlis-fresh-item:hover { border-color: var(--accent); }
-.tachlis-fresh-title { font-size: 13px; font-weight: 700; line-height: 1.3; }
 
 /* ── Punch card (Profile streak) ── */
 .punch-card {
@@ -2502,6 +2537,13 @@ iframe {
   bottom: 0;
   border-bottom: none;
 }
+@media (max-width: 768px) {
+  /* On the main site only, the mobile tab bar also pins to bottom:0 at this
+     width (see .mobile-tabbar) -- clear it the same way .cross-site-wrap
+     already does, instead of the two overlapping. Sub-sites never render
+     the tab bar, so this margin is simply unused space there, not a bug. */
+  .ad-slot-bottom { bottom: calc(64px + env(safe-area-inset-bottom)); }
+}
 .ad-slot-top .gs-card-body,
 .ad-slot-bottom .gs-card-body {
   display: flex;
@@ -2610,26 +2652,38 @@ iframe {
   margin-bottom: 4px;
 }
 
-/* Skyscraper-style rail ads flanking the centered feed column (max-width 720px,
-   see .gs-container). Only shown once there's genuinely enough spare width for
-   them not to overlap the content or the navbar's edges. */
+/* Skyscraper-style rail ads pinned to the viewport's own edges -- NOT
+   calculated from any one page's content width, since these mount globally
+   (every page of every site, see App.js) and content width varies a lot
+   across pages (720px feed column up to the 1180px directory/grid pages use
+   -- see e.g. EstatesDirectory.js/BusinessDirectory.js's own gs-container
+   override). Pinning to the window edge instead of the content center
+   means it doesn't matter which of those a given page uses. Only shown once
+   the viewport is wide enough that even the widest (1180px) page content,
+   centered, still leaves genuine clear margin outside both rails -- at
+   1650px that's roughly a 35px gap on each side; below that there usually
+   isn't room to flank content without sitting on top of it. */
 .ad-slot-sidebar {
   display: none;
   position: fixed;
-  top: 100px;
+  /* Clears the navbar (64px) + the top banner below it (~72-143px when an
+     ad is actually showing there), not just the navbar alone -- otherwise
+     the two overlap whenever both a top-banner ad and a sidebar ad are
+     live at once. */
+  top: 156px;
   width: 180px;
   max-height: 400px;
   overflow: hidden;
 }
-@media (min-width: 1300px) {
+@media (min-width: 1650px) {
   .ad-slot-sidebar {
     display: block;
   }
   .ad-slot-sidebar-left {
-    left: calc(50vw - 360px - 20px - 180px);
+    left: 20px;
   }
   .ad-slot-sidebar-right {
-    left: calc(50vw + 360px + 20px);
+    right: 20px;
   }
 }
 .ad-slot-sidebar .ad-slot-image {

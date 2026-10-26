@@ -104,8 +104,8 @@ export default function ListingProfile() {
           </span>
         </div>
 
-        <h1 style={{ margin: '0 0 4px' }}>{listing.title}</h1>
-        <p style={{ color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: 5, margin: '0 0 8px' }}>
+        <h1 dir="auto" style={{ margin: '0 0 4px' }}>{listing.title}</h1>
+        <p dir="auto" style={{ color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: 5, margin: '0 0 8px' }}>
           <MapPin size={14} /> {[listing.address, listing.neighborhood, listing.city, listing.state, listing.country].filter(Boolean).join(', ')}
         </p>
         <div className="est-price-line">{formatPrice(listing)}</div>
@@ -118,7 +118,7 @@ export default function ListingProfile() {
           </div>
         )}
 
-        {listing.description && <p style={{ lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{listing.description}</p>}
+        {listing.description && <p dir="auto" style={{ lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{listing.description}</p>}
 
         {listing.is_own_listing && listing.expires_at && (
           <div className={`est-expiry-note${listing.is_expired ? ' expired' : ''}`}>

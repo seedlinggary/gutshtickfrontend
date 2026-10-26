@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
 import apiRequest from '../ApiRequest';
 import { getEmail } from '../auth';
-import { useLanguage } from './i18n';
 
 const MESSAGE_MAX = 2000;
 
 export default function LeadForm({ businessId }) {
-  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ name: '', email: getEmail() || '', phone: '', message: '' });
   const [status, setStatus] = useState(null);
@@ -26,7 +24,7 @@ export default function LeadForm({ businessId }) {
   if (!open) {
     return (
       <button type="button" className="biz-lead-open-btn" onClick={() => setOpen(true)}>
-        {t('requestQuote')}
+        Request a Quote
       </button>
     );
   }

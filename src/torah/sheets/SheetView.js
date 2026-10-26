@@ -312,10 +312,10 @@ export default function SheetView() {
                 {Array.from({ length: textSegmentCount(item) }).map((_, segI) => (
                   <div key={segI}>
                     {showEnglish && item.en_text && item.en_text[segI] && (
-                      <p className="tor-text-en" dangerouslySetInnerHTML={{ __html: item.en_text[segI] }} />
+                      <p className="tor-text-en" data-no-translate dangerouslySetInnerHTML={{ __html: item.en_text[segI] }} />
                     )}
                     {item.he_text && item.he_text[segI] && (
-                      <p className="tor-hebrew" dangerouslySetInnerHTML={{ __html: item.he_text[segI] }} />
+                      <p className="tor-hebrew" data-no-translate dangerouslySetInnerHTML={{ __html: item.he_text[segI] }} />
                     )}
                   </div>
                 ))}

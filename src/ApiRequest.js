@@ -6,12 +6,16 @@ const API = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
  * `data.message` discarding everything else in the body. */
 export async function apiRequestRaw(method, body, path) {
   const cookie = localStorage.getItem('cookie');
+  const headers = {
+    'Content-Type': 'application/json',
+    'x-access-token': cookie,
+  };
+  // See auth.js's isAdminDevice() -- lets the backend exclude this browser's
+  // ad impressions from advertiser-visible counts even while logged out.
+  if (localStorage.getItem('admin_device') === 'true') headers['x-admin-device'] = '1';
   const options = {
     method,
-    headers: {
-      'Content-Type': 'application/json',
-      'x-access-token': cookie,
-    },
+    headers,
     body: method !== 'GET' ? JSON.stringify(body) : undefined,
   };
 

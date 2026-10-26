@@ -224,7 +224,7 @@ export default function TachlisPostPage() {
 
             {!loggedIn && (
               <p style={{ fontSize: 13, color: 'var(--muted)', marginTop: 12 }}>
-                <Link to="/signin">Sign in</Link> to post your own job, resume, or service listing.
+                <Link to="/signin">Sign in</Link> to post your own job or resume listing.
               </p>
             )}
           </>

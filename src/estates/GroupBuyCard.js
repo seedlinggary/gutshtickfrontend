@@ -22,8 +22,8 @@ export default function GroupBuyCard({ groupBuy }) {
       )}
       {groupBuy.stage && <div className="est-listing-card-badge">{STAGE_LABEL[groupBuy.stage] || groupBuy.stage}</div>}
       <div className="est-listing-card-body">
-        <h3 style={{ marginTop: 0 }}>{groupBuy.title}</h3>
-        <p>{[groupBuy.neighborhood, groupBuy.city, groupBuy.state || groupBuy.country].filter(Boolean).join(', ')}</p>
+        <h3 dir="auto" style={{ marginTop: 0 }}>{groupBuy.title}</h3>
+        <p dir="auto">{[groupBuy.neighborhood, groupBuy.city, groupBuy.state || groupBuy.country].filter(Boolean).join(', ')}</p>
         {groupBuy.price_per_unit_estimate != null && (
           <div className="est-listing-card-price">
             ~{groupBuy.currency === 'ILS' ? '₪' : '$'}{groupBuy.price_per_unit_estimate.toLocaleString()}

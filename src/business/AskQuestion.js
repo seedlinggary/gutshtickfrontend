@@ -2,12 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { MessageCircleQuestion } from 'lucide-react';
 import apiRequest from '../ApiRequest';
 import { isLoggedIn } from '../auth';
-import { useLanguage } from './i18n';
 
 const QUESTION_MAX = 800;
 
 export default function AskQuestion({ businessId, canManage }) {
-  const { t } = useLanguage();
   const [questions, setQuestions] = useState([]);
   const [draft, setDraft] = useState('');
   const [answerDrafts, setAnswerDrafts] = useState({});
@@ -52,7 +50,7 @@ export default function AskQuestion({ businessId, canManage }) {
 
   return (
     <div className="biz-qa">
-      <h3 className="biz-section-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><MessageCircleQuestion size={19} /> {t('askQuestion')}</h3>
+      <h3 className="biz-section-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><MessageCircleQuestion size={19} /> Ask a Question</h3>
 
       {answered.length > 0 && (
         <ul className="biz-qa-list">

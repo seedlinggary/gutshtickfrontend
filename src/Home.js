@@ -4,7 +4,6 @@ import { useDispatch } from 'react-redux';
 import { fetchCategory, fetchData } from './actions';
 import FeedHome from './feed/FeedHome';
 import DailyBoardHero from './feed/DailyBoardHero';
-import { useHomeAds, HomeAdSlot } from './ads/HomeAdSlots';
 
 const CATEGORY_LABELS = {
   all: 'All Posts',
@@ -17,11 +16,11 @@ const Home = () => {
   const dispatch = useDispatch();
   const category = category_id || 'all';
   const isRoot = !category_id;
-  const { ads, dismiss } = useHomeAds();
 
   useEffect(() => {
     dispatch(fetchCategory(category));
     dispatch(fetchData());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [category]);
 
   const feedLabel = CATEGORY_LABELS[category] || `Category Feed`;
@@ -29,12 +28,6 @@ const Home = () => {
   return (
     <>
       {isRoot && <DailyBoardHero />}
-      {/* Fixed to the viewport, not to the feed's scroll flow — rendered at the
-          page level, same as the sidebars, regardless of where they sit in the DOM. */}
-      <HomeAdSlot ads={ads} dismiss={dismiss} placement="top" className="ad-slot-top" />
-      <HomeAdSlot ads={ads} dismiss={dismiss} placement="bottom" className="ad-slot-bottom" />
-      <HomeAdSlot ads={ads} dismiss={dismiss} placement="sidebar_left" className="ad-slot-sidebar ad-slot-sidebar-left" />
-      <HomeAdSlot ads={ads} dismiss={dismiss} placement="sidebar_right" className="ad-slot-sidebar ad-slot-sidebar-right" />
 
       <div className="feed-section">
         <div className="gs-container">

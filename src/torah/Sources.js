@@ -103,7 +103,7 @@ function SectionPicker({ bookRef, style, onSelect }) {
             <div key={c.title} className="tor-browser-item" onClick={() => setCurrentRef(c.title)}>
               <span>{c.title}</span>
               <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span className="tor-hebrew" style={{ fontSize: 14 }}>{c.heTitle}</span>
+                <span className="tor-hebrew" data-no-translate style={{ fontSize: 14 }}>{c.heTitle}</span>
                 <ChevronRight size={14} style={{ color: 'var(--muted-faint)' }} />
               </span>
             </div>
@@ -251,10 +251,10 @@ function TextDisplay({ data, showEnglish, sheetState }) {
       {Array.from({ length: textSegmentCount(data) }).map((_, i) => (
         <div key={i} className="tor-text-block">
           {showEnglish && data.text && data.text[i] && (
-            <p className="tor-text-en" dangerouslySetInnerHTML={{ __html: data.text[i] }} />
+            <p className="tor-text-en" data-no-translate dangerouslySetInnerHTML={{ __html: data.text[i] }} />
           )}
           {data.he && data.he[i] && (
-            <p className="tor-hebrew" dangerouslySetInnerHTML={{ __html: data.he[i] }} />
+            <p className="tor-hebrew" data-no-translate dangerouslySetInnerHTML={{ __html: data.he[i] }} />
           )}
         </div>
       ))}
@@ -280,8 +280,8 @@ function TextDisplay({ data, showEnglish, sheetState }) {
                   </div>
                   {Array.from({ length: textSegmentCount(ct) }).map((_, j) => (
                     <div key={j}>
-                      {showEnglish && ct.text && ct.text[j] && <p className="tor-text-en" dangerouslySetInnerHTML={{ __html: ct.text[j] }} />}
-                      {ct.he && ct.he[j] && <p className="tor-hebrew" dangerouslySetInnerHTML={{ __html: ct.he[j] }} />}
+                      {showEnglish && ct.text && ct.text[j] && <p className="tor-text-en" data-no-translate dangerouslySetInnerHTML={{ __html: ct.text[j] }} />}
+                      {ct.he && ct.he[j] && <p className="tor-hebrew" data-no-translate dangerouslySetInnerHTML={{ __html: ct.he[j] }} />}
                     </div>
                   ))}
                 </div>
@@ -416,7 +416,7 @@ function TocBrowser({ rootCategory, style, showEnglish, sheetState }) {
                 <div key={item.category || item.title} className="tor-browser-item" onClick={() => enter(item)}>
                   <span>{item.category || item.title}{item.enShortDesc ? ` -- ${item.enShortDesc}` : ''}</span>
                   <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span className="tor-hebrew" style={{ fontSize: 14 }}>{item.heCategory || item.heTitle}</span>
+                    <span className="tor-hebrew" data-no-translate style={{ fontSize: 14 }}>{item.heCategory || item.heTitle}</span>
                     <ChevronRight size={14} style={{ color: 'var(--muted-faint)' }} />
                   </span>
                 </div>

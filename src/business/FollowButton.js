@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import apiRequest from '../ApiRequest';
 import { isLoggedIn } from '../auth';
-import { useLanguage } from './i18n';
 
 export default function FollowButton({ businessId }) {
-  const { t } = useLanguage();
   const [following, setFollowing] = useState(false);
   const [count, setCount] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -46,7 +44,7 @@ export default function FollowButton({ businessId }) {
         onClick={toggle}
         disabled={busy}
       >
-        {following ? `✓ ${t('following')}` : `+ ${t('follow')}`}
+        {following ? '✓ Following' : '+ Follow'}
         {count != null && count > 0 && <span className="biz-follow-count"> · {count}</span>}
       </button>
       {failed && <span style={{ fontSize: 11, color: 'var(--error, #c0392b)' }}>Couldn't update -- try again</span>}

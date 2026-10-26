@@ -43,4 +43,25 @@ function siteForHost(host) {
   return 'main';
 }
 
-module.exports = { parseHostnames, siteForHost, SITE_HOSTS };
+/** True only if this exact host is in one of the real configured
+ * VITE_*_HOSTNAMES lists -- unlike siteForHost(), this does NOT fall back
+ * to 'main' for an unmatched host. Lets api/shell.js tell apart a
+ * genuinely-configured main-site domain from an unrecognized one (a
+ * Vercel preview URL, the raw *.vercel.app production alias, a typo'd
+ * domain) -- siteForHost() alone can't make that distinction since both
+ * cases return 'main'. */
+function isKnownHost(host) {
+  const bare = normalizeHost(host || '');
+  return Object.values(SITE_HOSTS).some((hosts) => hosts.includes(bare));
+}
+
+/** The first configured hostname for a site -- the canonical domain to
+ * redirect an unrecognized host to, or to build a cross-site redirect
+ * target from. Returns null if that site has no hostnames configured
+ * (e.g. local dev with no .env set) -- callers must handle that rather
+ * than redirect to an empty/undefined host. */
+function canonicalHost(site) {
+  return (SITE_HOSTS[site] && SITE_HOSTS[site][0]) || null;
+}
+
+module.exports = { parseHostnames, siteForHost, isKnownHost, canonicalHost, SITE_HOSTS };

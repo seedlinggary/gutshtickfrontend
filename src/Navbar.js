@@ -68,7 +68,7 @@ function AppNavbar() {
   return (
     <nav className="gs-navbar">
       <div className="navbar-inner">
-        <button className="navbar-brand" onClick={() => go('/')}>
+        <button className="navbar-brand" onClick={() => go('/')} data-no-translate>
           Gut <span>Shtick</span>
         </button>
         <button
@@ -116,7 +116,6 @@ function AppNavbar() {
             </li>
 
             <li className="nav-item"><button className="nav-link" onClick={() => go('/hock')}>🗣️ Hock</button></li>
-            <li className="nav-item"><button className="nav-link" onClick={() => go('/tachlis')}>📌 Tachlis</button></li>
             <li className="nav-item"><button className="nav-link" onClick={() => go('/games')}>☕ Coffee Break</button></li>
 
             {boss && (

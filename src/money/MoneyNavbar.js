@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Calculator, LineChart, PiggyBank, BookOpen, User, Settings, Plug, ShieldCheck, LogOut, ChevronDown,
+  Calculator, LineChart, PiggyBank, BookOpen, Briefcase, Plus, User, Settings, Plug, ShieldCheck, LogOut, ChevronDown,
 } from 'lucide-react';
 import { getEmail, isAdmin, isSuperAdmin, clearAuth } from '../auth';
 import NotificationBell from '../NotificationBell';
@@ -39,7 +39,7 @@ export default function MoneyNavbar() {
   return (
     <nav className="gs-navbar">
       <div className="navbar-inner">
-        <button className="navbar-brand" onClick={() => go('/')}>
+        <button className="navbar-brand" onClick={() => go('/')} data-no-translate>
           Gut <span>Money</span>
         </button>
         <button className="navbar-toggler" aria-label="Toggle navigation" aria-expanded={mobileOpen} onClick={() => setMobileOpen((o) => !o)}>
@@ -51,12 +51,14 @@ export default function MoneyNavbar() {
             <li className="nav-item"><button className="nav-link" onClick={() => go('/investing')}><LineChart size={15} /> Investing</button></li>
             <li className="nav-item"><button className="nav-link" onClick={() => go('/budgeting')}><PiggyBank size={15} /> Budgeting</button></li>
             <li className="nav-item"><button className="nav-link" onClick={() => go('/learn')}><BookOpen size={15} /> Learn</button></li>
+            <li className="nav-item"><button className="nav-link" onClick={() => go('/tachlis')}><Briefcase size={15} /> Tachlis</button></li>
           </ul>
           <ul className="navbar-nav navbar-nav-end">
             <li className="nav-item"><AccessibilityToggle /></li>
             {email ? (
               <>
                 <li className="nav-item navbar-notif"><NotificationBell /></li>
+                <li className="nav-item"><button className="nav-link nav-link-pin" onClick={() => go('/tachlis?new=1')}><Plus size={15} /> Post to Tachlis</button></li>
                 <li className="nav-item dropdown" ref={accountRef}>
                   <button
                     className="nav-link dropdown-toggle"
@@ -81,6 +83,7 @@ export default function MoneyNavbar() {
               </>
             ) : (
               <>
+                <li className="nav-item"><button className="nav-link nav-link-pin" onClick={() => go('/signup?next=%2Ftachlis%3Fnew%3D1')}><Plus size={15} /> Post to Tachlis</button></li>
                 <li className="nav-item"><button className="nav-link" onClick={() => go('/signin')}>Sign In</button></li>
                 <li className="nav-item"><button className="nav-link nav-link-pin" onClick={() => go('/signup')}>Sign Up</button></li>
               </>

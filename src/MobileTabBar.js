@@ -5,7 +5,6 @@ import { getEmail } from './auth';
 const STOPS = [
   { path: '/', label: 'Board', icon: '📌' },
   { path: '/hock', label: 'Hock', icon: '🗣️' },
-  { path: '/tachlis', label: 'Tachlis', icon: '📌' },
   { path: '/games', label: 'Break', icon: '☕' },
 ];
 

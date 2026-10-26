@@ -39,7 +39,7 @@ export default function EstatesNavbar() {
   return (
     <nav className="gs-navbar">
       <div className="navbar-inner">
-        <button className="navbar-brand" onClick={() => go('/')}>
+        <button className="navbar-brand" onClick={() => go('/')} data-no-translate>
           Gut <span>Estates</span>
         </button>
         <button className="navbar-toggler" aria-label="Toggle navigation" aria-expanded={mobileOpen} onClick={() => setMobileOpen((o) => !o)}>

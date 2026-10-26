@@ -66,7 +66,7 @@ export default function CrossSiteLink() {
                 onClick={() => go(site.url)}
               >
                 {site.id === currentId ? <Check size={14} /> : <span style={{ width: 14, display: 'inline-block' }} />}
-                {site.label}
+                <span data-no-translate>{site.label}</span>
               </button>
             </li>
           ))}

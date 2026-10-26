@@ -281,7 +281,7 @@ async function buildHockPostMeta(id, origin) {
 const TACHLIS_TYPE_LABEL = { job: 'Job', resume: 'Resume', service: 'Service' };
 
 async function buildTachlisPostMeta(id, origin) {
-  const SITE_NAME = 'Gut Shtick';
+  const SITE_NAME = 'Gut Money';
   const apiRes = await fetch(`${API_BASE}/tachlis/posts/${encodeURIComponent(id)}`);
   if (!apiRes.ok) return null;
   const p = await apiRes.json();
