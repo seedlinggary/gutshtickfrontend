@@ -8,6 +8,7 @@ const Budgeting       = lazy(() => import('./Budgeting'));
 const Learn           = lazy(() => import('./Learn'));
 const Tachlis         = lazy(() => import('./Tachlis'));
 const TachlisPostPage = lazy(() => import('./TachlisPostPage'));
+const AreaPage        = lazy(() => import('./AreaPage'));
 
 /** Gut Money's own routes -- same {path, element} shape as business/routes.js
  * and estates/routes.js, registered the same way via src/sites/registry.js.
@@ -21,6 +22,7 @@ export default [
   { path: '/learn', element: <Learn /> },
   { path: '/tachlis', element: <Tachlis /> },
   { path: '/tachlis/post/:id', element: <TachlisPostPage /> },
+  { path: '/tachlis/areas/:areaSlug', element: <AreaPage /> },
   { path: '/contact', element: <Contact /> },
   { path: '*', element: <NotFound /> },
 ];

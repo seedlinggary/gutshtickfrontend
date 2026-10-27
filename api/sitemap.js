@@ -68,12 +68,14 @@ async function businessEntries(origin) {
 }
 
 async function estatesEntries(origin) {
-  const [l, g] = await Promise.all([
+  const [l, g, a] = await Promise.all([
     fetchJson('/estates/sitemap-data'),
     fetchJson('/estates/group-buys/sitemap-data'),
+    fetchJson('/estates/areas'),
   ]);
   const listings = (l && l.listings) || [];
   const groupBuys = (g && g.group_buys) || [];
+  const areas = (a && a.areas) || [];
   return [
     ...[
       { path: '/', changefreq: 'daily', priority: '1.0' },
@@ -83,6 +85,7 @@ async function estatesEntries(origin) {
     ].map((p) => urlEntry(`${origin}${p.path}`, p)),
     ...listings.filter((x) => x.slug).map((x) => urlEntry(`${origin}/listings/${x.slug}`, { lastmod: x.updated, changefreq: 'weekly', priority: '0.7' })),
     ...groupBuys.filter((x) => x.slug).map((x) => urlEntry(`${origin}/group-buy/${x.slug}`, { lastmod: x.updated, changefreq: 'weekly', priority: '0.6' })),
+    ...areas.filter((x) => x.area_slug).map((x) => urlEntry(`${origin}/areas/${x.area_slug}`, { changefreq: 'daily', priority: '0.6' })),
   ];
 }
 
@@ -90,8 +93,12 @@ async function moneyEntries(origin) {
   // Quotes are looked up by ticker on the fly, not canonical indexable
   // URLs -- the only per-record pages here are Tachlis posts (moved here
   // from the main site).
-  const tachlis = await fetchJson('/tachlis/posts/sitemap-data');
+  const [tachlis, a] = await Promise.all([
+    fetchJson('/tachlis/posts/sitemap-data'),
+    fetchJson('/tachlis/areas'),
+  ]);
   const tachlisPosts = (tachlis && tachlis.posts) || [];
+  const areas = (a && a.areas) || [];
   return [
     ...[
       { path: '/', changefreq: 'weekly', priority: '1.0' },
@@ -101,6 +108,7 @@ async function moneyEntries(origin) {
       { path: '/tachlis', changefreq: 'daily', priority: '0.7' },
     ].map((p) => urlEntry(`${origin}${p.path}`, p)),
     ...tachlisPosts.filter((x) => x.id != null).map((x) => urlEntry(`${origin}/tachlis/post/${x.id}`, { lastmod: x.updated, changefreq: 'weekly', priority: '0.5' })),
+    ...areas.filter((x) => x.area_slug).map((x) => urlEntry(`${origin}/tachlis/areas/${x.area_slug}`, { changefreq: 'daily', priority: '0.6' })),
   ];
 }
 
@@ -134,6 +142,7 @@ async function mainEntries(origin) {
   return [
     ...[
       { path: '/', changefreq: 'daily', priority: '1.0' },
+      { path: '/today', changefreq: 'hourly', priority: '0.8' },
       { path: '/hock', changefreq: 'daily', priority: '0.8' },
       { path: '/about', changefreq: 'yearly', priority: '0.3' },
     ].map((p) => urlEntry(`${origin}${p.path}`, p)),

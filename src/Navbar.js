@@ -115,6 +115,7 @@ function AppNavbar() {
               )}
             </li>
 
+            <li className="nav-item"><button className="nav-link" onClick={() => go('/today')}>📰 Today</button></li>
             <li className="nav-item"><button className="nav-link" onClick={() => go('/hock')}>🗣️ Hock</button></li>
             <li className="nav-item"><button className="nav-link" onClick={() => go('/games')}>☕ Coffee Break</button></li>
 

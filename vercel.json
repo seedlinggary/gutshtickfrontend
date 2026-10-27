@@ -26,6 +26,8 @@
     { "source": "/group-buy", "has": [{ "type": "host", "value": "www.gutestates.com" }], "destination": "/api/static-meta?route=estates_groupbuy" },
     { "source": "/calculators", "has": [{ "type": "host", "value": "gutestates.com" }], "destination": "/api/static-meta?route=estates_calculators" },
     { "source": "/calculators", "has": [{ "type": "host", "value": "www.gutestates.com" }], "destination": "/api/static-meta?route=estates_calculators" },
+    { "source": "/areas/:slug", "has": [{ "type": "host", "value": "gutestates.com" }], "destination": "/api/render?kind=estates_area&slug=:slug" },
+    { "source": "/areas/:slug", "has": [{ "type": "host", "value": "www.gutestates.com" }], "destination": "/api/render?kind=estates_area&slug=:slug" },
 
     { "source": "/investing", "has": [{ "type": "host", "value": "gutmoney.com" }], "destination": "/api/static-meta?route=money_investing" },
     { "source": "/investing", "has": [{ "type": "host", "value": "www.gutmoney.com" }], "destination": "/api/static-meta?route=money_investing" },
@@ -35,6 +37,8 @@
     { "source": "/tachlis", "has": [{ "type": "host", "value": "www.gutmoney.com" }], "destination": "/api/static-meta?route=money_tachlis" },
     { "source": "/tachlis/post/:id", "has": [{ "type": "host", "value": "gutmoney.com" }], "destination": "/api/render?kind=tachlis_post&slug=:id" },
     { "source": "/tachlis/post/:id", "has": [{ "type": "host", "value": "www.gutmoney.com" }], "destination": "/api/render?kind=tachlis_post&slug=:id" },
+    { "source": "/tachlis/areas/:slug", "has": [{ "type": "host", "value": "gutmoney.com" }], "destination": "/api/render?kind=money_area&slug=:slug" },
+    { "source": "/tachlis/areas/:slug", "has": [{ "type": "host", "value": "www.gutmoney.com" }], "destination": "/api/render?kind=money_area&slug=:slug" },
 
     { "source": "/posts/:slug", "has": [{ "type": "host", "value": "guttorah.com" }], "destination": "/api/render?kind=torah_post&slug=:slug" },
     { "source": "/posts/:slug", "has": [{ "type": "host", "value": "www.guttorah.com" }], "destination": "/api/render?kind=torah_post&slug=:slug" },
@@ -51,6 +55,8 @@
 
     { "source": "/hock", "has": [{ "type": "host", "value": "gutshtick.com" }], "destination": "/api/static-meta?route=main_hock" },
     { "source": "/hock", "has": [{ "type": "host", "value": "www.gutshtick.com" }], "destination": "/api/static-meta?route=main_hock" },
+    { "source": "/today", "has": [{ "type": "host", "value": "gutshtick.com" }], "destination": "/api/static-meta?route=main_today" },
+    { "source": "/today", "has": [{ "type": "host", "value": "www.gutshtick.com" }], "destination": "/api/static-meta?route=main_today" },
     { "source": "/hock/post/:id", "has": [{ "type": "host", "value": "gutshtick.com" }], "destination": "/api/render?kind=hock_post&slug=:id" },
     { "source": "/hock/post/:id", "has": [{ "type": "host", "value": "www.gutshtick.com" }], "destination": "/api/render?kind=hock_post&slug=:id" },
     { "source": "/post/:id", "has": [{ "type": "host", "value": "gutshtick.com" }], "destination": "/api/render?kind=shtick_post&slug=:id" },

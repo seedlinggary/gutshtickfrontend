@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import apiRequest from '../ApiRequest';
 import { isLoggedIn } from '../auth';
+import ShareButton from '../ShareButton';
 
 const STAGE_LABEL = {
   pre_construction: 'Pre-Construction',
@@ -145,12 +146,19 @@ export default function GroupBuyProfile() {
           </div>
         </div>
 
-        {gb.can_manage && (
-          <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
-            <Link to={`/group-buy/${gb.slug}/edit`} className="gs-btn gs-btn-outline"><Pencil size={15} /> Edit</Link>
-            <button type="button" className="gs-btn gs-btn-outline" onClick={handleDelete}><Trash2 size={15} /> Delete</button>
-          </div>
-        )}
+        <div style={{ display: 'flex', gap: 10, marginTop: 16, flexWrap: 'wrap' }}>
+          <ShareButton
+            title={gb.title}
+            text={`${gb.title}${gb.city ? ` — ${gb.neighborhood || gb.city}` : ''} -- group buy${gb.min_group_size ? `, ${gb.min_group_size} needed for the discount` : ''}`}
+            url={window.location.href}
+          />
+          {gb.can_manage && (
+            <>
+              <Link to={`/group-buy/${gb.slug}/edit`} className="gs-btn gs-btn-outline"><Pencil size={15} /> Edit</Link>
+              <button type="button" className="gs-btn gs-btn-outline" onClick={handleDelete}><Trash2 size={15} /> Delete</button>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

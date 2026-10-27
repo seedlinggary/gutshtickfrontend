@@ -445,6 +445,21 @@
 }
 .est-like-btn.active { color: var(--gold); }
 
+.est-card-share {
+  /* Sits directly below .est-listing-card-badge (Agent/Owner), which
+     already occupies this same top-left corner. */
+  position: absolute;
+  top: 44px;
+  left: 10px;
+  z-index: 2;
+}
+.est-card-share .share-btn {
+  padding: 4px 10px;
+  font-size: 12px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: var(--shadow-sm);
+}
+
 /* ── Listing/group-buy detail page ── */
 .est-hero-gallery {
   display: grid;
@@ -490,6 +505,21 @@
   font-size: 28px;
   color: var(--accent);
   margin: 4px 0 2px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.est-below-market-tag {
+  font-family: var(--font-body, inherit);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: #fff;
+  background: var(--gold, #c9a227);
+  padding: 4px 10px;
+  border-radius: 999px;
 }
 .est-spec-row {
   display: flex;

@@ -50,7 +50,7 @@ export function TypeBadge({ type }) {
   );
 }
 
-function PostCard({ post }) {
+export function PostCard({ post }) {
   const authorInitial = post.user?.profile_name?.charAt(0).toUpperCase() || '?';
   const preview = post.body?.length > 220 ? `${post.body.slice(0, 220)}…` : post.body;
   const shareText = post.body?.length > 140

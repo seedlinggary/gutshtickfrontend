@@ -179,6 +179,55 @@ async function buildEstatesGroupBuyMeta(slug, origin) {
   return { siteName: SITE_NAME, title, description, url, image, jsonLd };
 }
 
+async function buildEstatesAreaMeta(areaSlug, origin) {
+  const SITE_NAME = 'Gut Estates';
+  const apiRes = await fetch(`${API_BASE}/estates/areas/${encodeURIComponent(areaSlug)}`);
+  if (!apiRes.ok) return null;
+  const a = await apiRes.json();
+  const title = `Homes in ${a.area} | ${SITE_NAME}`;
+  const priceStr = a.typical_price != null ? `, typical price $${Math.round(a.typical_price).toLocaleString()}` : '';
+  const description = truncate(
+    `${a.count} active listing${a.count === 1 ? '' : 's'} in ${a.area}${priceStr} -- real listings posted directly by owners and agents on ${SITE_NAME}.`,
+    DESCRIPTION_MAX,
+  );
+  const url = `${origin}/areas/${a.area_slug}`;
+  const image = `${origin}/og/estates.png`;
+
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: title,
+    url,
+    about: a.area,
+  };
+
+  return { siteName: SITE_NAME, title, description, url, image, jsonLd };
+}
+
+async function buildMoneyAreaMeta(areaSlug, origin) {
+  const SITE_NAME = 'Gut Money';
+  const apiRes = await fetch(`${API_BASE}/tachlis/areas/${encodeURIComponent(areaSlug)}`);
+  if (!apiRes.ok) return null;
+  const a = await apiRes.json();
+  const title = `Jobs in ${a.area} | Job Board | ${SITE_NAME}`;
+  const description = truncate(
+    `${a.count} job post${a.count === 1 ? '' : 's'} in ${a.area} on the ${SITE_NAME} Job Board -- a straightforward classifieds board.`,
+    DESCRIPTION_MAX,
+  );
+  const url = `${origin}/tachlis/areas/${encodeURIComponent(areaSlug)}`;
+  const image = `${origin}/og/money.png`;
+
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: title,
+    url,
+    about: a.area,
+  };
+
+  return { siteName: SITE_NAME, title, description, url, image, jsonLd };
+}
+
 const TORAH_CATEGORY_LABEL = { parsha: 'Parsha', halacha: 'Halacha', mussar: 'Mussar', stories: 'Stories', holidays: 'Holidays', other: 'Torah' };
 
 async function buildTorahPostMeta(slug, origin) {
@@ -287,8 +336,8 @@ async function buildTachlisPostMeta(id, origin) {
   const p = await apiRes.json();
   if (p.approved_to_publish !== true) return null;
   const label = TACHLIS_TYPE_LABEL[p.post_type] || 'Listing';
-  const title = `${p.title}${p.location ? ` — ${p.location}` : ''} | Tachlis ${label} | ${SITE_NAME}`;
-  const description = truncate(p.body || `A Tachlis ${label.toLowerCase()} listing on ${SITE_NAME}.`, DESCRIPTION_MAX);
+  const title = `${p.title}${p.location ? ` — ${p.location}` : ''} | Job Board ${label} | ${SITE_NAME}`;
+  const description = truncate(p.body || `A Job Board ${label.toLowerCase()} listing on ${SITE_NAME}.`, DESCRIPTION_MAX);
   const url = `${origin}/tachlis/post/${p.id}`;
   const image = `${origin}/og/money.png`;
 
@@ -310,6 +359,8 @@ const BUILDERS = {
   community: buildCommunityMeta,
   estates_listing: buildEstatesListingMeta,
   estates_groupbuy: buildEstatesGroupBuyMeta,
+  estates_area: buildEstatesAreaMeta,
+  money_area: buildMoneyAreaMeta,
   torah_post: buildTorahPostMeta,
   torah_sheet: buildTorahSheetMeta,
   shtick_post: buildShtickPostMeta,

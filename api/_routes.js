@@ -12,10 +12,10 @@
 
 const SITE_OWNED_PREFIXES = {
   business: ['/business', '/communities', '/community', '/activities', '/deals', '/minyanim', '/my-businesses', '/my-deals', '/vendor-board'],
-  estates: ['/listings', '/group-buy', '/my-listings', '/my-group-buys', '/calculators'],
+  estates: ['/listings', '/group-buy', '/my-listings', '/my-group-buys', '/calculators', '/areas'],
   money: ['/investing', '/budgeting', '/tachlis'],
   torah: ['/posts', '/zmanim', '/sources', '/prayers', '/sheets', '/my-posts'],
-  main: ['/feed', '/post', '/hock', '/CreateShtick'],
+  main: ['/feed', '/post', '/hock', '/CreateShtick', '/today'],
 };
 
 // Valid on EVERY site by the app's own design (App.js's shared route block,

@@ -14,6 +14,7 @@ const GroupBuyForm     = lazy(() => import('./GroupBuyForm'));
 const MyGroupBuys      = lazy(() => import('./MyGroupBuys'));
 const Learn            = lazy(() => import('./Learn'));
 const Calculators      = lazy(() => import('./Calculators'));
+const AreaPage         = lazy(() => import('./AreaPage'));
 
 /** Gut Estates's own routes -- same {path, element} shape as business/routes.js,
  * registered the same way via src/sites/registry.js. `Contact`/`NotFound` are
@@ -29,6 +30,7 @@ export default [
   { path: '/group-buy/:slug/edit', element: <RequireAuth check={isLoggedIn}><GroupBuyForm /></RequireAuth> },
   { path: '/group-buy/:slug', element: <GroupBuyProfile /> },
   { path: '/my-group-buys', element: <RequireAuth check={isLoggedIn}><MyGroupBuys /></RequireAuth> },
+  { path: '/areas/:areaSlug', element: <AreaPage /> },
   { path: '/learn', element: <Learn /> },
   { path: '/calculators', element: <Calculators /> },
   { path: '/contact', element: <Contact /> },

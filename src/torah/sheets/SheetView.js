@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import apiRequest from '../../ApiRequest';
 import downloadSheetFile from './downloadSheetFile';
+import ShareButton from '../../ShareButton';
 
 function textSegmentCount(item) {
   return Math.max((item.he_text || []).length, (item.en_text || []).length);
@@ -270,6 +271,13 @@ export default function SheetView() {
             </button>
           )}
           <button type="button" className="gs-btn gs-btn-outline gs-btn-sm" onClick={copySheet}><Copy size={13} /> Copy to my sheets</button>
+          {sheet.is_public && (
+            <ShareButton
+              title={sheet.title}
+              text={`${sheet.title} — a source sheet on Gut Torah`}
+              url={window.location.href}
+            />
+          )}
           {sheet.is_own_sheet && (
             <button type="button" className="gs-btn gs-btn-outline gs-btn-sm" onClick={deleteSheet} style={{ color: '#b3261e', borderColor: '#b3261e' }}>
               <Trash2 size={13} /> Delete sheet

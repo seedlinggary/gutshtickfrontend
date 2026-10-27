@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Heart, Pencil, Trash2, BookOpen } from 'lucide-react';
 import apiRequest from '../ApiRequest';
 import { isLoggedIn } from '../auth';
+import ShareButton from '../ShareButton';
 
 const CATEGORY_LABEL = {
   parsha: 'Parsha', halacha: 'Halacha', mussar: 'Mussar', stories: 'Stories', holidays: 'Holidays', other: 'Other',
@@ -76,6 +77,11 @@ export default function PostProfile() {
         {post.body_text && <p style={{ lineHeight: 1.7, whiteSpace: 'pre-wrap', fontSize: 15.5 }}>{post.body_text}</p>}
 
         <div style={{ display: 'flex', gap: 10, marginTop: 20, flexWrap: 'wrap', alignItems: 'center' }}>
+          <ShareButton
+            title={post.title}
+            text={`${post.title} — ${CATEGORY_LABEL[post.category] || post.category}, on Gut Torah`}
+            url={window.location.href}
+          />
           {isLoggedIn() && (
             <button type="button" className={`gs-btn gs-btn-outline${post.is_liked ? ' active' : ''}`} onClick={toggleLike}>
               <Heart size={15} fill={post.is_liked ? 'currentColor' : 'none'} /> {post.like_count} {post.like_count === 1 ? 'Like' : 'Likes'}

@@ -44,6 +44,7 @@ const CreateShtick        = lazy(() => import('./shtick/CreateShtick'));
 const PostPage            = lazy(() => import('./feed/PostPage'));
 const Hock                = lazy(() => import('./hock/Hock'));
 const HockPostPage        = lazy(() => import('./hock/HockPostPage'));
+const TodayOnGut          = lazy(() => import('./TodayOnGut'));
 const AdminDashboard      = lazy(() => import('./admin/AdminDashboard'));
 const SuperAdminDashboard = lazy(() => import('./admin/SuperAdminDashboard'));
 const VersusWrapper       = lazy(() => import('./games/versus/VersusWrapper'));
@@ -187,6 +188,7 @@ function App() {
                   {/* ── Hock discussion forum (public to browse; posting/commenting gated server-side) ── */}
                   <Route path="/hock" element={<Hock />} />
                   <Route path="/hock/post/:id" element={<HockPostPage />} />
+                  <Route path="/today" element={<TodayOnGut />} />
 
                   {/* ── Auth-gated ── */}
                   <Route path="/CreateShtick" element={

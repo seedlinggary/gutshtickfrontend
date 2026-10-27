@@ -4,6 +4,7 @@ import { Home, Heart } from 'lucide-react';
 import apiRequest from '../ApiRequest';
 import { isLoggedIn } from '../auth';
 import FreshnessBadge from '../utils/FreshnessBadge';
+import ShareButton from '../ShareButton';
 
 export function formatPrice(listing) {
   const symbol = listing.currency === 'ILS' ? '₪' : '$';
@@ -46,6 +47,13 @@ export default function ListingCard({ listing, initiallyLiked, onUnlike }) {
           <Heart size={15} fill={liked ? 'currentColor' : 'none'} />
         </button>
       )}
+      <div className="est-card-share" onClick={(e) => e.stopPropagation()}>
+        <ShareButton
+          title={listing.title}
+          text={`${listing.title} — ${formatPrice(listing)}${listing.neighborhood || listing.city ? ` in ${listing.neighborhood || listing.city}` : ''}`}
+          url={`${window.location.origin}/listings/${listing.slug}`}
+        />
+      </div>
       {listing.cover_photo_url ? (
         <img src={listing.cover_photo_url} alt={listing.title} className="est-listing-card-img" />
       ) : (

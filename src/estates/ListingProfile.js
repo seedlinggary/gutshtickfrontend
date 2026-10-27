@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import apiRequest from '../ApiRequest';
 import { isLoggedIn } from '../auth';
+import ShareButton from '../ShareButton';
 
 const TYPE_LABEL = {
   sale: 'For Sale',
@@ -108,7 +109,17 @@ export default function ListingProfile() {
         <p dir="auto" style={{ color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: 5, margin: '0 0 8px' }}>
           <MapPin size={14} /> {[listing.address, listing.neighborhood, listing.city, listing.state, listing.country].filter(Boolean).join(', ')}
         </p>
-        <div className="est-price-line">{formatPrice(listing)}</div>
+        <div className="est-price-line">
+          {formatPrice(listing)}
+          {listing.below_market_price && (
+            <span className="est-below-market-tag">Below usual price here</span>
+          )}
+        </div>
+        {listing.price_per_sqm != null && (
+          <div style={{ color: 'var(--muted)', fontSize: 13, marginTop: -6, marginBottom: 8 }}>
+            {listing.currency === 'ILS' ? '₪' : '$'}{listing.price_per_sqm.toLocaleString()} / m²
+          </div>
+        )}
 
         {(listing.bedrooms || listing.bathrooms || listing.size_value) && (
           <div className="est-spec-row">
@@ -148,6 +159,11 @@ export default function ListingProfile() {
         </div>
 
         <div style={{ display: 'flex', gap: 10, marginTop: 16, flexWrap: 'wrap' }}>
+          <ShareButton
+            title={listing.title}
+            text={`${listing.title} — ${formatPrice(listing)}${listing.neighborhood || listing.city ? ` in ${listing.neighborhood || listing.city}` : ''}`}
+            url={window.location.href}
+          />
           {isLoggedIn() && !listing.is_own_listing && (
             <button type="button" className={`gs-btn gs-btn-outline${listing.is_liked ? ' active' : ''}`} onClick={toggleLike} disabled={liking}>
               <Heart size={15} fill={listing.is_liked ? 'currentColor' : 'none'} /> {listing.is_liked ? 'Saved' : 'Save for later'}

@@ -107,7 +107,7 @@ const PAGES = {
   },
   money_tachlis: {
     siteName: 'Gut Money',
-    title: 'Tachlis — Jobs & Resumes Board | Gut Money',
+    title: 'Job Board — Jobs & Resumes | Gut Money',
     description: 'Post or browse job openings and resumes -- a straightforward classifieds board.',
     path: '/tachlis',
   },
@@ -174,6 +174,12 @@ const PAGES = {
     title: 'Hock — Discussion Forum | Gut Shtick',
     description: 'A discussion forum for whatever\'s on your mind -- post, comment, and reply in threads.',
     path: '/hock',
+  },
+  main_today: {
+    siteName: 'Gut Shtick',
+    title: 'Today on GUT — New Homes & Jobs | Gut Shtick',
+    description: "Today's new real estate listings and job postings from across the GUT network, refreshed daily.",
+    path: '/today',
   },
 };
 
