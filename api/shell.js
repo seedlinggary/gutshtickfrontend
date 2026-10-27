@@ -60,7 +60,7 @@ module.exports = async function handler(req, res) {
   }
 
   const origin = `https://${host}`;
-  const shellRes = await fetch(`${origin}/index.html`);
+  const shellRes = await fetch(`${origin}/shell.html`);
   const shellHtml = await shellRes.text();
 
   res.setHeader('Content-Type', 'text/html; charset=utf-8');

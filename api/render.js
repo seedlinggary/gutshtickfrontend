@@ -343,7 +343,7 @@ function injectMeta(html, meta) {
 module.exports = async function handler(req, res) {
   const { kind, slug } = req.query;
   const origin = `https://${req.headers.host}`;
-  const shellRes = await fetch(`${origin}/index.html`);
+  const shellRes = await fetch(`${origin}/shell.html`);
   const shellHtml = await shellRes.text();
 
   const builder = BUILDERS[kind];

@@ -240,7 +240,7 @@ module.exports = async function handler(req, res) {
     meta = { siteName, title: page.title(siteName), description: page.description(siteName), path: page.path };
   }
 
-  const shellRes = await fetch(`${origin}/index.html`);
+  const shellRes = await fetch(`${origin}/shell.html`);
   const shellHtml = await shellRes.text();
 
   const html = meta ? injectMeta(shellHtml, meta, `${origin}${meta.path}`, origin) : shellHtml;
