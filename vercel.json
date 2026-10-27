@@ -1,11 +1,4 @@
 {
-  "redirects": [
-    { "source": "/:path*", "has": [{ "type": "host", "value": "www.gutshtick.com" }], "destination": "https://gutshtick.com/:path*", "permanent": true },
-    { "source": "/:path*", "has": [{ "type": "host", "value": "www.gutcommunity.com" }], "destination": "https://gutcommunity.com/:path*", "permanent": true },
-    { "source": "/:path*", "has": [{ "type": "host", "value": "www.gutestates.com" }], "destination": "https://gutestates.com/:path*", "permanent": true },
-    { "source": "/:path*", "has": [{ "type": "host", "value": "www.gutmoney.com" }], "destination": "https://gutmoney.com/:path*", "permanent": true },
-    { "source": "/:path*", "has": [{ "type": "host", "value": "www.guttorah.com" }], "destination": "https://guttorah.com/:path*", "permanent": true }
-  ],
   "rewrites": [
     { "source": "/sitemap.xml", "destination": "/api/sitemap" },
     { "source": "/robots.txt", "destination": "/api/robots" },
