@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, Suspense, lazy } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Home, Search, Plus, Map, Menu, BadgeCheck } from 'lucide-react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Home, Search, Plus, Map, Menu, BadgeCheck, SlidersHorizontal } from 'lucide-react';
 import apiRequest from '../ApiRequest';
 import { isLoggedIn } from '../auth';
 import ErrorBoundary from '../ErrorBoundary';
@@ -57,12 +57,23 @@ function toMapPoints(listings) {
 
 export default function EstatesDirectory() {
   const navigate = useNavigate();
-  const [listingType, setListingType] = useState('');
-  const [q, setQ] = useState('');
-  const [city, setCity] = useState('');
-  const [agentOnly, setAgentOnly] = useState(false);
-  const [ownerOnly, setOwnerOnly] = useState(false);
-  const [sort, setSort] = useState('newest');
+  const [searchParams, setSearchParams] = useSearchParams();
+  // Every filter initializes from the URL (once, on mount) so a copied link
+  // restores the same search -- see the sync-back effect below, which is
+  // the other half of that round trip.
+  const [listingType, setListingType] = useState(() => searchParams.get('listing_type') || '');
+  const [q, setQ] = useState(() => searchParams.get('q') || '');
+  const [city, setCity] = useState(() => searchParams.get('city') || '');
+  const [neighborhood, setNeighborhood] = useState(() => searchParams.get('neighborhood') || '');
+  const [minPrice, setMinPrice] = useState(() => searchParams.get('min_price') || '');
+  const [maxPrice, setMaxPrice] = useState(() => searchParams.get('max_price') || '');
+  const [minBedrooms, setMinBedrooms] = useState(() => searchParams.get('min_bedrooms') || '');
+  const [maxBedrooms, setMaxBedrooms] = useState(() => searchParams.get('max_bedrooms') || '');
+  const [agentOnly, setAgentOnly] = useState(() => searchParams.get('agent_only') === '1');
+  const [ownerOnly, setOwnerOnly] = useState(() => searchParams.get('owner_only') === '1');
+  const [sort, setSort] = useState(() => searchParams.get('sort') || 'newest');
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [neighborhoods, setNeighborhoods] = useState([]);
   const [nearCoords, setNearCoords] = useState(null);
   const [bbox, setBbox] = useState(null);
   const [nearbySelection, setNearbySelection] = useState(null);
@@ -75,6 +86,17 @@ export default function EstatesDirectory() {
   const [mobileView, setMobileView] = useState('list');
   const isDesktop = useIsDesktop();
   const resultsRef = useRef([]);
+  const activeFilterCount = [neighborhood, minPrice, maxPrice, minBedrooms, maxBedrooms].filter(Boolean).length;
+
+  useEffect(() => {
+    apiRequest('GET', null, '/estates/neighborhoods')
+      .then((res) => setNeighborhoods(res.neighborhoods || []))
+      .catch(() => {});
+  }, []);
+
+  const clearAdvancedFilters = () => {
+    setNeighborhood(''); setMinPrice(''); setMaxPrice(''); setMinBedrooms(''); setMaxBedrooms('');
+  };
 
   const { locating, nearMeActive, nearMeError, findNearMe } = useNearMe(
     (coords) => { setNearCoords(coords); setSort('distance'); setPage(1); },
@@ -96,6 +118,11 @@ export default function EstatesDirectory() {
     if (listingType) params.set('listing_type', listingType);
     if (q.trim()) params.set('q', q.trim());
     if (city.trim()) params.set('city', city.trim());
+    if (neighborhood) params.set('neighborhood', neighborhood);
+    if (minPrice !== '') params.set('min_price', minPrice);
+    if (maxPrice !== '') params.set('max_price', maxPrice);
+    if (minBedrooms !== '') params.set('min_bedrooms', minBedrooms);
+    if (maxBedrooms !== '') params.set('max_bedrooms', maxBedrooms);
     if (agentOnly) params.set('agent_only', '1');
     if (ownerOnly) params.set('owner_only', '1');
     if (sort) params.set('sort', sort);
@@ -112,9 +139,31 @@ export default function EstatesDirectory() {
       .catch(() => setResults([]))
       .finally(() => setLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [listingType, q, city, agentOnly, ownerOnly, page, sort, nearCoords, bbox, shakeSeed]);
+  }, [listingType, q, city, neighborhood, minPrice, maxPrice, minBedrooms, maxBedrooms, agentOnly, ownerOnly, page, sort, nearCoords, bbox, shakeSeed]);
 
   useEffect(() => { resultsRef.current = results || []; }, [results]);
+
+  // Keeps the address bar in sync with every active filter (not `page`,
+  // `bbox`/near-me state, or the shake seed -- those aren't meant to be
+  // part of a shareable search link) so a copied URL reproduces the same
+  // results. `replace: true` avoids filling browser history with one entry
+  // per keystroke/toggle.
+  useEffect(() => {
+    const next = new URLSearchParams();
+    if (listingType) next.set('listing_type', listingType);
+    if (q.trim()) next.set('q', q.trim());
+    if (city.trim()) next.set('city', city.trim());
+    if (neighborhood) next.set('neighborhood', neighborhood);
+    if (minPrice !== '') next.set('min_price', minPrice);
+    if (maxPrice !== '') next.set('max_price', maxPrice);
+    if (minBedrooms !== '') next.set('min_bedrooms', minBedrooms);
+    if (maxBedrooms !== '') next.set('max_bedrooms', maxBedrooms);
+    if (agentOnly) next.set('agent_only', '1');
+    if (ownerOnly) next.set('owner_only', '1');
+    if (sort !== 'newest') next.set('sort', sort);
+    setSearchParams(next, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [listingType, q, city, neighborhood, minPrice, maxPrice, minBedrooms, maxBedrooms, agentOnly, ownerOnly, sort]);
 
   const neededAdCount = results ? Math.floor(results.length / 6) : 0;
   const { adAt, dismiss: dismissAd } = useInThreadAds('estates_listings', neededAdCount);
@@ -242,7 +291,63 @@ export default function EstatesDirectory() {
           >
             Owner listings
           </button>
+          <button
+            type="button" className={`est-chip${activeFilterCount ? ' active' : ''}`}
+            onClick={() => setFilterOpen((o) => !o)}
+          >
+            <SlidersHorizontal size={13} /> Filters {activeFilterCount > 0 && <span>({activeFilterCount})</span>}
+          </button>
         </div>
+
+        {filterOpen && (
+          <div className="gs-card" style={{ marginBottom: 16 }}>
+            <div className="gs-card-body" style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+              <div className="gs-field" style={{ margin: 0 }}>
+                <label className="gs-label">Neighborhood</label>
+                <select
+                  className="gs-input" style={{ minWidth: 180 }} value={neighborhood}
+                  onChange={(e) => { setPage(1); setNeighborhood(e.target.value); }}
+                >
+                  <option value="">All neighborhoods</option>
+                  {neighborhoods.map((n) => (
+                    <option key={n} value={n}>{n}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="gs-field" style={{ margin: 0 }}>
+                <label className="gs-label">Price range</label>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <input
+                    type="number" className="gs-input" style={{ width: 100 }} placeholder="Min"
+                    value={minPrice} onChange={(e) => { setPage(1); setMinPrice(e.target.value); }}
+                  />
+                  <input
+                    type="number" className="gs-input" style={{ width: 100 }} placeholder="Max"
+                    value={maxPrice} onChange={(e) => { setPage(1); setMaxPrice(e.target.value); }}
+                  />
+                </div>
+              </div>
+              <div className="gs-field" style={{ margin: 0 }}>
+                <label className="gs-label">Rooms</label>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <input
+                    type="number" className="gs-input" style={{ width: 80 }} placeholder="Min"
+                    value={minBedrooms} onChange={(e) => { setPage(1); setMinBedrooms(e.target.value); }}
+                  />
+                  <input
+                    type="number" className="gs-input" style={{ width: 80 }} placeholder="Max"
+                    value={maxBedrooms} onChange={(e) => { setPage(1); setMaxBedrooms(e.target.value); }}
+                  />
+                </div>
+              </div>
+              {activeFilterCount > 0 && (
+                <button type="button" className="gs-btn gs-btn-outline gs-btn-sm" onClick={() => { setPage(1); clearAdvancedFilters(); }}>
+                  Clear filters
+                </button>
+              )}
+            </div>
+          </div>
+        )}
 
         <div className="est-directory-split">
           <div className="est-directory-list">

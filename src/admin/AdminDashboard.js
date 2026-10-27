@@ -104,17 +104,17 @@ export default function AdminDashboard() {
   async function approveTachlis(id) {
     await apiRequest('POST', { reject: false }, `/tachlis/admin/posts/${id}/approve`);
     setTachlisPending((p) => p.filter((s) => s.id !== id));
-    setMsg('Tachlis post approved ✓');
+    setMsg('Job Board post approved ✓');
   }
 
   async function rejectTachlis(id) {
     await apiRequest('POST', { reject: true }, `/tachlis/admin/posts/${id}/approve`);
     setTachlisPending((p) => p.filter((s) => s.id !== id));
-    setMsg('Tachlis post rejected');
+    setMsg('Job Board post rejected');
   }
 
   async function unapproveTachlis(id) {
-    if (!window.confirm('Send this Tachlis post back to the pending queue?')) return;
+    if (!window.confirm('Send this Job Board post back to the pending queue?')) return;
     await apiRequest('POST', null, `/tachlis/admin/posts/${id}/unapprove`);
     setTachlisAll((s) => s.map((x) => x.id === id ? { ...x, approved_to_publish: null, approved_by: null } : x));
     setMsg('Unapproved — back in the pending queue');
@@ -209,7 +209,7 @@ export default function AdminDashboard() {
       <div className="admin-tabs">
         {[
           ['pending', `⏳ Feed Pending (${pending.length})`],
-          ['tachlis', `💼 Tachlis Pending (${tachlisPending.length})`],
+          ['tachlis', `💼 Job Board Pending (${tachlisPending.length})`],
           ['all', '📋 All Posts'],
           ['rejected', `🗑 Rejected (${rejected.length})`],
           ['comments', '💬 Comments'],
@@ -293,7 +293,7 @@ export default function AdminDashboard() {
           mistaken for a feed post) ── */}
       {tab === 'tachlis' && !loading && (
         <div className="admin-list">
-          {tachlisPending.length === 0 && <div className="admin-empty">Nothing pending on Tachlis — all clear! ✓</div>}
+          {tachlisPending.length === 0 && <div className="admin-empty">Nothing pending on the Job Board — all clear! ✓</div>}
           {tachlisPending.map((s) => (
             <div key={s.id} className="admin-card" style={{ borderLeft: '4px solid #6366f1' }}>
               <div className="admin-card-top">
@@ -304,7 +304,7 @@ export default function AdminDashboard() {
                       color: '#fff', background: '#6366f1', borderRadius: 999, padding: '2px 10px',
                     }}
                   >
-                    💼 Tachlis
+                    💼 Job Board
                   </span>
                   <TypeBadge type={s.post_type} />
                   {s.location && <span style={{ fontSize: 13, color: 'var(--muted)' }}>📍 {s.location}</span>}
@@ -327,7 +327,7 @@ export default function AdminDashboard() {
 
           {isSuperAdmin() && (
             <>
-              <h3 style={{ margin: '24px 0 12px' }}>All Tachlis Posts</h3>
+              <h3 style={{ margin: '24px 0 12px' }}>All Job Board Posts</h3>
               {tachlisAll.filter((s) => s.approved_to_publish !== null).map((s) => (
                 <div key={s.id} className="admin-card" style={{ borderLeft: '4px solid #6366f1' }}>
                   <div className="admin-card-top">

@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Users } from 'lucide-react';
 import apiRequest from '../ApiRequest';
 import EstatesPhotoUpload from './EstatesPhotoUpload';
+import { normalizePhone, isValidPhone } from '../shared/phone';
 
 const EMPTY = {
   title: '', description: '', developer_name: '', stage: '',
@@ -60,6 +61,8 @@ export default function GroupBuyForm() {
       lat: numOrNull(form.lat), lng: numOrNull(form.lng),
       price_per_unit_estimate: numOrNull(form.price_per_unit_estimate),
       total_units: intOrNull(form.total_units), min_group_size: intOrNull(form.min_group_size),
+      contact_phone: normalizePhone(form.contact_phone, form.country),
+      contact_whatsapp: normalizePhone(form.contact_whatsapp, form.country),
       photos: photos.map((p) => p.filename),
     };
     const req = editing
@@ -165,8 +168,24 @@ export default function GroupBuyForm() {
             <div className="est-form-grid">
               <div><label className="est-field-label">Your name</label><input className="gs-input" value={form.contact_name} onChange={set('contact_name')} /></div>
               <div><label className="est-field-label">Email</label><input className="gs-input" type="email" value={form.contact_email} onChange={set('contact_email')} /></div>
-              <div><label className="est-field-label">Phone</label><input className="gs-input" type="tel" value={form.contact_phone} onChange={set('contact_phone')} /></div>
-              <div><label className="est-field-label">WhatsApp (optional)</label><input className="gs-input" type="tel" value={form.contact_whatsapp} onChange={set('contact_whatsapp')} /></div>
+              <div>
+                <label className="est-field-label">Phone</label>
+                <input className="gs-input" type="tel" value={form.contact_phone} onChange={set('contact_phone')} />
+                {form.contact_phone.trim() && !isValidPhone(form.contact_phone, form.country) && (
+                  <p style={{ fontSize: 12, color: 'var(--muted)', margin: '4px 0 0' }}>
+                    Doesn't look like a complete number -- include an area/country code if "Country" above doesn't cover it.
+                  </p>
+                )}
+              </div>
+              <div>
+                <label className="est-field-label">WhatsApp (optional)</label>
+                <input className="gs-input" type="tel" value={form.contact_whatsapp} onChange={set('contact_whatsapp')} />
+                {form.contact_whatsapp.trim() && !isValidPhone(form.contact_whatsapp, form.country) && (
+                  <p style={{ fontSize: 12, color: 'var(--muted)', margin: '4px 0 0' }}>
+                    Doesn't look like a complete number -- include an area/country code if "Country" above doesn't cover it.
+                  </p>
+                )}
+              </div>
             </div>
           </div>
 

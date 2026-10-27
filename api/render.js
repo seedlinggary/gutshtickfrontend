@@ -62,7 +62,7 @@ async function buildBusinessMeta(slug, origin) {
     DESCRIPTION_MAX,
   );
   const url = `${origin}/business/${b.slug}`;
-  const image = b.logo_url || `${origin}/logo192.png`;
+  const image = b.logo_url || `${origin}/og/business.png`;
 
   const address = loc ? {
     '@type': 'PostalAddress',
@@ -101,7 +101,7 @@ async function buildCommunityMeta(slug, origin) {
     DESCRIPTION_MAX,
   );
   const url = `${origin}/communities/${c.slug}`;
-  const image = c.logo_url || `${origin}/logo192.png`;
+  const image = c.logo_url || `${origin}/og/business.png`;
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -130,7 +130,7 @@ async function buildEstatesListingMeta(idOrSlug, origin) {
     DESCRIPTION_MAX,
   );
   const url = `${origin}/listings/${l.slug}`;
-  const image = l.cover_photo_url || `${origin}/logo192.png`;
+  const image = l.cover_photo_url || `${origin}/og/estates.png`;
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -164,7 +164,7 @@ async function buildEstatesGroupBuyMeta(slug, origin) {
     DESCRIPTION_MAX,
   );
   const url = `${origin}/group-buy/${g.slug}`;
-  const image = (g.photos && g.photos[0] && g.photos[0].url) || `${origin}/logo192.png`;
+  const image = (g.photos && g.photos[0] && g.photos[0].url) || `${origin}/og/estates.png`;
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -190,7 +190,7 @@ async function buildTorahPostMeta(slug, origin) {
   const title = `${p.title} | ${label} | ${SITE_NAME}`;
   const description = truncate(p.excerpt || `A ${label.toLowerCase()} dvar Torah shared on ${SITE_NAME}.`, DESCRIPTION_MAX);
   const url = `${origin}/posts/${p.slug}`;
-  const image = p.cover_photo_url || `${origin}/logo192.png`;
+  const image = p.cover_photo_url || `${origin}/og/torah.png`;
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -217,7 +217,7 @@ async function buildTorahSheetMeta(sheetId, origin) {
     DESCRIPTION_MAX,
   );
   const url = `${origin}/sheets/${s.id}`;
-  const image = `${origin}/logo192.png`;
+  const image = `${origin}/og/torah.png`;
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -241,7 +241,7 @@ async function buildShtickPostMeta(id, origin) {
   const bodySnippet = p.content && p.content.stuff;
   const description = truncate(bodySnippet || p.caption || `Shared on ${SITE_NAME}.`, DESCRIPTION_MAX);
   const url = `${origin}/post/${p.id}`;
-  const image = (p.picture && p.picture.url) || `${origin}/logo192.png`;
+  const image = (p.picture && p.picture.url) || `${origin}/og/main.png`;
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -264,7 +264,7 @@ async function buildHockPostMeta(id, origin) {
   const title = `${p.title} | Hock | ${SITE_NAME}`;
   const description = truncate(p.body || `A Hock forum post on ${SITE_NAME}.`, DESCRIPTION_MAX);
   const url = `${origin}/hock/post/${p.id}`;
-  const image = p.image_url || `${origin}/logo192.png`;
+  const image = p.image_url || `${origin}/og/main.png`;
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -290,7 +290,7 @@ async function buildTachlisPostMeta(id, origin) {
   const title = `${p.title}${p.location ? ` — ${p.location}` : ''} | Tachlis ${label} | ${SITE_NAME}`;
   const description = truncate(p.body || `A Tachlis ${label.toLowerCase()} listing on ${SITE_NAME}.`, DESCRIPTION_MAX);
   const url = `${origin}/tachlis/post/${p.id}`;
-  const image = `${origin}/logo192.png`;
+  const image = `${origin}/og/money.png`;
 
   const jsonLd = {
     '@context': 'https://schema.org',

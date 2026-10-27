@@ -118,8 +118,8 @@ function MyActivity() {
       </section>
 
       <section style={{ marginBottom: 28 }}>
-        <h3 className="shtick-caption">💼 Your Tachlis Posts ({tachlisPosts.length})</h3>
-        {tachlisPosts.length === 0 && <p className="admin-empty">No Tachlis posts yet.</p>}
+        <h3 className="shtick-caption">💼 Your Job Board Posts ({tachlisPosts.length})</h3>
+        {tachlisPosts.length === 0 && <p className="admin-empty">No Job Board posts yet.</p>}
         {tachlisPosts.map((t) => (
           <div key={t.id} className="admin-card" style={{ borderLeft: '4px solid #6366f1' }}>
             <div className="admin-card-top">

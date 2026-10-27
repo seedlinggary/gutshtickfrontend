@@ -107,7 +107,7 @@ export default function TachlisPostPage() {
     <div className="feed-section">
       <div className="gs-container" style={{ maxWidth: 680 }}>
         <Link to="/tachlis" className="gs-btn gs-btn-outline gs-btn-sm" style={{ marginBottom: 12, display: 'inline-block' }}>
-          ← Back to Tachlis
+          ← Back to Job Board
         </Link>
 
         {loading && <div className="gs-loading"><div className="gs-spinner" /> Loading…</div>}
@@ -183,7 +183,7 @@ export default function TachlisPostPage() {
                         <strong>Contact</strong>
                         <p style={{ margin: '6px 0 0' }}>{post.contact}</p>
                         <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 6 }}>
-                          Contact the poster directly — Tachlis doesn't have internal messaging.
+                          Contact the poster directly — the Job Board doesn't have internal messaging.
                         </p>
                       </div>
                     </div>

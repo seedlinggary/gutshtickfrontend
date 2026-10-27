@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Home, Heart } from 'lucide-react';
 import apiRequest from '../ApiRequest';
 import { isLoggedIn } from '../auth';
+import FreshnessBadge from '../utils/FreshnessBadge';
 
 export function formatPrice(listing) {
   const symbol = listing.currency === 'ILS' ? '₪' : '$';
@@ -56,6 +57,7 @@ export default function ListingCard({ listing, initiallyLiked, onUnlike }) {
       {listing.is_expired && <div className="est-listing-card-expired">No longer available</div>}
       <div className="est-listing-card-body">
         <div className="est-listing-card-price">{formatPrice(listing)}</div>
+        <FreshnessBadge item={listing} style={{ marginBottom: 4 }} />
         <h3 dir="auto">{listing.title}</h3>
         <p dir="auto">{[listing.neighborhood, listing.city, listing.state || listing.country].filter(Boolean).join(', ')}</p>
         {(listing.bedrooms || listing.bathrooms || listing.size_value) && (

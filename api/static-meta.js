@@ -21,6 +21,18 @@
 
 const { siteForHost } = require('./_sites');
 
+// Matches the id each PAGES entry's siteName maps to below, and the
+// filenames generated into good-shtick/public/og/ -- see
+// SITE_LABELS further down, which is the same id set used for
+// UNIVERSAL_PAGES' dynamic image lookup.
+const SITE_IMAGE = {
+  'Gut Community': '/og/business.png',
+  'Gut Estates': '/og/estates.png',
+  'Gut Money': '/og/money.png',
+  'Gut Torah': '/og/torah.png',
+  'Gut Shtick': '/og/main.png',
+};
+
 const PAGES = {
   // ── Gut Community ──────────────────────────────────────────────────────
   home: {
@@ -194,7 +206,8 @@ function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
-function injectMeta(html, meta, url) {
+function injectMeta(html, meta, url, origin) {
+  const image = `${origin}${SITE_IMAGE[meta.siteName] || '/og/main.png'}`;
   const headExtra = `
     <title>${escapeHtml(meta.title)}</title>
     <meta name="description" content="${escapeHtml(meta.description)}" />
@@ -204,9 +217,11 @@ function injectMeta(html, meta, url) {
     <meta property="og:title" content="${escapeHtml(meta.title)}" />
     <meta property="og:description" content="${escapeHtml(meta.description)}" />
     <meta property="og:url" content="${url}" />
-    <meta name="twitter:card" content="summary" />
+    <meta property="og:image" content="${escapeHtml(image)}" />
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="${escapeHtml(meta.title)}" />
     <meta name="twitter:description" content="${escapeHtml(meta.description)}" />
+    <meta name="twitter:image" content="${escapeHtml(image)}" />
 `;
   return html
     .replace(/<title>.*?<\/title>\s*/s, '')
@@ -228,7 +243,7 @@ module.exports = async function handler(req, res) {
   const shellRes = await fetch(`${origin}/index.html`);
   const shellHtml = await shellRes.text();
 
-  const html = meta ? injectMeta(shellHtml, meta, `${origin}${meta.path}`) : shellHtml;
+  const html = meta ? injectMeta(shellHtml, meta, `${origin}${meta.path}`, origin) : shellHtml;
 
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.setHeader('Cache-Control', 'public, max-age=300, s-maxage=86400, stale-while-revalidate=86400');

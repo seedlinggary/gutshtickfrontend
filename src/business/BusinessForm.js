@@ -7,6 +7,7 @@ import AddressAutocomplete from '../shared/AddressAutocomplete';
 import TypeTagPicker from './TypeTagPicker';
 import LocationTypeIcon from './LocationTypeIcon';
 import { CATEGORY_LABELS, FOOD_CATEGORIES, LOCATION_TYPE_META } from './categories';
+import { normalizePhone, isValidPhone } from '../shared/phone';
 
 const NAME_MAX = 150;
 const ABOUT_MAX = 4000;
@@ -25,7 +26,12 @@ function locationToPayload(loc) {
     location_type: loc.location_type,
     address: loc.address, city: loc.city, state: loc.state, zip_code: loc.zip_code, country: loc.country,
     lat: loc.lat === '' ? null : loc.lat, lng: loc.lng === '' ? null : loc.lng,
-    phone: loc.phone, email: loc.email, kashrut: loc.kashrut, hours: loc.hours, is_primary: !!loc.is_primary,
+    // Normalized to international (+<country>) format when the country
+    // field lets us resolve it, so the "message on WhatsApp"/call links
+    // this location produces (see contactLinks.js) open straight away
+    // instead of silently failing on a number saved without its own
+    // country code -- see shared/phone.js.
+    phone: normalizePhone(loc.phone, loc.country), email: loc.email, kashrut: loc.kashrut, hours: loc.hours, is_primary: !!loc.is_primary,
     attributes: loc.attributes || null,
   };
 }
@@ -97,6 +103,11 @@ function LocationEditor({ loc, index, isFood, onChange, onRemove }) {
           <input type="tel" inputMode="tel" className="gs-input" placeholder="Phone" value={loc.phone} onChange={(e) => set({ phone: e.target.value })} />
           <input type="email" inputMode="email" className="gs-input" placeholder="Email" value={loc.email} onChange={(e) => set({ email: e.target.value })} />
         </div>
+        {loc.phone && loc.phone.trim() && !isValidPhone(loc.phone, loc.country) && (
+          <p style={{ fontSize: 12, color: 'var(--muted)', margin: '4px 0 0' }}>
+            Doesn't look like a complete number -- include an area/country code if "Country" doesn't cover it.
+          </p>
+        )}
         {loc.phone && loc.phone.trim() && (
           <label style={{ fontSize: 13, display: 'flex', gap: 6, alignItems: 'center', marginTop: 8 }}>
             <input

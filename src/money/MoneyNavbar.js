@@ -51,14 +51,14 @@ export default function MoneyNavbar() {
             <li className="nav-item"><button className="nav-link" onClick={() => go('/investing')}><LineChart size={15} /> Investing</button></li>
             <li className="nav-item"><button className="nav-link" onClick={() => go('/budgeting')}><PiggyBank size={15} /> Budgeting</button></li>
             <li className="nav-item"><button className="nav-link" onClick={() => go('/learn')}><BookOpen size={15} /> Learn</button></li>
-            <li className="nav-item"><button className="nav-link" onClick={() => go('/tachlis')}><Briefcase size={15} /> Tachlis</button></li>
+            <li className="nav-item"><button className="nav-link" onClick={() => go('/tachlis')}><Briefcase size={15} /> Job Board</button></li>
           </ul>
           <ul className="navbar-nav navbar-nav-end">
             <li className="nav-item"><AccessibilityToggle /></li>
             {email ? (
               <>
                 <li className="nav-item navbar-notif"><NotificationBell /></li>
-                <li className="nav-item"><button className="nav-link nav-link-pin" onClick={() => go('/tachlis?new=1')}><Plus size={15} /> Post to Tachlis</button></li>
+                <li className="nav-item"><button className="nav-link nav-link-pin" onClick={() => go('/tachlis?new=1')}><Plus size={15} /> Post to Job Board</button></li>
                 <li className="nav-item dropdown" ref={accountRef}>
                   <button
                     className="nav-link dropdown-toggle"
@@ -83,7 +83,7 @@ export default function MoneyNavbar() {
               </>
             ) : (
               <>
-                <li className="nav-item"><button className="nav-link nav-link-pin" onClick={() => go('/signup?next=%2Ftachlis%3Fnew%3D1')}><Plus size={15} /> Post to Tachlis</button></li>
+                <li className="nav-item"><button className="nav-link nav-link-pin" onClick={() => go('/signup?next=%2Ftachlis%3Fnew%3D1')}><Plus size={15} /> Post to Job Board</button></li>
                 <li className="nav-item"><button className="nav-link" onClick={() => go('/signin')}>Sign In</button></li>
                 <li className="nav-item"><button className="nav-link nav-link-pin" onClick={() => go('/signup')}>Sign Up</button></li>
               </>

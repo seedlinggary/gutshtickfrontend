@@ -46,7 +46,7 @@ const PLACEMENT_GROUPS = [
     { value: 'estates_group_buy', label: 'Group buy listings', kind: 'in-thread' },
   ]},
   { site: 'Gut Money', items: [
-    { value: 'tachlis_board', label: 'Tachlis job board', kind: 'in-thread' },
+    { value: 'tachlis_board', label: 'Job Board', kind: 'in-thread' },
   ]},
   { site: 'Gut Torah', items: [
     { value: 'torah_feed', label: 'Posts feed', kind: 'in-thread' },
@@ -434,7 +434,7 @@ export default function SuperAdminDashboard() {
 
               {searchResults.tachlis_posts.length > 0 && (
                 <div style={{ marginBottom: 24 }}>
-                  <h3>💼 Tachlis Posts ({searchResults.tachlis_posts.length})</h3>
+                  <h3>💼 Job Board Posts ({searchResults.tachlis_posts.length})</h3>
                   {searchResults.tachlis_posts.map((t) => (
                     <div key={t.id} className="admin-card" style={{ borderLeft: '4px solid #6366f1' }}>
                       <div className="admin-card-top">

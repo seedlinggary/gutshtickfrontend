@@ -6,12 +6,14 @@ import { isLoggedIn } from '../auth';
 import timeAgo from '../utils/timeAgo';
 import PinSomethingCard from '../PinSomethingCard';
 import { AdCard, useInThreadAds } from '../ads/AdSlot';
+import FreshnessBadge from '../utils/FreshnessBadge';
 
 const TITLE_MAX = 150;
 const BODY_MAX = 8000;
 const CONTACT_MAX = 300;
 const LOCATION_MAX = 120;
 const COMPENSATION_MAX = 120;
+const CATEGORY_MAX = 60;
 
 const TABS = [
   { key: '', label: 'All' },
@@ -59,12 +61,19 @@ function PostCard({ post }) {
     <Link to={`/tachlis/post/${post.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
       <div className="gs-card genre-flyer" style={{ marginBottom: 14 }}>
         <div className="gs-card-body">
-          <span className="card-kind">📌 Flyer · Tachlis</span>
+          <span className="card-kind">📌 Flyer · Job Board</span>
           <div className="shtick-meta">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, flexWrap: 'wrap' }}>
               <TypeBadge type={post.post_type} />
+              <FreshnessBadge item={post} />
               {post.location && (
                 <span style={{ fontSize: 13, color: 'var(--muted)' }}>📍 {post.location}</span>
+              )}
+              {post.remote && (
+                <span style={{ fontSize: 13, color: 'var(--muted)' }}>🏠 Remote</span>
+              )}
+              {post.category && (
+                <span style={{ fontSize: 13, color: 'var(--muted)' }}>🏷 {post.category}</span>
               )}
               {post.compensation && (
                 <span style={{ fontSize: 13, color: 'var(--muted)' }}>💰 {post.compensation}</span>
@@ -109,6 +118,8 @@ function CreatePostForm({ onCreated, onCancel }) {
   const [contact, setContact] = useState('');
   const [location, setLocation] = useState('');
   const [compensation, setCompensation] = useState('');
+  const [category, setCategory] = useState('');
+  const [remote, setRemote] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -129,6 +140,8 @@ function CreatePostForm({ onCreated, onCancel }) {
         contact: contact.trim(),
         location: location.trim() || null,
         compensation: compensation.trim() || null,
+        category: category.trim() || null,
+        remote: postType === 'job' ? remote : null,
       }, '/tachlis/posts');
       setSubmitted(true);
       if (onCreated) onCreated(created);
@@ -154,7 +167,7 @@ function CreatePostForm({ onCreated, onCancel }) {
   return (
     <div className="gs-card" style={{ marginBottom: 20 }}>
       <div className="gs-card-body">
-        <h3 style={{ marginTop: 0 }}>New Tachlis Post</h3>
+        <h3 style={{ marginTop: 0 }}>New Job Board Post</h3>
         <p style={{ color: 'var(--muted)', fontSize: 13, marginTop: -6 }}>
           Every post is reviewed by an admin before it goes live on the board.
         </p>
@@ -222,6 +235,23 @@ function CreatePostForm({ onCreated, onCancel }) {
               onChange={(e) => setCompensation(e.target.value)}
             />
           </div>
+          <div className="gs-field">
+            <input
+              className="gs-input"
+              placeholder="Category (optional) — e.g. Tech, Healthcare, Education"
+              value={category}
+              maxLength={CATEGORY_MAX}
+              onChange={(e) => setCategory(e.target.value)}
+            />
+          </div>
+          {postType === 'job' && (
+            <div className="gs-field">
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14 }}>
+                <input type="checkbox" checked={remote} onChange={(e) => setRemote(e.target.checked)} />
+                This job is remote
+              </label>
+            </div>
+          )}
           <div style={{ display: 'flex', gap: 8 }}>
             <button type="submit" className="gs-btn gs-btn-primary" disabled={loading}>
               {loading ? 'Submitting…' : 'Submit for review'}
@@ -238,8 +268,11 @@ function CreatePostForm({ onCreated, onCancel }) {
 
 export default function Tachlis() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const [type, setType] = useState('');
+  const [searchParams, setSearchParams] = useSearchParams();
+  // Every filter initializes from the URL (once, on mount) so a copied link
+  // restores the same search -- see the sync-back effect below, which is
+  // the other half of that round trip.
+  const [type, setType] = useState(() => searchParams.get('type') || '');
   const [posts, setPosts] = useState([]);
   const neededAdCount = Math.floor(posts.length / 5);
   const { adAt, dismiss: dismissAd } = useInThreadAds('tachlis_board', neededAdCount);
@@ -249,9 +282,27 @@ export default function Tachlis() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState(false);
   const [composing, setComposing] = useState(false);
-  const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [search, setSearch] = useState(() => searchParams.get('q') || '');
+  const [debouncedSearch, setDebouncedSearch] = useState(() => searchParams.get('q') || '');
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [location, setLocation] = useState(() => searchParams.get('location') || '');
+  const [category, setCategory] = useState(() => searchParams.get('category') || '');
+  const [remoteOnly, setRemoteOnly] = useState(() => searchParams.get('remote') === '1');
+  const [hasPay, setHasPay] = useState(() => searchParams.get('has_pay') === '1');
+  const [sort, setSort] = useState(() => searchParams.get('sort') || 'newest');
+  const [locations, setLocations] = useState([]);
+  const [categories, setCategories] = useState([]);
   const loggedIn = isLoggedIn();
+  const activeFilterCount = [location, category, remoteOnly, hasPay, sort !== 'newest'].filter(Boolean).length;
+
+  useEffect(() => {
+    apiRequest('GET', null, '/tachlis/locations')
+      .then((res) => setLocations(res.locations || []))
+      .catch(() => {});
+    apiRequest('GET', null, '/tachlis/categories')
+      .then((res) => setCategories(res.categories || []))
+      .catch(() => {});
+  }, []);
 
   // Lets MoneyNavbar's "Post to Tachlis" button jump straight into compose
   // mode (via /tachlis?new=1) without needing a separate /tachlis/new
@@ -268,12 +319,34 @@ export default function Tachlis() {
     return () => clearTimeout(t);
   }, [search]);
 
-  const load = useCallback((typeKey, pageNum, append, searchTerm) => {
+  // Keeps the address bar in sync with every active filter (not `page` --
+  // only the search itself needs to be a shareable/reloadable link) so a
+  // copied URL reproduces the same results. `replace: true` avoids filling
+  // browser history with one entry per keystroke/toggle.
+  useEffect(() => {
+    const next = new URLSearchParams();
+    if (type) next.set('type', type);
+    if (debouncedSearch) next.set('q', debouncedSearch);
+    if (location) next.set('location', location);
+    if (category) next.set('category', category);
+    if (remoteOnly) next.set('remote', '1');
+    if (hasPay) next.set('has_pay', '1');
+    if (sort !== 'newest') next.set('sort', sort);
+    setSearchParams(next, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [type, debouncedSearch, location, category, remoteOnly, hasPay, sort]);
+
+  const load = useCallback((typeKey, pageNum, append, searchTerm, locationVal, categoryVal, remoteVal, hasPayVal, sortVal) => {
     if (append) setLoadingMore(true); else setLoading(true);
     setError(false);
     const params = new URLSearchParams({ page: pageNum });
     if (typeKey) params.set('type', typeKey);
     if (searchTerm) params.set('q', searchTerm);
+    if (locationVal) params.set('location', locationVal);
+    if (categoryVal) params.set('category', categoryVal);
+    if (remoteVal) params.set('remote', '1');
+    if (hasPayVal) params.set('has_pay', '1');
+    if (sortVal && sortVal !== 'newest') params.set('sort', sortVal);
     apiRequest('GET', null, `/tachlis/posts?${params.toString()}`)
       .then((res) => {
         const list = res.posts || [];
@@ -286,8 +359,16 @@ export default function Tachlis() {
   }, []);
 
   useEffect(() => {
-    load(type, 1, false, debouncedSearch);
-  }, [type, debouncedSearch, load]);
+    load(type, 1, false, debouncedSearch, location, category, remoteOnly, hasPay, sort);
+  }, [type, debouncedSearch, location, category, remoteOnly, hasPay, sort, load]);
+
+  const clearFilters = () => {
+    setLocation('');
+    setCategory('');
+    setRemoteOnly(false);
+    setHasPay(false);
+    setSort('newest');
+  };
 
   const handleCreated = () => {
     // New posts start pending review, so don't inject into the (approved-only) list.
@@ -302,7 +383,7 @@ export default function Tachlis() {
     <div className="feed-section">
       <div className="gs-container" style={{ maxWidth: 680 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-          <h1 style={{ margin: 0 }}>💼 Tachlis</h1>
+          <h1 style={{ margin: 0 }}>💼 Job Board</h1>
           <button className="gs-btn gs-btn-primary" onClick={startCompose}>
             {composing ? 'Close' : '+ New Post'}
           </button>
@@ -319,31 +400,85 @@ export default function Tachlis() {
           <input
             type="text"
             className="auth-input games-search-input"
-            placeholder="🔎 Search Tachlis posts by title, body, location, id, or author…"
+            placeholder="🔎 Search Job Board posts by title, body, location, id, or author…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
 
-        <div className="content-type-tabs" style={{ marginBottom: 16 }}>
-          {TABS.map((t) => (
-            <button
-              key={t.key}
-              type="button"
-              className={`content-type-tab${type === t.key ? ' active' : ''}`}
-              onClick={() => setType(t.key)}
-            >
-              {t.label}
-            </button>
-          ))}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+          <div className="content-type-tabs">
+            {TABS.map((t) => (
+              <button
+                key={t.key}
+                type="button"
+                className={`content-type-tab${type === t.key ? ' active' : ''}`}
+                onClick={() => setType(t.key)}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+          <button
+            type="button"
+            className="gs-btn gs-btn-outline gs-btn-sm"
+            onClick={() => setFilterOpen((o) => !o)}
+          >
+            🔧 Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
+          </button>
         </div>
+
+        {filterOpen && (
+          <div className="gs-card" style={{ marginBottom: 16 }}>
+            <div className="gs-card-body" style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+              <div className="gs-field" style={{ margin: 0 }}>
+                <label className="gs-label">Location</label>
+                <select className="gs-input" style={{ minWidth: 180 }} value={location} onChange={(e) => setLocation(e.target.value)}>
+                  <option value="">All locations</option>
+                  {locations.map((loc) => (
+                    <option key={loc} value={loc}>{loc}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="gs-field" style={{ margin: 0 }}>
+                <label className="gs-label">Category</label>
+                <select className="gs-input" style={{ minWidth: 160 }} value={category} onChange={(e) => setCategory(e.target.value)}>
+                  <option value="">All categories</option>
+                  {categories.map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="gs-field" style={{ margin: 0 }}>
+                <label className="gs-label">Sort</label>
+                <select className="gs-input" style={{ minWidth: 150 }} value={sort} onChange={(e) => setSort(e.target.value)}>
+                  <option value="newest">Newest first</option>
+                  <option value="oldest">Oldest first</option>
+                </select>
+              </div>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, marginBottom: 2 }}>
+                <input type="checkbox" checked={remoteOnly} onChange={(e) => setRemoteOnly(e.target.checked)} />
+                Remote only
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, marginBottom: 2 }}>
+                <input type="checkbox" checked={hasPay} onChange={(e) => setHasPay(e.target.checked)} />
+                Pay listed only
+              </label>
+              {activeFilterCount > 0 && (
+                <button type="button" className="gs-btn gs-btn-outline gs-btn-sm" onClick={clearFilters}>
+                  Clear filters
+                </button>
+              )}
+            </div>
+          </div>
+        )}
 
         {loading && (
           <div className="gs-loading"><div className="gs-spinner" /> Loading…</div>
         )}
 
         {!loading && error && (
-          <div className="gs-error-box">Couldn't load Tachlis right now. Please try again.</div>
+          <div className="gs-error-box">Couldn't load the Job Board right now. Please try again.</div>
         )}
 
         {!loading && !error && posts.length === 0 && (
@@ -373,7 +508,7 @@ export default function Tachlis() {
           <div style={{ textAlign: 'center', paddingTop: 8, paddingBottom: 24 }}>
             <button
               className="gs-btn gs-btn-outline"
-              onClick={() => load(type, page + 1, true, debouncedSearch)}
+              onClick={() => load(type, page + 1, true, debouncedSearch, location, category, remoteOnly, hasPay, sort)}
               disabled={loadingMore}
             >
               {loadingMore ? 'Loading…' : 'Load more'}
