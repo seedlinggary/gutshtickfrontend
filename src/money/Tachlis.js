@@ -7,6 +7,7 @@ import timeAgo from '../utils/timeAgo';
 import PinSomethingCard from '../PinSomethingCard';
 import { AdCard, useInThreadAds } from '../ads/AdSlot';
 import FreshnessBadge from '../utils/FreshnessBadge';
+import GetAlertsButton from '../alerts/GetAlertsButton';
 
 const TITLE_MAX = 150;
 const BODY_MAX = 8000;
@@ -419,13 +420,24 @@ export default function Tachlis() {
               </button>
             ))}
           </div>
-          <button
-            type="button"
-            className="gs-btn gs-btn-outline gs-btn-sm"
-            onClick={() => setFilterOpen((o) => !o)}
-          >
-            🔧 Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
-          </button>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              className="gs-btn gs-btn-outline gs-btn-sm"
+              onClick={() => setFilterOpen((o) => !o)}
+            >
+              🔧 Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
+            </button>
+            <GetAlertsButton
+              searchType="tachlis"
+              filters={{
+                type, q: debouncedSearch, location, category,
+                remote: remoteOnly ? '1' : '', has_pay: hasPay ? '1' : '',
+              }}
+              label={[TABS.find((t) => t.key === type)?.label !== 'All' ? TABS.find((t) => t.key === type)?.label : null, location || category]
+                .filter(Boolean).join(' in ') || 'Job Board posts'}
+            />
+          </div>
         </div>
 
         {filterOpen && (

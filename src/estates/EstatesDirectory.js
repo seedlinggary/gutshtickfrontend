@@ -8,6 +8,7 @@ import { AdCard, useInThreadAds } from '../ads/AdSlot';
 import EstatesStatsBar from './EstatesStatsBar';
 import ListingCard from './ListingCard';
 import { useNearMe, NearMeShakeControls } from '../shared/NearMeShake';
+import GetAlertsButton from '../alerts/GetAlertsButton';
 
 const BusinessMap = lazy(() => import('../business/BusinessMap'));
 
@@ -168,6 +169,19 @@ export default function EstatesDirectory() {
   const neededAdCount = results ? Math.floor(results.length / 6) : 0;
   const { adAt, dismiss: dismissAd } = useInThreadAds('estates_listings', neededAdCount);
 
+  // Same field names /estates/listings itself reads -- handed to
+  // GetAlertsButton as-is so an alert always matches exactly what this
+  // search currently returns (see backend's shared _apply_listing_filters).
+  const alertFilters = {
+    listing_type: listingType, q: q.trim(), city: city.trim(), neighborhood,
+    min_price: minPrice, max_price: maxPrice, min_bedrooms: minBedrooms, max_bedrooms: maxBedrooms,
+    agent_only: agentOnly ? '1' : '', owner_only: ownerOnly ? '1' : '',
+  };
+  const alertLabel = [
+    listingType ? TYPE_TABS.find((t) => t.key === listingType)?.label : null,
+    neighborhood || city.trim(),
+  ].filter(Boolean).join(' in ') || 'Gut Estates listings';
+
   const listView = (
     <>
       {loading && <p style={{ color: 'var(--muted)' }}>Loading listings…</p>}
@@ -297,6 +311,7 @@ export default function EstatesDirectory() {
           >
             <SlidersHorizontal size={13} /> Filters {activeFilterCount > 0 && <span>({activeFilterCount})</span>}
           </button>
+          <GetAlertsButton searchType="estates" filters={alertFilters} label={alertLabel} />
         </div>
 
         {filterOpen && (

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Home, Users, BookOpen, User, Plus, Settings, Plug, ShieldCheck, LogOut, ChevronDown, Heart, Calculator,
+  Home, Users, BookOpen, User, Plus, Settings, Plug, ShieldCheck, LogOut, ChevronDown, Heart, Calculator, Bell,
 } from 'lucide-react';
 import { getEmail, isAdmin, isSuperAdmin, clearAuth } from '../auth';
 import NotificationBell from '../NotificationBell';
@@ -72,6 +72,7 @@ export default function EstatesNavbar() {
                       <li><button className="dropdown-item" onClick={() => go('/my-listings')}><Home size={14} /> My Listings</button></li>
                       <li><button className="dropdown-item" onClick={() => go('/my-listings?tab=saved')}><Heart size={14} /> Saved Listings</button></li>
                       <li><button className="dropdown-item" onClick={() => go('/my-group-buys')}><Users size={14} /> My Group Buys</button></li>
+                      <li><button className="dropdown-item" onClick={() => go('/alerts')}><Bell size={14} /> My Alerts</button></li>
                       {(boss || superAdmin) && <li><div className="dropdown-divider" /></li>}
                       {boss && <li><button className="dropdown-item" onClick={() => go('/admin')}><Settings size={14} /> Admin</button></li>}
                       {boss && <li><button className="dropdown-item" onClick={() => go('/admin/integrations')}><Plug size={14} /> Integrations</button></li>}

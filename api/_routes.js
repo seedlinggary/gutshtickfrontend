@@ -23,7 +23,7 @@ const SITE_OWNED_PREFIXES = {
 // redirected, never 404'd, no matter which domain requests them.
 const UNIVERSAL_PREFIXES = [
   '/about', '/contact', '/disclaimer', '/content-guidelines',
-  '/signin', '/signup', '/forgotpassword', '/profile', '/admin', '/superadmin', '/games',
+  '/signin', '/signup', '/forgotpassword', '/profile', '/admin', '/superadmin', '/games', '/alerts',
 ];
 
 // Owned by more than one site (Estates AND Money both have /learn) -- on

@@ -143,6 +143,7 @@ function AppNavbar() {
                 <li className="nav-item navbar-notif"><NotificationBell /></li>
                 <li className="nav-item"><button className="nav-link nav-link-pin" onClick={() => go('/CreateShtick')}>＋ Pin Something</button></li>
                 <li className="nav-item"><button className="nav-link" onClick={() => go('/profile')}>Profile</button></li>
+                <li className="nav-item"><button className="nav-link" onClick={() => go('/alerts')}>🔔 My Alerts</button></li>
                 <li className="nav-item"><button className="nav-link" onClick={handleSignOut}>Sign Out</button></li>
               </>
             ) : (

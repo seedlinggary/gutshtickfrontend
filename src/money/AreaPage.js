@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { MapPin, Briefcase } from 'lucide-react';
 import apiRequest from '../ApiRequest';
 import ShareButton from '../ShareButton';
+import GetAlertsButton from '../alerts/GetAlertsButton';
 import { PostCard } from './Tachlis';
 
 const TYPE_LABEL = { job: 'Jobs', resume: 'Resumes' };
@@ -41,11 +42,14 @@ export default function AreaPage() {
       <div className="gs-container" style={{ maxWidth: 680 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10, marginBottom: 6 }}>
           <h1 style={{ margin: 0 }}><MapPin size={20} style={{ verticalAlign: -2 }} /> Jobs in {data.area}</h1>
-          <ShareButton
-            title={`Jobs in ${data.area}`}
-            text={`${data.count} job post${data.count === 1 ? '' : 's'} in ${data.area} on Gut Money`}
-            url={typeof window !== 'undefined' ? window.location.href : ''}
-          />
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <GetAlertsButton searchType="tachlis" filters={{ location: data.area }} label={`Jobs in ${data.area}`} />
+            <ShareButton
+              title={`Jobs in ${data.area}`}
+              text={`${data.count} job post${data.count === 1 ? '' : 's'} in ${data.area} on Gut Money`}
+              url={typeof window !== 'undefined' ? window.location.href : ''}
+            />
+          </div>
         </div>
         <p style={{ color: 'var(--muted)', marginTop: 0 }}>
           {data.count} post{data.count === 1 ? '' : 's'}

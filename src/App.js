@@ -45,6 +45,9 @@ const PostPage            = lazy(() => import('./feed/PostPage'));
 const Hock                = lazy(() => import('./hock/Hock'));
 const HockPostPage        = lazy(() => import('./hock/HockPostPage'));
 const TodayOnGut          = lazy(() => import('./TodayOnGut'));
+const AlertConfirm        = lazy(() => import('./alerts/AlertConfirm'));
+const AlertUnsubscribe    = lazy(() => import('./alerts/AlertUnsubscribe'));
+const MyAlerts            = lazy(() => import('./alerts/MyAlerts'));
 const AdminDashboard      = lazy(() => import('./admin/AdminDashboard'));
 const SuperAdminDashboard = lazy(() => import('./admin/SuperAdminDashboard'));
 const VersusWrapper       = lazy(() => import('./games/versus/VersusWrapper'));
@@ -209,6 +212,13 @@ function App() {
               <Route path="/profile" element={
                 <RequireAuth check={isLoggedIn}><Profile /></RequireAuth>
               } />
+              {/* Alerts are created from Estates/Money search pages too, so these
+                  must be reachable on every site, not just the main consumer site
+                  (previously nested inside the main-site-only branch above, which
+                  meant /alerts simply didn't exist in the router on other sites). */}
+              <Route path="/alerts/confirm/:token" element={<AlertConfirm />} />
+              <Route path="/alerts/unsubscribe/:token" element={<AlertUnsubscribe />} />
+              <Route path="/alerts" element={<RequireAuth check={isLoggedIn}><MyAlerts /></RequireAuth>} />
               <Route path="/admin" element={
                 <RequireAuth check={isAdmin}><AdminDashboard /></RequireAuth>
               } />

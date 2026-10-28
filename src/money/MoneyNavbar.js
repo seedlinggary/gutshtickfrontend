@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Calculator, LineChart, PiggyBank, BookOpen, Briefcase, Plus, User, Settings, Plug, ShieldCheck, LogOut, ChevronDown,
+  Calculator, LineChart, PiggyBank, BookOpen, Briefcase, Plus, User, Settings, Plug, ShieldCheck, LogOut, ChevronDown, Bell,
 } from 'lucide-react';
 import { getEmail, isAdmin, isSuperAdmin, clearAuth } from '../auth';
 import NotificationBell from '../NotificationBell';
@@ -70,6 +70,7 @@ export default function MoneyNavbar() {
                   </button>
                   {accountOpen && (
                     <ul className="dropdown-menu dropdown-menu-end">
+                      <li><button className="dropdown-item" onClick={() => go('/alerts')}><Bell size={14} /> My Alerts</button></li>
                       {(boss || superAdmin) && <li><div className="dropdown-divider" /></li>}
                       {boss && <li><button className="dropdown-item" onClick={() => go('/admin')}><Settings size={14} /> Admin</button></li>}
                       {boss && <li><button className="dropdown-item" onClick={() => go('/admin/integrations')}><Plug size={14} /> Integrations</button></li>}

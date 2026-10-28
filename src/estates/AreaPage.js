@@ -4,6 +4,7 @@ import { MapPin, Home } from 'lucide-react';
 import apiRequest from '../ApiRequest';
 import ListingCard from './ListingCard';
 import ShareButton from '../ShareButton';
+import GetAlertsButton from '../alerts/GetAlertsButton';
 
 const LISTING_TYPE_LABEL = { sale: 'For Sale', long_term_lease: 'For Rent (Long-Term)', short_term_lease: 'Short-Term Rentals' };
 
@@ -51,11 +52,18 @@ export default function AreaPage() {
                 {data.typical_price != null && <> · typical price {currencySymbol}{Math.round(data.typical_price).toLocaleString()}</>}
               </p>
             </div>
-            <ShareButton
-              title={`Homes in ${data.area}`}
-              text={`${data.count} listing${data.count === 1 ? '' : 's'} in ${data.area} on Gut Estates`}
-              url={typeof window !== 'undefined' ? window.location.href : ''}
-            />
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <GetAlertsButton
+                searchType="estates"
+                filters={data.area_type === 'neighborhood' ? { neighborhood: data.area } : { city: data.area }}
+                label={`Homes in ${data.area}`}
+              />
+              <ShareButton
+                title={`Homes in ${data.area}`}
+                text={`${data.count} listing${data.count === 1 ? '' : 's'} in ${data.area} on Gut Estates`}
+                url={typeof window !== 'undefined' ? window.location.href : ''}
+              />
+            </div>
           </div>
         </div>
 
