@@ -9,6 +9,7 @@ import AdminScrapers from './AdminScrapers';
 import AdminYoutubeChannels from './AdminYoutubeChannels';
 import AdminAnalytics from './AdminAnalytics';
 import AdminBusinessAnalytics from './AdminBusinessAnalytics';
+import AdminAlertSchedule from './AdminAlertSchedule';
 
 const ROLES = ['viewer', 'user', 'admin', 'super_admin'];
 const ROLE_LABELS = { viewer: 'Viewer', user: 'User', admin: 'Admin', super_admin: 'Super Admin' };
@@ -336,6 +337,7 @@ export default function SuperAdminDashboard() {
           ['users', `👥 Users (${users.length})`],
           ['approvals', '✅ Approval History'],
           ['ads', `📢 Ads (${ads.length})`],
+          ['alerts', '🔔 Alerts'],
           ['categories', `🏷️ Categories (${categories.length})`],
           ['content_pipeline', '🤖 Content Pipeline'],
           ['analytics', '📈 Analytics'],
@@ -878,6 +880,13 @@ export default function SuperAdminDashboard() {
       {!loading && (
         <div style={{ display: tab === 'business_analytics' ? 'block' : 'none' }}>
           <AdminBusinessAnalytics />
+        </div>
+      )}
+
+      {/* ── Alerts (digest schedule) ── */}
+      {!loading && (
+        <div style={{ display: tab === 'alerts' ? 'block' : 'none' }}>
+          <AdminAlertSchedule />
         </div>
       )}
 
