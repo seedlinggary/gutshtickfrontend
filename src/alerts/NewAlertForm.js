@@ -68,12 +68,18 @@ export default function NewAlertForm({ onCreated, onCancel }) {
   const [location, setLocation] = useState('');
   const [locations, setLocations] = useState([]);
   const [category, setCategory] = useState('');
+  const [categories, setCategories] = useState([]);
   const [remoteOnly, setRemoteOnly] = useState(false);
   const [hasPay, setHasPay] = useState(false);
 
   useEffect(() => {
     apiRequest('GET', null, '/estates/neighborhoods').then((res) => setNeighborhoods(res.neighborhoods || [])).catch(() => {});
     apiRequest('GET', null, '/tachlis/locations').then((res) => setLocations(res.locations || [])).catch(() => {});
+    // Fixed taxonomy, not free text -- matching Tachlis.js's own category
+    // dropdown exactly, since the backend's category filter is an exact
+    // (case-insensitive) match, not a substring search. See
+    // backend/tachlis/routes/tachlis_post.py's _apply_post_filters().
+    apiRequest('GET', null, '/tachlis/categories').then((res) => setCategories(res.categories || [])).catch(() => {});
   }, []);
 
   const estatesFilters = { listing_type: listingType, city: city.trim(), neighborhood, min_price: minPrice, max_price: maxPrice, min_bedrooms: minBedrooms };
@@ -167,7 +173,10 @@ export default function NewAlertForm({ onCreated, onCancel }) {
           </label>
           <label style={{ flex: '1 1 160px' }}>
             Category
-            <input className="auth-input" style={{ width: '100%', marginTop: 4 }} value={category} onChange={(e) => setCategory(e.target.value)} placeholder="Any category" />
+            <select className="auth-input" style={{ width: '100%', marginTop: 4 }} value={category} onChange={(e) => setCategory(e.target.value)}>
+              <option value="">Any category</option>
+              {categories.map((c) => <option key={c} value={c}>{c}</option>)}
+            </select>
           </label>
           <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <input type="checkbox" checked={remoteOnly} onChange={(e) => setRemoteOnly(e.target.checked)} /> Remote only
