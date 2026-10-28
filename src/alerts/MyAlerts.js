@@ -21,13 +21,15 @@ export default function MyAlerts() {
 
   useEffect(() => { load(); }, []);
 
-  const togglePause = async (alert) => {
+  const updateAlert = async (alert, patch) => {
     setBusyId(alert.id);
     try {
-      const updated = await apiRequest('PATCH', { paused: !alert.paused }, `/alerts/${alert.id}`);
+      const updated = await apiRequest('PATCH', patch, `/alerts/${alert.id}`);
       setAlerts((prev) => prev.map((a) => (a.id === alert.id ? updated : a)));
-    } catch (e) { /* ignore */ } finally { setBusyId(null); }
+    } catch (e) { /* ignore -- the control's next change retries */ } finally { setBusyId(null); }
   };
+
+  const togglePause = (alert) => updateAlert(alert, { paused: !alert.paused });
 
   const remove = async (alert) => {
     if (!window.confirm('Delete this alert? You can always set it up again later.')) return;
@@ -81,6 +83,35 @@ export default function MyAlerts() {
                   Delete
                 </button>
               </div>
+            </div>
+            <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', padding: '0 16px 14px', fontSize: 13 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                Send:
+                <select
+                  value={alert.cadence}
+                  disabled={busyId === alert.id}
+                  onChange={(e) => updateAlert(alert, { cadence: e.target.value })}
+                >
+                  <option value="daily">Once a day</option>
+                  <option value="instant">The moment it matches</option>
+                </select>
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                Via:
+                <select
+                  value={alert.channel}
+                  disabled={busyId === alert.id}
+                  onChange={(e) => updateAlert(alert, { channel: e.target.value })}
+                >
+                  <option value="email">Email</option>
+                  <option value="whatsapp">WhatsApp (coming soon)</option>
+                </select>
+              </label>
+              {alert.channel === 'whatsapp' && (
+                <span style={{ color: 'var(--muted)' }}>
+                  WhatsApp alerts aren't live yet -- you'll keep getting these by email until they are.
+                </span>
+              )}
             </div>
           </div>
         ))}

@@ -28,6 +28,11 @@ export default function ListingForm() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(editing);
 
+  const [pasteText, setPasteText] = useState('');
+  const [pasteOpen, setPasteOpen] = useState(false);
+  const [parsing, setParsing] = useState(false);
+  const [parseError, setParseError] = useState('');
+
   useEffect(() => {
     if (!editing) return;
     apiRequest('GET', null, `/estates/listings/${idOrSlug}`)
@@ -50,6 +55,37 @@ export default function ListingForm() {
   }, [editing, idOrSlug]);
 
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
+
+  const parseFromPaste = async () => {
+    setParseError('');
+    setParsing(true);
+    try {
+      const draft = await apiRequest('POST', { text: pasteText }, '/estates/listings/parse-draft');
+      setForm((f) => ({
+        ...f,
+        listing_type: draft.listing_type || f.listing_type,
+        title: draft.title || f.title,
+        description: draft.description || f.description,
+        price: draft.price ?? f.price,
+        currency: draft.currency || f.currency,
+        price_period: draft.price_period || f.price_period,
+        bedrooms: draft.bedrooms ?? f.bedrooms,
+        bathrooms: draft.bathrooms ?? f.bathrooms,
+        city: draft.city || f.city,
+        neighborhood: draft.neighborhood || f.neighborhood,
+        is_agent: draft.is_agent === undefined ? f.is_agent : draft.is_agent,
+        contact_name: draft.contact_name || f.contact_name,
+        contact_phone: draft.contact_phone || f.contact_phone,
+        contact_whatsapp: draft.contact_whatsapp || f.contact_whatsapp,
+        contact_email: draft.contact_email || f.contact_email,
+      }));
+      setPasteOpen(false);
+    } catch (e) {
+      setParseError(typeof e === 'string' ? e : "Couldn't read that -- try pasting more detail, or fill in the form by hand.");
+    } finally {
+      setParsing(false);
+    }
+  };
 
   const submit = (e) => {
     e.preventDefault();
@@ -101,6 +137,39 @@ export default function ListingForm() {
             (you can renew from the listing page) -- short-term rentals stay up since they're ongoing availability.
           </p>
         </div>
+
+        {!editing && (
+          <div className="est-form-section">
+            {!pasteOpen ? (
+              <button type="button" className="gs-btn gs-btn-outline" onClick={() => setPasteOpen(true)}>
+                📋 Paste a WhatsApp post instead
+              </button>
+            ) : (
+              <>
+                <h3>Paste a WhatsApp post</h3>
+                <p style={{ fontSize: 12, color: 'var(--muted)', margin: '0 0 8px' }}>
+                  We'll read it and fill in the form below -- review everything before publishing.
+                </p>
+                <textarea
+                  className="gs-input"
+                  style={{ minHeight: 100, marginBottom: 8 }}
+                  value={pasteText}
+                  onChange={(e) => setPasteText(e.target.value)}
+                  placeholder="Paste the post text here…"
+                />
+                {parseError && <p className="est-error">{parseError}</p>}
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button type="button" className="gs-btn gs-btn-primary gs-btn-sm" onClick={parseFromPaste} disabled={parsing || !pasteText.trim()}>
+                    {parsing ? 'Reading…' : 'Fill in from this'}
+                  </button>
+                  <button type="button" className="gs-btn gs-btn-outline gs-btn-sm" onClick={() => { setPasteOpen(false); setParseError(''); }} disabled={parsing}>
+                    Cancel
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        )}
 
         <form onSubmit={submit}>
           {error && <p className="est-error">{error}</p>}

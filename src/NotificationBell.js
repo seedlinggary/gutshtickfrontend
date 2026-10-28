@@ -70,7 +70,17 @@ export default function NotificationBell() {
       setNotifications((prev) => prev.map((x) => x.id === n.id ? { ...x, is_read: true } : x));
     }
     setOpen(false);
-    if (n.link) navigate(n.link);
+    if (!n.link) return;
+    // Stage 4's price-drop/back-on-market notifications link to whichever
+    // site actually owns the listing (e.g. gutestates.com), which may not
+    // be the site the bell is currently showing on -- react-router's
+    // navigate() can't leave the current site's own route tree, so an
+    // absolute link needs a real page load instead.
+    if (/^https?:\/\//i.test(n.link)) {
+      window.location.href = n.link;
+    } else {
+      navigate(n.link);
+    }
   };
 
   const markAllRead = (e) => {

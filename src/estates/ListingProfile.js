@@ -64,6 +64,20 @@ export default function ListingProfile() {
     } catch (e) { /* ignore */ }
   };
 
+  const handleMarkStatus = async (status) => {
+    const label = status === 'rented' ? 'rented' : 'sold';
+    if (!window.confirm(`Mark this listing as ${label}? It'll be hidden from search right away.`)) return;
+    try {
+      const updated = await apiRequest('PATCH', { status }, `/estates/listings/${listing.id}/status`);
+      setListing(updated);
+    } catch (e) { /* ignore */ }
+  };
+
+  const trackContactTap = () => {
+    // Fire-and-forget -- never blocks or delays the contact action itself.
+    apiRequest('POST', null, `/estates/listings/${listing.id}/contact-tap`).catch(() => {});
+  };
+
   const handleDelete = async () => {
     if (!window.confirm('Delete this listing? This cannot be undone.')) return;
     try {
@@ -143,17 +157,35 @@ export default function ListingProfile() {
           </div>
         )}
 
+        {listing.is_own_listing && listing.status === 'active' && (
+          <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+            <button type="button" className="gs-btn gs-btn-outline gs-btn-sm" onClick={() => handleMarkStatus('rented')}>
+              Mark as rented
+            </button>
+            <button type="button" className="gs-btn gs-btn-outline gs-btn-sm" onClick={() => handleMarkStatus('sold')}>
+              Mark as sold
+            </button>
+          </div>
+        )}
+        {listing.is_own_listing && listing.status !== 'active' && (
+          <div className="est-expiry-note">
+            Marked {listing.status}. <button type="button" className="gs-btn gs-btn-outline gs-btn-sm" style={{ marginLeft: 8 }} onClick={handleRenew}>
+              <RefreshCw size={13} /> Still available? Reactivate
+            </button>
+          </div>
+        )}
+
         <div className="est-contact-card">
           <strong>{listing.contact_name || 'Contact the poster'}</strong>
           <div className="est-contact-row">
             {listing.contact_email && (
-              <a className="gs-btn gs-btn-outline gs-btn-sm" href={`mailto:${listing.contact_email}`}><Mail size={14} /> Email</a>
+              <a className="gs-btn gs-btn-outline gs-btn-sm" href={`mailto:${listing.contact_email}`} onClick={trackContactTap}><Mail size={14} /> Email</a>
             )}
             {listing.contact_phone && (
-              <a className="gs-btn gs-btn-outline gs-btn-sm" href={`tel:${listing.contact_phone}`}><Phone size={14} /> Call</a>
+              <a className="gs-btn gs-btn-outline gs-btn-sm" href={`tel:${listing.contact_phone}`} onClick={trackContactTap}><Phone size={14} /> Call</a>
             )}
             {listing.contact_whatsapp && (
-              <a className="gs-btn gs-btn-outline gs-btn-sm" href={whatsappHref(listing.contact_whatsapp)} target="_blank" rel="noreferrer"><MessageCircle size={14} /> WhatsApp</a>
+              <a className="gs-btn gs-btn-outline gs-btn-sm" href={whatsappHref(listing.contact_whatsapp)} target="_blank" rel="noreferrer" onClick={trackContactTap}><MessageCircle size={14} /> WhatsApp</a>
             )}
           </div>
         </div>

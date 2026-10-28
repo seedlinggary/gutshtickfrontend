@@ -3,6 +3,7 @@ import RequireAuth from '../RequireAuth';
 import { isLoggedIn } from '../auth';
 import Contact from '../Contact';
 import NotFound from '../NotFound';
+import StillAvailableConfirm from '../StillAvailableConfirm';
 
 const EstatesDirectory = lazy(() => import('./EstatesDirectory'));
 const ListingProfile   = lazy(() => import('./ListingProfile'));
@@ -31,6 +32,7 @@ export default [
   { path: '/group-buy/:slug', element: <GroupBuyProfile /> },
   { path: '/my-group-buys', element: <RequireAuth check={isLoggedIn}><MyGroupBuys /></RequireAuth> },
   { path: '/areas/:areaSlug', element: <AreaPage /> },
+  { path: '/still-available/confirm/:token', element: <StillAvailableConfirm apiPrefix="/estates" /> },
   { path: '/learn', element: <Learn /> },
   { path: '/calculators', element: <Calculators /> },
   { path: '/contact', element: <Contact /> },

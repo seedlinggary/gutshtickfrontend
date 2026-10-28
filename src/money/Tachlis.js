@@ -125,6 +125,32 @@ function CreatePostForm({ onCreated, onCancel }) {
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
+  const [pasteText, setPasteText] = useState('');
+  const [pasteOpen, setPasteOpen] = useState(false);
+  const [parsing, setParsing] = useState(false);
+  const [parseError, setParseError] = useState('');
+
+  const parseFromPaste = async () => {
+    setParseError('');
+    setParsing(true);
+    try {
+      const draft = await apiRequest('POST', { text: pasteText }, '/tachlis/posts/parse-draft');
+      if (draft.post_type) setPostType(draft.post_type);
+      if (draft.title) setTitle(draft.title);
+      if (draft.body) setBody(draft.body);
+      if (draft.contact) setContact(draft.contact);
+      if (draft.location) setLocation(draft.location);
+      if (draft.compensation) setCompensation(draft.compensation);
+      if (draft.category) setCategory(draft.category);
+      if (draft.remote !== null && draft.remote !== undefined) setRemote(draft.remote);
+      setPasteOpen(false);
+    } catch (err) {
+      setParseError(typeof err === 'string' ? err : "Couldn't read that -- try pasting more detail, or fill in the form by hand.");
+    } finally {
+      setParsing(false);
+    }
+  };
+
   const submit = async (e) => {
     e.preventDefault();
     if (!title.trim()) { setError('Give your post a title.'); return; }
@@ -173,6 +199,35 @@ function CreatePostForm({ onCreated, onCancel }) {
           Every post is reviewed by an admin before it goes live on the board.
         </p>
         {error && <div className="gs-error-box">{error}</div>}
+
+        {!pasteOpen ? (
+          <button type="button" className="gs-btn gs-btn-outline gs-btn-sm" style={{ marginBottom: 14 }} onClick={() => setPasteOpen(true)}>
+            📋 Paste a WhatsApp post instead
+          </button>
+        ) : (
+          <div className="gs-field" style={{ marginBottom: 14 }}>
+            <p style={{ fontSize: 12, color: 'var(--muted)', margin: '0 0 8px' }}>
+              We'll read it and fill in the form below -- review everything before submitting.
+            </p>
+            <textarea
+              className="gs-input gs-textarea"
+              rows={4}
+              value={pasteText}
+              onChange={(e) => setPasteText(e.target.value)}
+              placeholder="Paste the post text here…"
+            />
+            {parseError && <div className="gs-error-box" style={{ marginTop: 6 }}>{parseError}</div>}
+            <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+              <button type="button" className="gs-btn gs-btn-primary gs-btn-sm" onClick={parseFromPaste} disabled={parsing || !pasteText.trim()}>
+                {parsing ? 'Reading…' : 'Fill in from this'}
+              </button>
+              <button type="button" className="gs-btn gs-btn-outline gs-btn-sm" onClick={() => { setPasteOpen(false); setParseError(''); }} disabled={parsing}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+
         <form onSubmit={submit}>
           <div className="gs-field">
             <label className="gs-label">Type</label>

@@ -21,6 +21,11 @@
   --info: #4fc1d9;
   --hot: #ff7e9c;
   --fresh: #4caf7d;
+  /* How tall the site-wide announcement banner currently is (0 when it's
+     off/dismissed) -- set from JS in SiteBanner.js so .gs-navbar, the fixed
+     top-banner ad, and .main-content's own top padding all shift down by
+     exactly that much instead of the banner overlapping them. */
+  --site-banner-h: 0px;
   --radius-sm: 10px;
   --radius: 16px;
   --radius-lg: 22px;
@@ -106,9 +111,80 @@ iframe {
   display: flex;
   flex-direction: column;
 }
+/* ── Site-wide announcement banner (super-admin editable, see SiteBanner.js
+   / AdminSiteBanner.js) -- fixed above the navbar (higher z-index than
+   .gs-navbar's 1000), with --site-banner-h (set from JS, above) pushing
+   the navbar, the fixed top-banner ad, and the page's own top padding down
+   by its real rendered height, so nothing here ever overlaps an ad slot
+   or hides behind the nav, on desktop or a wrapped multi-line mobile
+   message alike. ── */
+.site-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  padding: 10px 48px 10px 16px;
+  min-height: 20px;
+  font-size: 14px;
+  line-height: 1.45;
+  text-align: center;
+  color: #ffffff;
+}
+.site-banner-info { background: var(--info); }
+.site-banner-success { background: var(--success); }
+.site-banner-warning { background: #f0a500; color: #3a2d00; }
+.site-banner-urgent { background: var(--danger); }
+.site-banner-message { max-width: 900px; word-break: break-word; }
+.site-banner-link {
+  color: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  white-space: nowrap;
+}
+.site-banner-close {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.28);
+  border: none;
+  color: inherit;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+.site-banner-close:hover { background: rgba(255, 255, 255, 0.4); }
+@media (max-width: 640px) {
+  .site-banner { font-size: 13px; padding: 10px 50px 10px 14px; }
+  /* Slightly larger than the desktop circle -- a comfortable thumb target
+     without the button itself overwhelming a one-line mobile banner. */
+  .site-banner-close { width: 38px; height: 38px; font-size: 22px; right: 4px; }
+}
+/* Used only by AdminSiteBanner.js's inline preview -- same look, but laid
+   out normally in the admin card instead of pinned to the viewport. */
+.site-banner-preview {
+  position: relative;
+  border-radius: var(--radius-sm);
+  justify-content: flex-start;
+  text-align: left;
+}
+
 .main-content {
   flex: 1;
-  padding-top: 72px;
+  padding-top: calc(72px + var(--site-banner-h));
 }
 /* Reserves room for the fixed top-banner ad (see .ad-slot-top) only while
    one is actually showing -- added/removed in App.js based on whether the
@@ -116,11 +192,11 @@ iframe {
    banner is ~71px tall; the mobile layout (see .ad-slot-top's own
    max-width:640px rule) drops the image/label and is noticeably shorter. */
 .main-content.has-top-ad {
-  padding-top: 144px;
+  padding-top: calc(144px + var(--site-banner-h));
 }
 @media (max-width: 640px) {
   .main-content.has-top-ad {
-    padding-top: 118px;
+    padding-top: calc(118px + var(--site-banner-h));
   }
 }
 
@@ -156,12 +232,12 @@ iframe {
    site's light one, where the old translucent-white style was invisible. ── */
 .lang-select-corner-wrap {
   position: fixed;
-  top: 14px;
+  top: calc(14px + var(--site-banner-h));
   right: 16px;
   z-index: 1001;
 }
 @media (max-width: 768px) {
-  .lang-select-corner-wrap { top: 10px; right: 10px; }
+  .lang-select-corner-wrap { top: calc(10px + var(--site-banner-h)); right: 10px; }
 }
 .lang-select-corner {
   background: #ffffff;
@@ -257,7 +333,7 @@ iframe {
 /* ── Navbar (self-contained — no Bootstrap) ── */
 .gs-navbar {
   position: fixed;
-  top: 0;
+  top: var(--site-banner-h);
   left: 0;
   right: 0;
   z-index: 1000;
@@ -457,7 +533,7 @@ iframe {
   .gs-navbar .navbar-collapse.show {
     display: flex;
     position: fixed;
-    top: 64px;
+    top: calc(64px + var(--site-banner-h));
     left: 0;
     right: 0;
     flex-direction: column;
@@ -2581,7 +2657,7 @@ iframe {
   border-right: none;
 }
 .ad-slot-top {
-  top: 72px; /* just below the fixed navbar */
+  top: calc(72px + var(--site-banner-h)); /* just below the fixed navbar */
   border-top: none;
 }
 .ad-slot-bottom {

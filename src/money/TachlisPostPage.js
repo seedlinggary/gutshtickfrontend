@@ -8,6 +8,24 @@ import timeAgo from '../utils/timeAgo';
 
 const TITLE_MAX = 150;
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PHONE_RE = /^[+\d][\d\s()-]{6,}$/;
+
+/** Best-effort "make the contact field clickable" -- post.contact is one
+ * free-text field (email, phone, or a WhatsApp link/number all mixed
+ * together, see TachlisPost.contact), so this is a heuristic, not a
+ * guarantee every contact renders as a link. */
+function contactHref(contact) {
+  const trimmed = (contact || '').trim();
+  if (!trimmed) return null;
+  if (EMAIL_RE.test(trimmed)) return `mailto:${trimmed}`;
+  if (/^https?:\/\//i.test(trimmed) || /^wa\.me\//i.test(trimmed)) {
+    return trimmed.startsWith('http') ? trimmed : `https://${trimmed}`;
+  }
+  if (PHONE_RE.test(trimmed)) return `tel:${trimmed.replace(/[()-\s]/g, '')}`;
+  return null;
+}
+
 function StatusBanner({ post }) {
   if (post.approved_to_publish === true) return null;
   if (post.approved_to_publish === false) {
@@ -86,6 +104,48 @@ export default function TachlisPostPage() {
       await apiRequest('DELETE', null, `/tachlis/posts/${id}`);
       navigate('/tachlis');
     } catch (_) { setBusy(false); }
+  };
+
+  const handleRenew = async () => {
+    setBusy(true);
+    try {
+      const updated = await apiRequest('POST', null, `/tachlis/posts/${id}/renew`);
+      setPost(updated);
+    } catch (_) {}
+    setBusy(false);
+  };
+
+  const handleMarkFilled = async () => {
+    if (!window.confirm("Mark this post as filled? It'll be hidden from the board right away.")) return;
+    setBusy(true);
+    try {
+      const updated = await apiRequest('PATCH', { status: 'filled' }, `/tachlis/posts/${id}/status`);
+      setPost(updated);
+    } catch (_) {}
+    setBusy(false);
+  };
+
+  const trackContactTap = () => {
+    apiRequest('POST', null, `/tachlis/posts/${id}/contact-tap`).catch(() => {});
+  };
+
+  const [applying, setApplying] = useState(false);
+  const [applyResult, setApplyResult] = useState(null);
+  const [applyError, setApplyError] = useState('');
+
+  const handleApply = async () => {
+    setApplying(true);
+    setApplyError('');
+    setApplyResult(null);
+    try {
+      const result = await apiRequest('POST', {}, `/tachlis/posts/${id}/apply`);
+      setApplyResult(result);
+      if (result.sent) trackContactTap();
+    } catch (err) {
+      setApplyError(typeof err === 'string' ? err : 'Could not apply right now.');
+    } finally {
+      setApplying(false);
+    }
   };
 
   const moderate = async (reject) => {
@@ -181,12 +241,76 @@ export default function TachlisPostPage() {
                     <div className="gs-card" style={{ marginTop: 16, background: 'var(--bg)' }}>
                       <div className="gs-card-body">
                         <strong>Contact</strong>
-                        <p style={{ margin: '6px 0 0' }}>{post.contact}</p>
+                        {contactHref(post.contact) ? (
+                          <p style={{ margin: '6px 0 0' }}>
+                            <a href={contactHref(post.contact)} onClick={trackContactTap} target={contactHref(post.contact).startsWith('http') ? '_blank' : undefined} rel="noreferrer">
+                              {post.contact}
+                            </a>
+                          </p>
+                        ) : (
+                          <p style={{ margin: '6px 0 0' }}>{post.contact}</p>
+                        )}
                         <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 6 }}>
                           Contact the poster directly — the Job Board doesn't have internal messaging.
                         </p>
                       </div>
                     </div>
+
+                    {post.post_type === 'job' && loggedIn && !isOwner && post.status === 'active' && (
+                      <div className="gs-card" style={{ marginTop: 12 }}>
+                        <div className="gs-card-body">
+                          {!applyResult ? (
+                            <>
+                              <button type="button" className="gs-btn gs-btn-primary gs-btn-sm" onClick={handleApply} disabled={applying}>
+                                {applying ? 'Applying…' : '⚡ One-tap apply'}
+                              </button>
+                              <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 6 }}>
+                                Sends your CV summary from your <Link to="/profile">profile</Link> to the poster.
+                              </p>
+                              {applyError && <div className="gs-error-box" style={{ marginTop: 6 }}>{applyError}</div>}
+                            </>
+                          ) : applyResult.sent ? (
+                            <div className="gs-success-box">✅ Applied! Your CV summary was sent to the poster.</div>
+                          ) : (
+                            <>
+                              <div className="gs-success-box">
+                                We can't send this one automatically -- the poster's contact isn't an email. Reach out directly:
+                              </div>
+                              {contactHref(applyResult.contact) ? (
+                                <a
+                                  className="gs-btn gs-btn-primary gs-btn-sm" style={{ marginTop: 8 }}
+                                  href={`${contactHref(applyResult.contact)}${contactHref(applyResult.contact).startsWith('tel:') ? '' : `?text=${encodeURIComponent(applyResult.message)}`}`}
+                                  target="_blank" rel="noreferrer" onClick={trackContactTap}
+                                >
+                                  Open {applyResult.contact}
+                                </a>
+                              ) : (
+                                <p style={{ marginTop: 8 }}>{applyResult.message}</p>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {isOwner && (
+                      <div style={{ display: 'flex', gap: 8, marginTop: 12, alignItems: 'center', flexWrap: 'wrap', fontSize: 13, color: 'var(--muted)' }}>
+                        <span>👁 {post.views_count || 0} views · 📞 {post.contact_taps || 0} contact taps</span>
+                        {post.status === 'active' ? (
+                          <>
+                            <button type="button" className="gs-btn gs-btn-outline gs-btn-sm" onClick={handleRenew} disabled={busy}>Renew</button>
+                            {post.post_type === 'job' && (
+                              <button type="button" className="gs-btn gs-btn-outline gs-btn-sm" onClick={handleMarkFilled} disabled={busy}>Mark filled</button>
+                            )}
+                          </>
+                        ) : (
+                          <>
+                            <span className="admin-badge rejected">Filled</span>
+                            <button type="button" className="gs-btn gs-btn-outline gs-btn-sm" onClick={handleRenew} disabled={busy}>Still open? Reactivate</button>
+                          </>
+                        )}
+                      </div>
+                    )}
                   </>
                 )}
 

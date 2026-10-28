@@ -48,6 +48,7 @@ const TodayOnGut          = lazy(() => import('./TodayOnGut'));
 const AlertConfirm        = lazy(() => import('./alerts/AlertConfirm'));
 const AlertUnsubscribe    = lazy(() => import('./alerts/AlertUnsubscribe'));
 const MyAlerts            = lazy(() => import('./alerts/MyAlerts'));
+const MyFeed              = lazy(() => import('./feed/MyFeed'));
 const AdminDashboard      = lazy(() => import('./admin/AdminDashboard'));
 const SuperAdminDashboard = lazy(() => import('./admin/SuperAdminDashboard'));
 const VersusWrapper       = lazy(() => import('./games/versus/VersusWrapper'));
@@ -121,6 +122,7 @@ import { isLoggedIn, isAdmin, isSuperAdmin } from './auth';
 import { getCurrentSite } from './siteMode';
 import { SITES } from './sites/registry';
 import SsoBootstrap from './SsoBootstrap';
+import SiteBanner from './SiteBanner';
 import RequireAuth from './RequireAuth';
 import { useFixedAds, FIXED_BANNER_PLACEMENTS } from './ads/AdSlot';
 import { HomeAdSlot } from './ads/HomeAdSlots';
@@ -153,6 +155,7 @@ function App() {
         <ScrollToTop />
         <VisitorTracker />
         <SsoBootstrap />
+        <SiteBanner />
         {/* One shared instance for every site, pinned to the corner instead
             of living inline in each navbar's own nav-item list -- having it
             compete for space there with each site's own differently-sized
@@ -219,6 +222,10 @@ function App() {
               <Route path="/alerts/confirm/:token" element={<AlertConfirm />} />
               <Route path="/alerts/unsubscribe/:token" element={<AlertUnsubscribe />} />
               <Route path="/alerts" element={<RequireAuth check={isLoggedIn}><MyAlerts /></RequireAuth>} />
+              {/* Stage 4's personal feed -- spans every site's own activity
+                  regardless of which site's domain it's opened from, same
+                  reasoning as /alerts above. */}
+              <Route path="/my-feed" element={<RequireAuth check={isLoggedIn}><MyFeed /></RequireAuth>} />
               <Route path="/admin" element={
                 <RequireAuth check={isAdmin}><AdminDashboard /></RequireAuth>
               } />

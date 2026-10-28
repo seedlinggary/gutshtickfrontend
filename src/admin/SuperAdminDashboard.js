@@ -10,6 +10,7 @@ import AdminYoutubeChannels from './AdminYoutubeChannels';
 import AdminAnalytics from './AdminAnalytics';
 import AdminBusinessAnalytics from './AdminBusinessAnalytics';
 import AdminAlertSchedule from './AdminAlertSchedule';
+import AdminSiteBanner from './AdminSiteBanner';
 
 const ROLES = ['viewer', 'user', 'admin', 'super_admin'];
 const ROLE_LABELS = { viewer: 'Viewer', user: 'User', admin: 'Admin', super_admin: 'Super Admin' };
@@ -338,6 +339,7 @@ export default function SuperAdminDashboard() {
           ['approvals', '✅ Approval History'],
           ['ads', `📢 Ads (${ads.length})`],
           ['alerts', '🔔 Alerts'],
+          ['banner', '📣 Banner'],
           ['categories', `🏷️ Categories (${categories.length})`],
           ['content_pipeline', '🤖 Content Pipeline'],
           ['analytics', '📈 Analytics'],
@@ -887,6 +889,13 @@ export default function SuperAdminDashboard() {
       {!loading && (
         <div style={{ display: tab === 'alerts' ? 'block' : 'none' }}>
           <AdminAlertSchedule />
+        </div>
+      )}
+
+      {/* ── Site-wide announcement banner ── */}
+      {!loading && (
+        <div style={{ display: tab === 'banner' ? 'block' : 'none' }}>
+          <AdminSiteBanner />
         </div>
       )}
 

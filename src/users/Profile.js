@@ -11,6 +11,22 @@ const GENDERS = [
   { value: 'other', label: 'Other' },
 ];
 
+const LINE_OF_WORK_OPTIONS = [
+  { value: '', label: "Doesn't matter" },
+  { value: 'tech', label: 'Tech' },
+  { value: 'healthcare', label: 'Healthcare' },
+  { value: 'education', label: 'Education' },
+  { value: 'sales_marketing', label: 'Sales & Marketing' },
+  { value: 'finance_accounting', label: 'Finance & Accounting' },
+  { value: 'skilled_trade', label: 'Skilled Trade' },
+  { value: 'hospitality', label: 'Hospitality' },
+  { value: 'legal', label: 'Legal' },
+  { value: 'government', label: 'Government' },
+  { value: 'self_employed', label: 'Self-Employed' },
+  { value: 'student', label: 'Student' },
+  { value: 'other', label: 'Other' },
+];
+
 const StatusBadge = ({ v }) => (
   <span className={`admin-badge ${v === true ? 'approved' : v === false ? 'rejected' : 'pending'}`}>
     {v === true ? 'Approved' : v === false ? 'Rejected' : 'Pending'}
@@ -184,6 +200,15 @@ function AccountSettings() {
   const [gender, setGender] = useState('');
   const [country, setCountry] = useState('');
   const [city, setCity] = useState('');
+  const [profileArea, setProfileArea] = useState('');
+  const [budgetMin, setBudgetMin] = useState('');
+  const [budgetMax, setBudgetMax] = useState('');
+  const [familySize, setFamilySize] = useState('');
+  const [lineOfWork, setLineOfWork] = useState('');
+  const [weeklyDigestEnabled, setWeeklyDigestEnabled] = useState(true);
+  const [cvSummary, setCvSummary] = useState('');
+  const [cvContact, setCvContact] = useState('');
+  const [openToWork, setOpenToWork] = useState(false);
 
   useEffect(() => {
     if (!publicId) { setLoading(false); return; }
@@ -197,6 +222,15 @@ function AccountSettings() {
         setGender(u.gender || '');
         setCountry(u.location_country || '');
         setCity(u.location_city || '');
+        setProfileArea(u.profile_area || '');
+        setBudgetMin(u.budget_min ?? '');
+        setBudgetMax(u.budget_max ?? '');
+        setFamilySize(u.family_size ?? '');
+        setLineOfWork(u.line_of_work || '');
+        setWeeklyDigestEnabled(u.weekly_digest_enabled !== false);
+        setCvSummary(u.cv_summary || '');
+        setCvContact(u.cv_contact || '');
+        setOpenToWork(!!u.open_to_work);
       })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -217,6 +251,15 @@ function AccountSettings() {
         gender: gender || null,
         location_country: country || null,
         location_city: city || null,
+        profile_area: profileArea || null,
+        budget_min: budgetMin === '' ? null : budgetMin,
+        budget_max: budgetMax === '' ? null : budgetMax,
+        family_size: familySize === '' ? null : familySize,
+        line_of_work: lineOfWork || null,
+        weekly_digest_enabled: weeklyDigestEnabled,
+        cv_summary: cvSummary || null,
+        cv_contact: cvContact || null,
+        open_to_work: openToWork,
       }, '/user/profile');
       if (profileName) localStorage.setItem('profile_name', profileName);
       if (email) localStorage.setItem('email', email);
@@ -339,6 +382,128 @@ function AccountSettings() {
             onChange={(e) => setCity(e.target.value)}
             autoComplete="address-level2"
           />
+        </div>
+
+        <p className="auth-subtitle" style={{ marginTop: 20 }}>
+          Also optional: this drives your personal feed (Area, budget, family size and line of
+          work from one profile pull together one stream of homes, jobs and businesses from
+          across every GUT site) and the weekly email below — nothing here is ever required.
+        </p>
+
+        <div className="auth-field">
+          <label className="auth-label" htmlFor="profileArea">Area you're focused on</label>
+          <input
+            id="profileArea"
+            className="auth-input"
+            type="text"
+            placeholder="e.g. Beit Shemesh or RBS Gimmel"
+            value={profileArea}
+            onChange={(e) => setProfileArea(e.target.value)}
+          />
+        </div>
+
+        <div className="auth-field" style={{ display: 'flex', gap: 10 }}>
+          <div style={{ flex: 1 }}>
+            <label className="auth-label" htmlFor="budgetMin">Budget min</label>
+            <input
+              id="budgetMin"
+              className="auth-input"
+              type="number"
+              min="0"
+              value={budgetMin}
+              onChange={(e) => setBudgetMin(e.target.value)}
+            />
+          </div>
+          <div style={{ flex: 1 }}>
+            <label className="auth-label" htmlFor="budgetMax">Budget max</label>
+            <input
+              id="budgetMax"
+              className="auth-input"
+              type="number"
+              min="0"
+              value={budgetMax}
+              onChange={(e) => setBudgetMax(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="auth-field">
+          <label className="auth-label" htmlFor="familySize">Family size</label>
+          <input
+            id="familySize"
+            className="auth-input"
+            type="number"
+            min="1"
+            value={familySize}
+            onChange={(e) => setFamilySize(e.target.value)}
+          />
+        </div>
+
+        <div className="auth-field">
+          <label className="auth-label" htmlFor="lineOfWork">Line of work</label>
+          <select
+            id="lineOfWork"
+            className="auth-input"
+            value={lineOfWork}
+            onChange={(e) => setLineOfWork(e.target.value)}
+          >
+            {LINE_OF_WORK_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+          </select>
+        </div>
+
+        <div className="auth-field" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <input
+            id="weeklyDigest"
+            type="checkbox"
+            checked={weeklyDigestEnabled}
+            onChange={(e) => setWeeklyDigestEnabled(e.target.checked)}
+          />
+          <label className="auth-label" htmlFor="weeklyDigest" style={{ margin: 0 }}>
+            Email me a weekly roundup (new matches, what's new nearby, price moves on things I've saved)
+          </label>
+        </div>
+
+        <p className="auth-subtitle" style={{ marginTop: 20 }}>
+          Job profile (optional): a simple CV so you can one-tap apply to Job Board posts, and an
+          opt-in card employers can browse. Your account email is never shown -- only the contact
+          you put here, and only once "Open to work" is checked.
+        </p>
+
+        <div className="auth-field">
+          <label className="auth-label" htmlFor="cvSummary">CV summary</label>
+          <textarea
+            id="cvSummary"
+            className="auth-input"
+            style={{ minHeight: 90 }}
+            placeholder="e.g. 5 years as a bookkeeper, QuickBooks + Excel, available immediately"
+            value={cvSummary}
+            onChange={(e) => setCvSummary(e.target.value)}
+            maxLength={4000}
+          />
+        </div>
+
+        <div className="auth-field">
+          <label className="auth-label" htmlFor="cvContact">Contact for employers</label>
+          <input
+            id="cvContact"
+            className="auth-input"
+            type="text"
+            placeholder="Email, phone, or WhatsApp -- shown only if you're open to work"
+            value={cvContact}
+            onChange={(e) => setCvContact(e.target.value)}
+          />
+        </div>
+
+        <div className="auth-field" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <input
+            id="openToWork"
+            type="checkbox"
+            checked={openToWork}
+            onChange={(e) => setOpenToWork(e.target.checked)}
+          />
+          <label className="auth-label" htmlFor="openToWork" style={{ margin: 0 }}>
+            List me on the "open to work" card for employers to browse
+          </label>
         </div>
 
         <button
