@@ -237,15 +237,25 @@ iframe {
   z-index: 1001;
 }
 @media (max-width: 768px) {
-  /* Below the navbar entirely on phone widths rather than squeezed into
-     the same 64px row as the hamburger toggler -- the toggler's exact
-     right edge shifts with viewport width, and the language widget's own
-     rendered width (from the external translation-tool package) isn't
-     fixed either, so sharing one row kept clipping one or the other on
-     real phones no matter how much padding-right was reserved above.
-     Sitting just under the navbar instead guarantees no overlap
-     regardless of either width. */
-  .lang-select-corner-wrap { top: calc(64px + 8px + var(--site-banner-h)); right: 10px; }
+  /* Back in the navbar's own row (not pushed below it) -- below it collided
+     with the fixed top-banner ad instead, which sits immediately under the
+     navbar and whose height isn't predictable either (depends on whether
+     an ad is even loaded). Staying in the navbar row and capping this
+     widget's own width just below (see .lang-select-corner's max-width)
+     is what actually makes the reserved padding-right on .navbar-inner
+     (above) a real guarantee instead of a guess. */
+  .lang-select-corner-wrap { top: calc(10px + var(--site-banner-h)); right: 8px; }
+  /* Capped so its width is a known quantity -- the hamburger toggler's
+     reserved clearance (.navbar-inner's padding-right, above) is sized
+     against this exact number, not against whatever width the browser
+     would otherwise give the selected language's own text. */
+  .lang-select-corner {
+    max-width: 58px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 4px 6px;
+  }
 }
 .lang-select-corner {
   background: #ffffff;
@@ -255,6 +265,7 @@ iframe {
   padding: 4px 8px;
   font-size: 12px;
   box-shadow: var(--shadow-sm);
+  max-width: 100%;
 }
 .lang-select-corner option {
   background-color: #ffffff;
@@ -2686,7 +2697,11 @@ iframe {
      width (see .mobile-tabbar) -- clear it the same way .cross-site-wrap
      already does, instead of the two overlapping. Sub-sites never render
      the tab bar, so this margin is simply unused space there, not a bug. */
-  .ad-slot-bottom { bottom: calc(64px + env(safe-area-inset-bottom)); }
+  /* 64px undershot the tab bar's real height on at least one real device
+     (its dismiss button ended up covered) -- padded generously past the
+     tab bar's actual content+padding height instead of chasing an exact
+     number across every phone/Safari-chrome state. */
+  .ad-slot-bottom { bottom: calc(84px + env(safe-area-inset-bottom)); }
 }
 .ad-slot-top .gs-card-body,
 .ad-slot-bottom .gs-card-body {
