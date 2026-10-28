@@ -237,7 +237,15 @@ iframe {
   z-index: 1001;
 }
 @media (max-width: 768px) {
-  .lang-select-corner-wrap { top: calc(10px + var(--site-banner-h)); right: 10px; }
+  /* Below the navbar entirely on phone widths rather than squeezed into
+     the same 64px row as the hamburger toggler -- the toggler's exact
+     right edge shifts with viewport width, and the language widget's own
+     rendered width (from the external translation-tool package) isn't
+     fixed either, so sharing one row kept clipping one or the other on
+     real phones no matter how much padding-right was reserved above.
+     Sitting just under the navbar instead guarantees no overlap
+     regardless of either width. */
+  .lang-select-corner-wrap { top: calc(64px + 8px + var(--site-banner-h)); right: 10px; }
 }
 .lang-select-corner {
   background: #ffffff;
