@@ -527,6 +527,15 @@ iframe {
   .gs-navbar .navbar-toggler {
     display: block;
   }
+  /* The language-select widget is pinned to the viewport's top-right
+     corner (see .lang-select-corner-wrap), independent of any one
+     navbar's layout -- at this width the hamburger toggler also lives in
+     that same corner, so without this reserve the two sit on top of each
+     other and the toggler becomes unclickable. Reserving room here keeps
+     them side by side instead. */
+  .gs-navbar .navbar-inner {
+    padding-right: 100px;
+  }
   .gs-navbar .navbar-collapse {
     display: none;
   }

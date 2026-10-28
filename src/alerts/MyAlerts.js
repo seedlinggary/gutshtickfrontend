@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import apiRequest from '../ApiRequest';
+import NewAlertForm from './NewAlertForm';
 
 const SITE_LABEL = { estates: 'Gut Estates', tachlis: 'Gut Money' };
 
@@ -12,6 +13,7 @@ export default function MyAlerts() {
   const [alerts, setAlerts] = useState(null);
   const [error, setError] = useState(false);
   const [busyId, setBusyId] = useState(null);
+  const [creating, setCreating] = useState(false);
 
   const load = () => {
     apiRequest('GET', null, '/alerts/mine')
@@ -45,16 +47,28 @@ export default function MyAlerts() {
       <div className="gs-container" style={{ maxWidth: 680 }}>
         <h1 style={{ margin: '0 0 4px' }}>🔔 My Alerts</h1>
         <p style={{ color: 'var(--muted)', marginTop: 0 }}>
-          Searches you're getting emailed about. Set one up from any search or area page on Gut Estates or Gut Money's Job Board.
+          Searches you're getting emailed about. Set one up here, or from any search or area page on Gut Estates or Gut Money's Job Board.
         </p>
+
+        {!creating && (
+          <button type="button" className="gs-btn gs-btn-sm" style={{ marginBottom: 14 }} onClick={() => setCreating(true)}>
+            + New alert
+          </button>
+        )}
+        {creating && (
+          <NewAlertForm
+            onCancel={() => setCreating(false)}
+            onCreated={() => { setCreating(false); load(); }}
+          />
+        )}
 
         {!alerts && !error && <div className="gs-loading"><div className="gs-spinner" /> Loading…</div>}
         {error && <div className="gs-error-box">Couldn't load your alerts right now.</div>}
 
-        {alerts && alerts.length === 0 && (
+        {alerts && alerts.length === 0 && !creating && (
           <div className="gs-empty">
             <p style={{ fontSize: 40, marginBottom: 8 }}>🔔</p>
-            <p>No alerts yet. Look for "Get alerts for this search" on any listing or job search.</p>
+            <p>No alerts yet. Create one above, or look for "Get alerts for this search" on any listing or job search.</p>
           </div>
         )}
 
