@@ -236,21 +236,19 @@ iframe {
   right: 16px;
   z-index: 1001;
 }
-@media (max-width: 768px) {
-  /* Back in the navbar's own row (not pushed below it) -- below it collided
-     with the fixed top-banner ad instead, which sits immediately under the
-     navbar and whose height isn't predictable either (depends on whether
-     an ad is even loaded). Staying in the navbar row and capping this
-     widget's own width just below (see .lang-select-corner's max-width)
-     is what actually makes the reserved padding-right on .navbar-inner
-     (above) a real guarantee instead of a guess. */
-  .lang-select-corner-wrap { top: calc(10px + var(--site-banner-h)); right: 8px; }
-  /* Capped so its width is a known quantity -- the hamburger toggler's
-     reserved clearance (.navbar-inner's padding-right, above) is sized
-     against this exact number, not against whatever width the browser
-     would otherwise give the selected language's own text. */
+/* Whenever the hamburger toggler is visible (see .gs-navbar .navbar-toggler
+   below, same breakpoint), it sits at the navbar's own right:20px edge at
+   roughly 42px wide -- i.e. it occupies right:20px..62px from the viewport
+   edge. Pushing this widget's own right offset out past that (instead of
+   trying to shove the toggler left via the navbar's padding, which fought
+   with its margin-left:auto and still didn't clear it) guarantees no
+   overlap regardless of how wide either one renders on a real device,
+   since the two no longer share any horizontal range at all. */
+@media (max-width: 1299.98px) {
+  .lang-select-corner-wrap { top: calc(10px + var(--site-banner-h)); right: 70px; }
   .lang-select-corner {
     max-width: 58px;
+    box-sizing: border-box;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -545,15 +543,6 @@ iframe {
 @media (max-width: 1299.98px) {
   .gs-navbar .navbar-toggler {
     display: block;
-  }
-  /* The language-select widget is pinned to the viewport's top-right
-     corner (see .lang-select-corner-wrap), independent of any one
-     navbar's layout -- at this width the hamburger toggler also lives in
-     that same corner, so without this reserve the two sit on top of each
-     other and the toggler becomes unclickable. Reserving room here keeps
-     them side by side instead. */
-  .gs-navbar .navbar-inner {
-    padding-right: 100px;
   }
   .gs-navbar .navbar-collapse {
     display: none;
