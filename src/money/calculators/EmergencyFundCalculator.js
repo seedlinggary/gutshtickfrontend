@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { formatMoney } from '../../shared/calculatorMath';
+import { DonutChart, LineChart } from '../../shared/SimpleCharts';
 import SavedScenarios from '../SavedScenarios';
 
 const DEFAULTS = { monthlyExpenses: 3000, monthsCoverage: 4, currentSavings: 2000, monthlySavings: 300 };
@@ -12,6 +13,16 @@ export default function EmergencyFundCalculator() {
   const gap = Math.max(0, target - f.currentSavings);
   const monthsToGoal = f.monthlySavings > 0 ? Math.ceil(gap / f.monthlySavings) : Infinity;
   const pctFunded = target > 0 ? Math.min(100, (f.currentSavings / target) * 100) : 0;
+
+  const projection = useMemo(() => {
+    if (!isFinite(monthsToGoal)) return null;
+    const pts = [];
+    const span = Math.max(monthsToGoal, 1);
+    for (let m = 0; m <= span; m++) {
+      pts.push({ x: m, y: Math.min(target, f.currentSavings + f.monthlySavings * m) });
+    }
+    return pts;
+  }, [f.currentSavings, f.monthlySavings, target, monthsToGoal]);
 
   return (
     <div>
@@ -39,6 +50,23 @@ export default function EmergencyFundCalculator() {
               <div><label className="fin-field-label">Amount you can save monthly</label><input className="gs-input" type="number" value={f.monthlySavings} onChange={set('monthlySavings')} /></div>
             </div>
           </div>
+          <div className="fin-chart-card">
+            <h3 style={{ marginTop: 0, fontSize: 14 }}>Funded so far</h3>
+            <DonutChart
+              segments={[
+                { label: 'Already saved', value: f.currentSavings },
+                { label: 'Still needed', value: gap },
+              ]}
+              formatValue={(v) => formatMoney(v)}
+              centerLabel="Target"
+            />
+          </div>
+          {projection && projection.length > 1 && (
+            <div className="fin-chart-card">
+              <h3 style={{ marginTop: 0, fontSize: 14 }}>Savings growing toward your target</h3>
+              <LineChart points={projection} formatY={(v) => formatMoney(v)} xLabel={(p) => `Mo ${p.x}`} ariaLabel="Projected emergency savings balance over time" />
+            </div>
+          )}
         </div>
         <div className="fin-calc-results">
           <h4>Your target</h4>

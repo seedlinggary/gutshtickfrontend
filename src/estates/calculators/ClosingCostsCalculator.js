@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { formatMoney } from '../../shared/calculatorMath';
+import { DonutChart } from '../../shared/SimpleCharts';
 
 const DEFAULTS = { currency: 'USD', price: 400000, downPct: 20, closingPct: 3 };
 
@@ -59,6 +60,18 @@ export default function ClosingCostsCalculator() {
             <li><strong>Escrow/attorney fees</strong> -- whoever holds funds and paperwork through closing (an attorney is mandatory in Israel, common but not universal in the US).</li>
             <li><strong>Recording fees &amp; transfer taxes</strong> -- what your local government charges to officially register the new ownership.</li>
           </ul>
+        </div>
+
+        <div className="est-chart-card">
+          <h3 style={{ marginTop: 0, fontSize: 14 }}>Cash to close, broken down</h3>
+          <DonutChart
+            segments={[
+              { label: 'Down payment', value: downAmount },
+              { label: 'Closing costs', value: closingCosts },
+            ]}
+            formatValue={(v) => formatMoney(v, f.currency)}
+            centerLabel="Cash to close"
+          />
         </div>
       </div>
 

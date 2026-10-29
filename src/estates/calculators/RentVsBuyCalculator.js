@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { monthlyPI, remainingBalance, futureValue, growingAnnualTotal, formatMoney } from '../../shared/calculatorMath';
+import { StackedAreaChart } from '../../shared/SimpleCharts';
 
 const DEFAULTS = {
   currency: 'USD', monthlyRent: 2000, rentIncreasePct: 3, stayYears: 7,
@@ -32,6 +33,18 @@ export default function RentVsBuyCalculator() {
 
   const buyingCheaper = netCostOfBuying < totalCostOfRenting;
   const difference = Math.abs(netCostOfBuying - totalCostOfRenting);
+
+  const comparison = useMemo(() => {
+    const rentSeries = []; const buySeries = [];
+    for (let y = 0; y <= f.stayYears; y++) {
+      rentSeries.push({ x: y, y: growingAnnualTotal(f.monthlyRent, f.rentIncreasePct, y) });
+      buySeries.push({ x: y, y: upfrontBuyCash + monthlyOwnCost * 12 * y });
+    }
+    return [
+      { label: 'Cash paid renting', points: rentSeries },
+      { label: 'Cash paid buying (before resale)', points: buySeries },
+    ];
+  }, [f.stayYears, f.monthlyRent, f.rentIncreasePct, upfrontBuyCash, monthlyOwnCost]);
 
   return (
     <div>
@@ -117,6 +130,19 @@ export default function RentVsBuyCalculator() {
             {formatMoney(ownCashOutflow, f.currency)} paid out, minus an estimated {formatMoney(netSaleProceeds, f.currency)} net proceeds if sold after {f.stayYears} year(s).
           </p>
         </div>
+      </div>
+
+      <div className="est-chart-card">
+        <h3 style={{ marginTop: 0, fontSize: 14 }}>Cumulative cash paid out, year by year</h3>
+        <StackedAreaChart
+          series={comparison} stacked={false} formatY={(v) => formatMoney(v, f.currency)} xLabel={(p) => `Yr ${p.x}`}
+          ariaLabel="Cumulative cash paid renting versus buying over time"
+        />
+        <p className="est-calc-help" style={{ marginTop: 10 }}>
+          This shows cash paid out on each path, not netted against a sale -- buying's real payoff only shows up if
+          you actually sell (see the comparison above), so an early crossover here doesn't mean buying has already
+          "won" yet.
+        </p>
       </div>
     </div>
   );

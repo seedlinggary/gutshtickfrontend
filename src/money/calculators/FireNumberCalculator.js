@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { formatMoney } from '../../shared/calculatorMath';
+import { LineChart } from '../../shared/SimpleCharts';
 import SavedScenarios from '../SavedScenarios';
 
 const DEFAULTS = { annualExpenses: 48000, withdrawalRatePct: 4 };
@@ -13,6 +14,14 @@ export default function FireNumberCalculator() {
   // number equals my spending? -> expenses / 0.04 = expenses x 25.
   const fireNumber = f.withdrawalRatePct > 0 ? f.annualExpenses / (f.withdrawalRatePct / 100) : Infinity;
   const multiple = f.withdrawalRatePct > 0 ? 100 / f.withdrawalRatePct : Infinity;
+
+  const sensitivity = useMemo(() => {
+    const pts = [];
+    for (let r = 2; r <= 6; r += 0.25) {
+      pts.push({ x: r, y: f.annualExpenses / (r / 100) });
+    }
+    return pts;
+  }, [f.annualExpenses]);
 
   return (
     <div>
@@ -37,6 +46,10 @@ export default function FireNumberCalculator() {
               <input className="fin-calc-slider" type="range" min="2" max="6" step="0.25" value={f.withdrawalRatePct} onChange={set('withdrawalRatePct')} />
               <p className="fin-calc-help">4% is the traditional "4% rule," based on historical US market returns over 30-year retirements (the "Trinity Study"). Some planners now suggest 3-3.5% for extra safety, especially over a longer-than-30-year retirement (common for an early retiree).</p>
             </div>
+          </div>
+          <div className="fin-chart-card">
+            <h3 style={{ marginTop: 0, fontSize: 14 }}>How your number changes with the withdrawal rate</h3>
+            <LineChart points={sensitivity} formatY={(v) => formatMoney(v)} xLabel={(p) => `${p.x}%`} ariaLabel="FIRE number required at different withdrawal rates" />
           </div>
         </div>
         <div className="fin-calc-results">

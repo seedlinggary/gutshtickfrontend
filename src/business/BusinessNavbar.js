@@ -7,6 +7,7 @@ import {
 import { getEmail, isAdmin, isSuperAdmin, clearAuth } from '../auth';
 import NotificationBell from '../NotificationBell';
 import AccessibilityToggle from './AccessibilityToggle';
+import GlobalSearchBar from '../search/GlobalSearchBar';
 
 function useOutsideClose(open, setOpen) {
   const ref = useRef(null);
@@ -58,6 +59,7 @@ export default function BusinessNavbar() {
             <li className="nav-item"><button className="nav-link" onClick={() => go('/deals')}><Tag size={15} /> Deals</button></li>
           </ul>
           <ul className="navbar-nav navbar-nav-end">
+            <li className="nav-item nav-item-search"><GlobalSearchBar /></li>
             <li className="nav-item"><AccessibilityToggle /></li>
             {email ? (
               <>

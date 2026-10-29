@@ -6,6 +6,7 @@ import {
 import { getEmail, isAdmin, isSuperAdmin, clearAuth } from '../auth';
 import NotificationBell from '../NotificationBell';
 import AccessibilityToggle from '../business/AccessibilityToggle';
+import GlobalSearchBar from '../search/GlobalSearchBar';
 
 function useOutsideClose(open, setOpen) {
   const ref = useRef(null);
@@ -53,6 +54,7 @@ export default function EstatesNavbar() {
             <li className="nav-item"><button className="nav-link" onClick={() => go('/learn')}><BookOpen size={15} /> Learn</button></li>
           </ul>
           <ul className="navbar-nav navbar-nav-end">
+            <li className="nav-item nav-item-search"><GlobalSearchBar /></li>
             <li className="nav-item"><AccessibilityToggle /></li>
             {email ? (
               <>

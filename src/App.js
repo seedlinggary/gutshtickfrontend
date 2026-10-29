@@ -47,8 +47,10 @@ const HockPostPage        = lazy(() => import('./hock/HockPostPage'));
 const TodayOnGut          = lazy(() => import('./TodayOnGut'));
 const AlertConfirm        = lazy(() => import('./alerts/AlertConfirm'));
 const AlertUnsubscribe    = lazy(() => import('./alerts/AlertUnsubscribe'));
+const WeeklyDigestUnsubscribe = lazy(() => import('./alerts/WeeklyDigestUnsubscribe'));
 const MyAlerts            = lazy(() => import('./alerts/MyAlerts'));
 const MyFeed              = lazy(() => import('./feed/MyFeed'));
+const SearchResults       = lazy(() => import('./search/SearchResults'));
 const AdminDashboard      = lazy(() => import('./admin/AdminDashboard'));
 const SuperAdminDashboard = lazy(() => import('./admin/SuperAdminDashboard'));
 const VersusWrapper       = lazy(() => import('./games/versus/VersusWrapper'));
@@ -222,10 +224,19 @@ function App() {
               <Route path="/alerts/confirm/:token" element={<AlertConfirm />} />
               <Route path="/alerts/unsubscribe/:token" element={<AlertUnsubscribe />} />
               <Route path="/alerts" element={<RequireAuth check={isLoggedIn}><MyAlerts /></RequireAuth>} />
+              {/* Stage 4's weekly digest unsubscribe link -- same "reachable
+                  on every site" reasoning as /alerts above, since a
+                  Tachlis job-match alert email (backend/tachlis/routes/
+                  tachlis_post.py) now reuses this same link/token too. */}
+              <Route path="/user/weekly-digest/unsubscribe/:token" element={<WeeklyDigestUnsubscribe />} />
               {/* Stage 4's personal feed -- spans every site's own activity
                   regardless of which site's domain it's opened from, same
                   reasoning as /alerts above. */}
               <Route path="/my-feed" element={<RequireAuth check={isLoggedIn}><MyFeed /></RequireAuth>} />
+              {/* Global cross-site search (GlobalSearchBar, dropped into every
+                  site's navbar below) -- same "reachable on every site"
+                  reasoning as /alerts and /my-feed above. */}
+              <Route path="/search" element={<SearchResults />} />
               <Route path="/admin" element={
                 <RequireAuth check={isAdmin}><AdminDashboard /></RequireAuth>
               } />

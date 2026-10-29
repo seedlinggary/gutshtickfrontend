@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { monthlyPI, formatMoney } from '../../shared/calculatorMath';
+import { DonutChart } from '../../shared/SimpleCharts';
 
 const DEFAULTS = {
   currency: 'USD', annualIncome: 90000, monthlyDebts: 400, downPayment: 60000,
@@ -26,6 +27,8 @@ export default function AffordabilityCalculator() {
   const remainder = maxMonthlyPayment - f.downPayment * taxFactor - insuranceMonthly - f.hoaMonthly;
   const maxLoan = Math.max(0, remainder / (piFactor + taxFactor));
   const maxPrice = maxLoan + f.downPayment;
+  const piOnly = monthlyPI(maxLoan, f.rate, f.years);
+  const taxOnly = maxPrice * taxFactor;
 
   return (
     <div className="est-calc-layout">
@@ -93,6 +96,20 @@ export default function AffordabilityCalculator() {
             </div>
           </div>
           <p className="est-calc-help">28/36 are conventional-loan norms -- some loan programs (FHA, VA, and many Israeli bank products) allow higher ratios. Adjust these if your lender quoted you different limits.</p>
+        </div>
+
+        <div className="est-chart-card">
+          <h3 style={{ marginTop: 0, fontSize: 14 }}>What your max monthly payment is made of</h3>
+          <DonutChart
+            segments={[
+              { label: 'Principal & interest', value: piOnly },
+              { label: 'Property tax', value: taxOnly },
+              { label: 'Insurance', value: insuranceMonthly },
+              ...(f.hoaMonthly > 0 ? [{ label: 'HOA / Vaad Bayit', value: f.hoaMonthly }] : []),
+            ]}
+            formatValue={(v) => formatMoney(v, f.currency)}
+            centerLabel="Max monthly payment"
+          />
         </div>
       </div>
 

@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { futureValueWithContributions, formatMoney } from '../../shared/calculatorMath';
-import { LineChart } from '../../shared/SimpleCharts';
+import { StackedAreaChart } from '../../shared/SimpleCharts';
 import SavedScenarios from '../SavedScenarios';
 
 const DEFAULTS = { principal: 5000, monthlyContribution: 200, rate: 7, years: 20 };
@@ -13,12 +13,18 @@ export default function CompoundInterestCalculator() {
   const totalContributed = f.principal + f.monthlyContribution * 12 * f.years;
   const totalGrowth = finalValue - totalContributed;
 
-  const points = useMemo(() => {
-    const pts = [];
+  const series = useMemo(() => {
+    const contributed = []; const growth = [];
     for (let y = 0; y <= f.years; y++) {
-      pts.push({ x: y, y: futureValueWithContributions(f.principal, f.monthlyContribution, f.rate, y) });
+      const balance = futureValueWithContributions(f.principal, f.monthlyContribution, f.rate, y);
+      const contributedSoFar = f.principal + f.monthlyContribution * 12 * y;
+      contributed.push({ x: y, y: contributedSoFar });
+      growth.push({ x: y, y: Math.max(0, balance - contributedSoFar) });
     }
-    return pts;
+    return [
+      { label: 'Contributed', points: contributed },
+      { label: 'Growth', points: growth },
+    ];
   }, [f.principal, f.monthlyContribution, f.rate, f.years]);
 
   return (
@@ -50,8 +56,8 @@ export default function CompoundInterestCalculator() {
             </div>
           </div>
           <div className="fin-chart-card">
-            <h3 style={{ marginTop: 0, fontSize: 14 }}>Balance over time</h3>
-            <LineChart points={points} formatY={(v) => formatMoney(v)} xLabel={(p) => `Yr ${p.x}`} ariaLabel="Projected balance growth over time" />
+            <h3 style={{ marginTop: 0, fontSize: 14 }}>Balance over time -- contributed vs. growth</h3>
+            <StackedAreaChart series={series} formatY={(v) => formatMoney(v)} xLabel={(p) => `Yr ${p.x}`} ariaLabel="Projected balance, split into contributions and growth, over time" />
           </div>
         </div>
         <div className="fin-calc-results">

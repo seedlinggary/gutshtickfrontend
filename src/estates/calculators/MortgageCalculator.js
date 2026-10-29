@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { monthlyPI, totalInterest, formatMoney } from '../../shared/calculatorMath';
+import React, { useMemo, useState } from 'react';
+import { monthlyPI, totalInterest, remainingBalance, formatMoney } from '../../shared/calculatorMath';
+import { DonutChart, StackedAreaChart } from '../../shared/SimpleCharts';
 
 const DEFAULTS = {
   price: 400000, downPct: 20, rate: 6.5, years: 30, currency: 'USD',
@@ -19,6 +20,20 @@ export default function MortgageCalculator() {
   const monthlyPMI = needsPMI ? (loan * (f.pmiRatePct / 100)) / 12 : 0;
   const totalMonthly = pAndI + monthlyTax + monthlyInsurance + f.hoaMonthly + monthlyPMI;
   const interestOverLife = totalInterest(loan, f.rate, f.years);
+
+  const amortization = useMemo(() => {
+    const principalPaid = []; const interestPaid = [];
+    for (let y = 0; y <= f.years; y++) {
+      const principalSoFar = loan - remainingBalance(loan, f.rate, f.years, y);
+      const totalPaidSoFar = pAndI * 12 * y;
+      principalPaid.push({ x: y, y: principalSoFar });
+      interestPaid.push({ x: y, y: Math.max(0, totalPaidSoFar - principalSoFar) });
+    }
+    return [
+      { label: 'Principal paid', points: principalPaid },
+      { label: 'Interest paid', points: interestPaid },
+    ];
+  }, [loan, f.rate, f.years, pAndI]);
 
   return (
     <div className="est-calc-layout">
@@ -98,6 +113,29 @@ export default function MortgageCalculator() {
             Property tax rates and typical insurance costs vary a lot by location -- these defaults are rough starting
             points, not a quote. Check your specific city/county's actual rate before relying on this.
           </p>
+        </div>
+
+        <div className="est-chart-card">
+          <h3 style={{ marginTop: 0, fontSize: 14 }}>What's in your monthly payment</h3>
+          <DonutChart
+            segments={[
+              { label: 'Principal & interest', value: pAndI },
+              { label: 'Property tax', value: monthlyTax },
+              { label: 'Insurance', value: monthlyInsurance },
+              ...(f.hoaMonthly > 0 ? [{ label: 'HOA / Vaad Bayit', value: f.hoaMonthly }] : []),
+              ...(needsPMI ? [{ label: 'PMI', value: monthlyPMI }] : []),
+            ]}
+            formatValue={(v) => formatMoney(v, f.currency)}
+            centerLabel="Monthly payment"
+          />
+        </div>
+
+        <div className="est-chart-card">
+          <h3 style={{ marginTop: 0, fontSize: 14 }}>Over the life of the loan -- principal vs. interest</h3>
+          <StackedAreaChart
+            series={amortization} formatY={(v) => formatMoney(v, f.currency)} xLabel={(p) => `Yr ${p.x}`}
+            ariaLabel="Cumulative principal vs interest paid over the life of the loan"
+          />
         </div>
       </div>
 

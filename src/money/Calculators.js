@@ -7,6 +7,9 @@ import EmergencyFundCalculator from './calculators/EmergencyFundCalculator';
 import SavingsGoalCalculator from './calculators/SavingsGoalCalculator';
 import FireNumberCalculator from './calculators/FireNumberCalculator';
 import CoastFireCalculator from './calculators/CoastFireCalculator';
+import IsraelTaxCalculator from './calculators/IsraelTaxCalculator';
+import IsraelInvestmentTaxCalculator from './calculators/IsraelInvestmentTaxCalculator';
+import IsraelPropertyTaxCalculator from './calculators/IsraelPropertyTaxCalculator';
 
 const TABS = [
   { key: 'compound', label: 'Compound Interest', Component: CompoundInterestCalculator },
@@ -16,6 +19,9 @@ const TABS = [
   { key: 'goal', label: 'Savings Goal', Component: SavingsGoalCalculator },
   { key: 'fire_number', label: 'FIRE Number (4% Rule)', Component: FireNumberCalculator },
   { key: 'coast_fire', label: 'Coast FIRE', Component: CoastFireCalculator },
+  { key: 'israel_tax', label: '🇮🇱 Israel Net Salary', Component: IsraelTaxCalculator },
+  { key: 'israel_investment_tax', label: '🇮🇱 Israel Investment Tax', Component: IsraelInvestmentTaxCalculator },
+  { key: 'israel_property_tax', label: '🇮🇱 Israel Property Tax', Component: IsraelPropertyTaxCalculator },
 ];
 
 export default function Calculators() {

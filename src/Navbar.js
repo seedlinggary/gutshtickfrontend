@@ -6,6 +6,7 @@ import { fetchCategory, fetchData } from './actions';
 import { getEmail, getToken, isAdmin, isSuperAdmin, clearAuth } from './auth';
 import NotificationBell from './NotificationBell';
 import NavStreakChip from './NavStreakChip';
+import GlobalSearchBar from './search/GlobalSearchBar';
 
 function useOutsideClose(open, setOpen) {
   const ref = useRef(null);
@@ -137,6 +138,7 @@ function AppNavbar() {
           </ul>
 
           <ul className="navbar-nav navbar-nav-end">
+            <li className="nav-item nav-item-search"><GlobalSearchBar /></li>
             {email ? (
               <>
                 <li className="nav-item"><NavStreakChip /></li>

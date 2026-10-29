@@ -19,6 +19,7 @@ const CommunityProfile   = lazy(() => import('./CommunityProfile'));
 const CommunityForm      = lazy(() => import('./CommunityForm'));
 const ActivitiesPage     = lazy(() => import('./ActivitiesPage'));
 const MinyanSearch       = lazy(() => import('./MinyanSearch'));
+const FollowUnsubscribe  = lazy(() => import('./FollowUnsubscribe'));
 
 /** The business site's routes as data, so App.js's <Routes> can render any
  * registered site's routes the same generic way (see src/sites/registry.js)
@@ -57,6 +58,7 @@ export default [
   { path: '/communities/:slug', element: <CommunityProfile /> },
   { path: '/activities', element: <ActivitiesPage /> },
   { path: '/minyanim', element: <MinyanSearch /> },
+  { path: '/follow/unsubscribe/:token', element: <FollowUnsubscribe /> },
   { path: '/contact', element: <Contact /> },
   { path: '*', element: <NotFound /> },
 ];

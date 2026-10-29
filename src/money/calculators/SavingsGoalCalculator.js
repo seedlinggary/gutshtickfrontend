@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { formatMoney } from '../../shared/calculatorMath';
+import React, { useMemo, useState } from 'react';
+import { formatMoney, futureValueWithContributions } from '../../shared/calculatorMath';
+import { LineChart } from '../../shared/SimpleCharts';
 import SavedScenarios from '../SavedScenarios';
 
 const DEFAULTS = { mode: 'monthly', goal: 20000, currentSavings: 2000, years: 3, rate: 4 };
@@ -44,6 +45,17 @@ export default function SavingsGoalCalculator() {
   const remainingGapToday = Math.max(0, f.goal - monthlyCompoundFV(f.currentSavings, f.rate, f.years));
   const requiredLumpSum = monthlyCompoundPV(remainingGapToday, f.rate, f.years);
 
+  const projection = useMemo(() => {
+    const totalMonths = Math.max(1, Math.round(f.years * 12));
+    const principal = isLumpSum ? f.currentSavings + requiredLumpSum : f.currentSavings;
+    const monthly = isLumpSum ? 0 : requiredMonthly;
+    const pts = [];
+    for (let m = 0; m <= totalMonths; m++) {
+      pts.push({ x: m, y: futureValueWithContributions(principal, monthly, f.rate, m / 12) });
+    }
+    return pts;
+  }, [f.currentSavings, f.rate, f.years, isLumpSum, requiredLumpSum, requiredMonthly]);
+
   return (
     <div>
       <p className="fin-calc-intro">
@@ -72,6 +84,10 @@ export default function SavingsGoalCalculator() {
               <input className="fin-calc-slider" type="range" min="0" max="12" step="0.5" value={f.rate} onChange={set('rate')} />
               <p className="fin-calc-help">Use something low (0-4%) for a near-term goal you'll keep in cash/savings; a higher assumption only makes sense if you'd actually invest it and have years to ride out market swings.</p>
             </div>
+          </div>
+          <div className="fin-chart-card">
+            <h3 style={{ marginTop: 0, fontSize: 14 }}>Balance over time, toward your goal of {formatMoney(f.goal)}</h3>
+            <LineChart points={projection} formatY={(v) => formatMoney(v)} xLabel={(p) => `Mo ${p.x}`} ariaLabel="Projected savings balance over time toward the goal" />
           </div>
         </div>
         <div className="fin-calc-results">

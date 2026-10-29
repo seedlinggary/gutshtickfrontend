@@ -4,13 +4,33 @@ import { getCurrentSite, listAllSites } from './siteMode';
 import { isLoggedIn, getEmail, isSuperAdmin } from './auth';
 import apiRequest from './ApiRequest';
 
+/** Navigates to an absolute cross-site URL (built via siteMode.js's
+ * siteUrl()), carrying a one-time SSO handoff token when logged in so the
+ * destination site logs the same user in automatically instead of landing
+ * them there signed out (see SsoBootstrap.js / backend/user/routes/sso.py).
+ * Exported so any other cross-site link -- not just this component's own
+ * "switch sites" menu -- can reuse the exact same mechanism instead of a
+ * plain `<a>`/`window.location` that would silently drop the session; see
+ * search/SearchResults.js, whose result cards link into whichever site
+ * actually owns that result. */
+export async function crossSiteNavigate(targetUrl) {
+  if (!isLoggedIn()) {
+    window.location.href = targetUrl;
+    return;
+  }
+  try {
+    const { sso_token } = await apiRequest('POST', {}, '/sso/create');
+    const email = encodeURIComponent(getEmail() || '');
+    window.location.href = `${targetUrl}#sso=${encodeURIComponent(sso_token)}&email=${email}`;
+  } catch (_) {
+    window.location.href = targetUrl;
+  }
+}
+
 /** The *only* way to jump between sites -- a small fixed icon (not a nav
  * item) that opens a menu listing every site this deployment serves (main
- * consumer site included), with the current one marked and skipped. If
- * logged in, the chosen site's link carries a one-time SSO handoff token so
- * that side logs the same user in automatically (see SsoBootstrap.js /
- * backend/user/routes/sso.py) -- same mechanism as before, just now able to
- * target any of N sites instead of a hardcoded "the other one". */
+ * consumer site included), with the current one marked and skipped. Uses
+ * crossSiteNavigate() above for the actual handoff. */
 export default function CrossSiteLink() {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -37,17 +57,9 @@ export default function CrossSiteLink() {
   const go = async (base) => {
     if (loading) return;
     setOpen(false);
-    if (!isLoggedIn()) {
-      window.location.href = base;
-      return;
-    }
     setLoading(true);
     try {
-      const { sso_token } = await apiRequest('POST', {}, '/sso/create');
-      const email = encodeURIComponent(getEmail() || '');
-      window.location.href = `${base}#sso=${encodeURIComponent(sso_token)}&email=${email}`;
-    } catch (_) {
-      window.location.href = base;
+      await crossSiteNavigate(base);
     } finally {
       setLoading(false);
     }

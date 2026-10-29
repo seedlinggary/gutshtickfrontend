@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiRequest from '../ApiRequest';
-import { isSuperAdmin } from '../auth';
+import { isSuperAdmin, getPublicId } from '../auth';
 import { siteUrl } from '../siteMode';
 import UploadFile from '../Uploadfile';
 import AdminAiPosts from './AdminAiPosts';
@@ -78,23 +78,61 @@ function StatusBadgeInline({ v }) {
   );
 }
 
+const EMPTY_PAGE_META = { page: 1, total: 0, per_page: 50, has_more: false };
+
+/** Simple prev/next pager shown under a paginated list -- same meta shape
+ * (`{page, total, per_page, has_more}`) returned by /admin/users,
+ * /admin/approvals, /ads, and /admin/audit-log. */
+function Pager({ meta, onPage, loading }) {
+  if (!meta.total) return null;
+  const start = (meta.page - 1) * meta.per_page + 1;
+  const end = Math.min(meta.page * meta.per_page, meta.total);
+  return (
+    <div className="sa-pager" style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 14 }}>
+      <button className="gs-btn gs-btn-outline gs-btn-sm" disabled={loading || meta.page <= 1}
+        onClick={() => onPage(meta.page - 1)}>← Prev</button>
+      <span style={{ fontSize: 13, color: 'var(--muted)' }}>
+        {start}–{end} of {meta.total}
+      </span>
+      <button className="gs-btn gs-btn-outline gs-btn-sm" disabled={loading || !meta.has_more}
+        onClick={() => onPage(meta.page + 1)}>Next →</button>
+    </div>
+  );
+}
+
 export default function SuperAdminDashboard() {
   const navigate = useNavigate();
+  const myPublicId = getPublicId();
   const [tab, setTab] = useState('overview');
   const [stats, setStats] = useState(null);
+  const [statsError, setStatsError] = useState('');
   const [users, setUsers] = useState([]);
+  const [usersMeta, setUsersMeta] = useState(EMPTY_PAGE_META);
+  const [usersLoading, setUsersLoading] = useState(false);
+  const [usersError, setUsersError] = useState('');
   const [approvals, setApprovals] = useState([]);
+  const [approvalsMeta, setApprovalsMeta] = useState(EMPTY_PAGE_META);
+  const [approvalsLoading, setApprovalsLoading] = useState(false);
+  const [approvalsError, setApprovalsError] = useState('');
   const [selectedUser, setSelectedUser] = useState(null);
   const [activity, setActivity] = useState(null);
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
 
+  const [auditLog, setAuditLog] = useState(null);
+  const [auditLogMeta, setAuditLogMeta] = useState(EMPTY_PAGE_META);
+  const [auditLogLoading, setAuditLogLoading] = useState(false);
+  const [auditLogError, setAuditLogError] = useState('');
+
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState(null);
   const [searching, setSearching] = useState(false);
 
   const [ads, setAds] = useState([]);
+  const [adsMeta, setAdsMeta] = useState(EMPTY_PAGE_META);
+  const [adsLoading, setAdsLoading] = useState(false);
+  const [adsError, setAdsError] = useState('');
   const [adForm, setAdForm] = useState(null);
   const [editingAdId, setEditingAdId] = useState(null);
   const [adMsg, setAdMsg] = useState('');
@@ -122,6 +160,7 @@ export default function SuperAdminDashboard() {
   };
 
   const [categories, setCategories] = useState([]);
+  const [categoriesError, setCategoriesError] = useState('');
   const [newCategoryName, setNewCategoryName] = useState('');
   const [categoryMsg, setCategoryMsg] = useState('');
 
@@ -129,6 +168,12 @@ export default function SuperAdminDashboard() {
     if (!isSuperAdmin()) { navigate('/'); return; }
     loadAll();
   }, []);
+
+  useEffect(() => {
+    if (tab === 'audit_log' && auditLog === null) {
+      loadAuditLog(1);
+    }
+  }, [tab]);
 
   useEffect(() => {
     const term = searchQuery.trim();
@@ -143,25 +188,97 @@ export default function SuperAdminDashboard() {
     return () => clearTimeout(t);
   }, [searchQuery]);
 
+  // Each section loads/fails independently (Promise.allSettled, not
+  // Promise.all) -- one endpoint being down (e.g. /ads) used to blank the
+  // ENTIRE dashboard since all 5 shared one try/catch. Now a failure only
+  // empties that one section's own state, with its own error message shown
+  // only in that tab, while every other tab's data still loads normally.
   async function loadAll() {
     setLoading(true);
+    await Promise.allSettled([
+      loadStats(),
+      loadUsers(1, roleFilter),
+      loadApprovals(1),
+      loadAds(1),
+      loadCategories(),
+    ]);
+    setLoading(false);
+  }
+
+  async function loadStats() {
     try {
-      const [s, u, a, ads, cats] = await Promise.all([
-        apiRequest('GET', null, '/admin/stats'),
-        apiRequest('GET', null, '/admin/users'),
-        apiRequest('GET', null, '/admin/approvals'),
-        apiRequest('GET', null, '/ads'),
-        apiRequest('GET', null, '/generalc'),
-      ]);
+      const s = await apiRequest('GET', null, '/admin/stats');
       setStats(s);
-      setUsers(u);
-      setApprovals(a);
-      setAds(ads);
-      setCategories(cats);
+      setStatsError('');
     } catch (e) {
-      setMsg(typeof e === 'string' ? e : 'Failed to load');
+      setStatsError(typeof e === 'string' ? e : 'Failed to load platform stats.');
+    }
+  }
+
+  async function loadUsers(page = 1, role = roleFilter) {
+    setUsersLoading(true);
+    try {
+      const qs = role && role !== 'all' ? `&role=${encodeURIComponent(role)}` : '';
+      const data = await apiRequest('GET', null, `/admin/users?page=${page}${qs}`);
+      setUsers(data.items || []);
+      setUsersMeta({ page: data.page, total: data.total, per_page: data.per_page, has_more: data.has_more });
+      setUsersError('');
+    } catch (e) {
+      setUsersError(typeof e === 'string' ? e : 'Failed to load users.');
     } finally {
-      setLoading(false);
+      setUsersLoading(false);
+    }
+  }
+
+  async function loadApprovals(page = 1) {
+    setApprovalsLoading(true);
+    try {
+      const data = await apiRequest('GET', null, `/admin/approvals?page=${page}`);
+      setApprovals(data.items || []);
+      setApprovalsMeta({ page: data.page, total: data.total, per_page: data.per_page, has_more: data.has_more });
+      setApprovalsError('');
+    } catch (e) {
+      setApprovalsError(typeof e === 'string' ? e : 'Failed to load approval history.');
+    } finally {
+      setApprovalsLoading(false);
+    }
+  }
+
+  async function loadAds(page = 1) {
+    setAdsLoading(true);
+    try {
+      const data = await apiRequest('GET', null, `/ads?page=${page}`);
+      setAds(data.items || []);
+      setAdsMeta({ page: data.page, total: data.total, per_page: data.per_page, has_more: data.has_more });
+      setAdsError('');
+    } catch (e) {
+      setAdsError(typeof e === 'string' ? e : 'Failed to load ads.');
+    } finally {
+      setAdsLoading(false);
+    }
+  }
+
+  async function loadCategories() {
+    try {
+      const cats = await apiRequest('GET', null, '/generalc');
+      setCategories(cats);
+      setCategoriesError('');
+    } catch (e) {
+      setCategoriesError(typeof e === 'string' ? e : 'Failed to load categories.');
+    }
+  }
+
+  async function loadAuditLog(page = 1) {
+    setAuditLogLoading(true);
+    try {
+      const data = await apiRequest('GET', null, `/admin/audit-log?page=${page}`);
+      setAuditLog(data.items || []);
+      setAuditLogMeta({ page: data.page, total: data.total, per_page: data.per_page, has_more: data.has_more });
+      setAuditLogError('');
+    } catch (e) {
+      setAuditLogError(typeof e === 'string' ? e : 'Failed to load audit log.');
+    } finally {
+      setAuditLogLoading(false);
     }
   }
 
@@ -169,6 +286,7 @@ export default function SuperAdminDashboard() {
     if (!window.confirm('Send this post back to the pending queue?')) return;
     await apiRequest('POST', null, `/admin/shtick/${id}/unapprove`);
     setApprovals((a) => a.filter((s) => s.id !== id));
+    setApprovalsMeta((m) => ({ ...m, total: Math.max(0, m.total - 1) }));
     setMsg('Unapproved — back in the pending queue');
   }
 
@@ -257,8 +375,12 @@ export default function SuperAdminDashboard() {
         setAds((prev) => prev.map((a) => a.id === updated.id ? updated : a));
         setAdMsg('Ad updated.');
       } else {
-        const created = await apiRequest('POST', body, '/ads');
-        setAds((prev) => [created, ...prev]);
+        await apiRequest('POST', body, '/ads');
+        // Reload page 1 rather than prepending locally -- a new ad always
+        // sorts to the top of the newest-first list, but prepending into
+        // whatever page the admin happens to be viewing would show it in
+        // the wrong place (or duplicate it) on any page beyond the first.
+        await loadAds(1);
         setAdMsg('Ad created as a draft — activate it from the list when it\'s ready to go live.');
       }
       cancelAdForm();
@@ -281,12 +403,23 @@ export default function SuperAdminDashboard() {
     try {
       await apiRequest('DELETE', null, `/ads/${id}`);
       setAds((prev) => prev.filter((a) => a.id !== id));
+      setAdsMeta((m) => ({ ...m, total: Math.max(0, m.total - 1) }));
     } catch (e) {
       setAdMsg(typeof e === 'string' ? e : 'Failed to delete ad');
     }
   }
 
   async function changeRole(publicId, newRole) {
+    // Self-lockout guard: the role <select> on your OWN row is disabled
+    // (see the Users table render below) so this path shouldn't normally
+    // be reachable for your own account -- but this stays as a defensive
+    // backstop in case that ever changes. The useEffect above redirects
+    // out of this whole dashboard the instant isSuperAdmin() goes false,
+    // so a self-demotion otherwise has no undo from here.
+    if (publicId === myPublicId) {
+      setMsg("You can't change your own role from here — ask another Super Admin.");
+      return;
+    }
     // Granting super_admin hands over full platform control -- a raw <select>
     // is one misclick away from doing that to the wrong account, with no
     // undo. Every other role change is much lower-stakes and stays a single
@@ -320,8 +453,6 @@ export default function SuperAdminDashboard() {
     }
   }
 
-  const filteredUsers = roleFilter === 'all' ? users : users.filter((u) => u.role === roleFilter);
-
   return (
     <div className="admin-page superadmin-page">
       <div className="admin-header">
@@ -335,12 +466,13 @@ export default function SuperAdminDashboard() {
         {[
           ['overview', '📊 Overview'],
           ['search', '🔎 Search'],
-          ['users', `👥 Users (${users.length})`],
-          ['approvals', '✅ Approval History'],
-          ['ads', `📢 Ads (${ads.length})`],
+          ['users', `👥 Users (${usersMeta.total})`],
+          ['approvals', `✅ Approval History (${approvalsMeta.total})`],
+          ['ads', `📢 Ads (${adsMeta.total})`],
           ['alerts', '🔔 Alerts'],
           ['banner', '📣 Banner'],
           ['categories', `🏷️ Categories (${categories.length})`],
+          ['audit_log', '📜 Audit Log'],
           ['content_pipeline', '🤖 Content Pipeline'],
           ['analytics', '📈 Analytics'],
           ['business_analytics', '🏪 Business'],
@@ -353,7 +485,8 @@ export default function SuperAdminDashboard() {
       </div>
 
       {/* ── Search (checks id/title/body/category/submitted-by across every
-          table: Feed posts+comments, Hock posts+comments, Tachlis posts, Users) ── */}
+          table: Feed posts+comments, Hock posts+comments, Tachlis posts, Users,
+          Business listings, Estates listings, Torah posts, Ads) ── */}
       {tab === 'search' && (
         <div>
           <input
@@ -489,6 +622,87 @@ export default function SuperAdminDashboard() {
                   ))}
                 </div>
               )}
+
+              {searchResults.businesses.length > 0 && (
+                <div style={{ marginBottom: 24 }}>
+                  <h3>🏪 Business Listings ({searchResults.businesses.length})</h3>
+                  {searchResults.businesses.map((b) => (
+                    <div key={b.id} className="admin-card" style={{ borderLeft: '4px solid #6366f1' }}>
+                      <div className="admin-card-top">
+                        <span className="admin-badge pending">{b.category}</span>
+                        <span className="admin-date">{new Date(b.pub_date).toLocaleDateString()} <span style={{ fontSize: 11 }}>#{b.id}</span></span>
+                      </div>
+                      <h3 className="admin-caption">{b.name}</h3>
+                      <div className="admin-card-meta">
+                        <span>Added by: <b>{b.submitted_by || 'Unknown'}</b></span>
+                        {' · '}
+                        <a href={siteUrl('business', `/business/${b.slug}`)} target="_blank" rel="noopener noreferrer">View on site ↗</a>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {searchResults.estates_listings.length > 0 && (
+                <div style={{ marginBottom: 24 }}>
+                  <h3>🏠 Estates Listings ({searchResults.estates_listings.length})</h3>
+                  {searchResults.estates_listings.map((e) => (
+                    <div key={e.id} className="admin-card" style={{ borderLeft: '4px solid #6366f1' }}>
+                      <div className="admin-card-top">
+                        <span className="admin-badge pending">{e.listing_type}</span>
+                        <span className="admin-date">{new Date(e.pub_date).toLocaleDateString()} <span style={{ fontSize: 11 }}>#{e.id}</span></span>
+                      </div>
+                      <h3 className="admin-caption">{e.title}</h3>
+                      <div className="admin-card-meta">
+                        <span>{[e.neighborhood, e.city].filter(Boolean).join(', ') || 'No location'} · By: <b>{e.submitted_by || 'Unknown'}</b></span>
+                        {' · '}
+                        <a href={siteUrl('estates', `/listings/${e.slug}`)} target="_blank" rel="noopener noreferrer">View on site ↗</a>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {searchResults.torah_posts.length > 0 && (
+                <div style={{ marginBottom: 24 }}>
+                  <h3>📖 Torah Posts ({searchResults.torah_posts.length})</h3>
+                  {searchResults.torah_posts.map((t) => (
+                    <div key={t.id} className="admin-card" style={{ borderLeft: '4px solid #6366f1' }}>
+                      <div className="admin-card-top">
+                        <span className="admin-badge pending">{t.category}</span>
+                        <span className="admin-date">{new Date(t.pub_date).toLocaleDateString()} <span style={{ fontSize: 11 }}>#{t.id}</span></span>
+                      </div>
+                      <h3 className="admin-caption">{t.title}</h3>
+                      <div className="admin-card-meta">
+                        <span>By: <b>{t.submitted_by || 'Unknown'}</b></span>
+                        {' · '}
+                        <a href={siteUrl('torah', `/posts/${t.slug}`)} target="_blank" rel="noopener noreferrer">View on site ↗</a>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {searchResults.ads.length > 0 && (
+                <div style={{ marginBottom: 24 }}>
+                  <h3>📢 Ads ({searchResults.ads.length})</h3>
+                  {searchResults.ads.map((a) => (
+                    <div key={a.id} className="admin-card" style={{ cursor: 'pointer' }} onClick={() => setTab('ads')}>
+                      <div className="admin-card-top">
+                        <span className={`ad-status-badge status-${a.status}`}>{a.status}</span>
+                        <span className="admin-date">{new Date(a.pub_date).toLocaleDateString()} <span style={{ fontSize: 11 }}>#{a.id}</span></span>
+                      </div>
+                      <h3 className="admin-caption">{a.name}</h3>
+                      <div className="admin-card-meta">
+                        {a.headline && <span>"{a.headline}" · </span>}
+                        <span>Advertiser: <b>{a.advertiser_name || 'Unknown'}</b></span>
+                        {' · '}
+                        <span style={{ textDecoration: 'underline' }}>Go to Ads tab ↗</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </>
           )}
         </div>
@@ -497,6 +711,9 @@ export default function SuperAdminDashboard() {
       {loading && <div className="gs-loading"><div className="gs-spinner" /></div>}
 
       {/* ── Overview ── */}
+      {tab === 'overview' && !loading && statsError && (
+        <div className="gs-error-box">{statsError}</div>
+      )}
       {tab === 'overview' && stats && !loading && (
         <div className="superadmin-stats-grid">
           <div className="sa-stat-card blue">
@@ -529,55 +746,68 @@ export default function SuperAdminDashboard() {
       {/* ── Users ── */}
       {tab === 'users' && !loading && (
         <div>
+          {usersError && <div className="gs-error-box">{usersError}</div>}
           <div className="sa-user-filters">
             {['all', ...ROLES].map((r) => (
               <button key={r} className={`difficulty-btn${roleFilter === r ? ' active' : ''}`}
-                onClick={() => setRoleFilter(r)}>
+                disabled={usersLoading}
+                onClick={() => { setRoleFilter(r); loadUsers(1, r); }}>
                 {r === 'all' ? 'All' : ROLE_LABELS[r]}
               </button>
             ))}
           </div>
-          <div className="sa-user-table">
-            <div className="sa-user-row header">
-              <span>User</span><span>Email</span><span>Role</span><span>Posts</span><span>Joined</span><span>Actions</span>
-            </div>
-            {filteredUsers.map((u) => (
-              <div key={u.public_id} className="sa-user-row">
-                <span className="sa-profile">
-                  <div className="shtick-author-avatar" style={{ width: 30, height: 30, fontSize: 12 }}>
-                    {u.profile_name?.charAt(0).toUpperCase()}
-                  </div>
-                  {u.profile_name}
-                </span>
-                <span>{u.email}</span>
-                <span>
-                  <select
-                    value={u.role}
-                    onChange={(e) => changeRole(u.public_id, e.target.value)}
-                    className="sa-role-select"
-                    style={{ borderColor: ROLE_COLOR[u.role] }}
-                  >
-                    {ROLES.map((r) => <option key={r} value={r}>{ROLE_LABELS[r]}</option>)}
-                  </select>
-                </span>
-                <span>{u.shtick_count}</span>
-                <span>{formatDate(u.pub_date)}</span>
-                <span>
-                  <button className="gs-btn gs-btn-outline gs-btn-sm" onClick={() => viewActivity(u)}>
-                    View Activity
-                  </button>
-                </span>
+          {usersLoading && <div className="gs-loading"><div className="gs-spinner" /></div>}
+          {!usersLoading && (
+            <div className="sa-user-table">
+              <div className="sa-user-row header">
+                <span>User</span><span>Email</span><span>Role</span><span>Posts</span><span>Joined</span><span>Actions</span>
               </div>
-            ))}
-          </div>
+              {users.map((u) => {
+                const isSelf = u.public_id === myPublicId;
+                return (
+                  <div key={u.public_id} className="sa-user-row">
+                    <span className="sa-profile">
+                      <div className="shtick-author-avatar" style={{ width: 30, height: 30, fontSize: 12 }}>
+                        {u.profile_name?.charAt(0).toUpperCase()}
+                      </div>
+                      {u.profile_name}{isSelf && ' (you)'}
+                    </span>
+                    <span>{u.email}</span>
+                    <span>
+                      <select
+                        value={u.role}
+                        onChange={(e) => changeRole(u.public_id, e.target.value)}
+                        className="sa-role-select"
+                        style={{ borderColor: ROLE_COLOR[u.role] }}
+                        disabled={isSelf}
+                        title={isSelf ? "You can't change your own role here — ask another Super Admin." : undefined}
+                      >
+                        {ROLES.map((r) => <option key={r} value={r}>{ROLE_LABELS[r]}</option>)}
+                      </select>
+                    </span>
+                    <span>{u.shtick_count}</span>
+                    <span>{formatDate(u.pub_date)}</span>
+                    <span>
+                      <button className="gs-btn gs-btn-outline gs-btn-sm" onClick={() => viewActivity(u)}>
+                        View Activity
+                      </button>
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+          <Pager meta={usersMeta} loading={usersLoading} onPage={(p) => loadUsers(p, roleFilter)} />
         </div>
       )}
 
       {/* ── Approval History ── */}
       {tab === 'approvals' && !loading && (
         <div className="admin-list">
-          {approvals.length === 0 && <div className="admin-empty">No approvals yet.</div>}
-          {approvals.map((s) => (
+          {approvalsError && <div className="gs-error-box">{approvalsError}</div>}
+          {approvalsLoading && <div className="gs-loading"><div className="gs-spinner" /></div>}
+          {!approvalsLoading && approvals.length === 0 && <div className="admin-empty">No approvals yet.</div>}
+          {!approvalsLoading && approvals.map((s) => (
             <div key={s.id} className="admin-card">
               <div className="admin-card-top">
                 <span className={`admin-badge ${s.approved_to_publish ? 'approved' : 'rejected'}`}>
@@ -595,6 +825,7 @@ export default function SuperAdminDashboard() {
               </div>
             </div>
           ))}
+          {!approvalsLoading && <Pager meta={approvalsMeta} loading={approvalsLoading} onPage={(p) => loadApprovals(p)} />}
         </div>
       )}
 
@@ -602,6 +833,7 @@ export default function SuperAdminDashboard() {
       {tab === 'ads' && !loading && (
         <div>
           {adMsg && <div className="gs-success-box">{adMsg}</div>}
+          {adsError && <div className="gs-error-box">{adsError}</div>}
 
           <div className="ad-manager-toolbar">
             <h3 style={{ margin: 0 }}>Advertisements</h3>
@@ -685,6 +917,20 @@ export default function SuperAdminDashboard() {
                         ))}
                       </div>
                     )}
+                    {!adForm.allPages && adForm.placements.length === 0 && (
+                      // Unchecking "All pages" but selecting zero specific
+                      // placements would send placements: [] -- which the
+                      // backend (and every other consumer of this field)
+                      // treats as NULL, i.e. "all placements" again. That's
+                      // the exact opposite of what narrowing to zero pages
+                      // was trying to do, so block it rather than let it
+                      // submit silently (see the Save button's disabled
+                      // check below).
+                      <div className="gs-error-box" style={{ marginTop: 10 }}>
+                        Select at least one page/placement, or leave "All pages" checked —
+                        zero placements selected would actually show this ad on EVERY page.
+                      </div>
+                    )}
                   </div>
 
                   <div className="auth-field full-span" style={{ borderTop: '1px solid var(--border)', paddingTop: 14, marginTop: 4 }}>
@@ -743,7 +989,8 @@ export default function SuperAdminDashboard() {
                   <button
                     className="gs-btn gs-btn-primary"
                     onClick={saveAd}
-                    disabled={!adForm.name || !adForm.destination_value}
+                    disabled={!adForm.name || !adForm.destination_value
+                      || (!adForm.allPages && adForm.placements.length === 0)}
                   >
                     {editingAdId ? 'Save changes' : 'Create ad (as draft)'}
                   </button>
@@ -752,9 +999,10 @@ export default function SuperAdminDashboard() {
             </div>
           )}
 
+          {adsLoading && <div className="gs-loading"><div className="gs-spinner" /></div>}
           <div className="ad-manager-list">
-            {ads.length === 0 && <div className="admin-empty">No ads yet — click "+ New Ad" to create one.</div>}
-            {ads.map((ad) => (
+            {!adsLoading && ads.length === 0 && <div className="admin-empty">No ads yet — click "+ New Ad" to create one.</div>}
+            {!adsLoading && ads.map((ad) => (
               <div key={ad.id} className="ad-manager-row">
                 {ad.image_url
                   ? <img className="ad-manager-thumb" src={ad.image_url} alt={ad.name} />
@@ -844,6 +1092,7 @@ export default function SuperAdminDashboard() {
               </div>
             ))}
           </div>
+          {!adsLoading && <Pager meta={adsMeta} loading={adsLoading} onPage={(p) => loadAds(p)} />}
         </div>
       )}
 
@@ -903,6 +1152,7 @@ export default function SuperAdminDashboard() {
       {tab === 'categories' && !loading && (
         <div>
           {categoryMsg && <div className="gs-error-box">{categoryMsg}</div>}
+          {categoriesError && <div className="gs-error-box">{categoriesError}</div>}
           <p style={{ color: 'var(--muted)', marginBottom: 16 }}>
             These are the categories post authors can pick from when sharing a shtick.
             Add as many as you like — posters get a type-ahead search instead of a long list.
@@ -928,6 +1178,33 @@ export default function SuperAdminDashboard() {
               </span>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* ── Audit Log (who did what, when -- role changes, ad status changes/
+          deletion, category deletion, unapproving a post; see
+          backend/user/modals/audit_log.py's log_admin_action) ── */}
+      {tab === 'audit_log' && !loading && (
+        <div className="admin-list">
+          {auditLogError && <div className="gs-error-box">{auditLogError}</div>}
+          {auditLogLoading && <div className="gs-loading"><div className="gs-spinner" /></div>}
+          {!auditLogLoading && auditLog && auditLog.length === 0 && (
+            <div className="admin-empty">No logged actions yet.</div>
+          )}
+          {!auditLogLoading && auditLog && auditLog.map((l) => (
+            <div key={l.id} className="admin-card">
+              <div className="admin-card-top">
+                <span className="admin-badge pending">{l.action}</span>
+                <span className="admin-date">{new Date(l.created_at).toLocaleString()}</span>
+              </div>
+              <div className="admin-card-meta">
+                <span>By: <b>{l.actor_name || l.actor_public_id || 'Unknown'}</b></span>
+                {l.target_type && <span> · Target: <b>{l.target_type}{l.target_id ? ` #${l.target_id}` : ''}</b></span>}
+              </div>
+              {l.details && <p style={{ margin: '6px 0', color: 'var(--muted)' }}>{l.details}</p>}
+            </div>
+          ))}
+          {!auditLogLoading && auditLog && <Pager meta={auditLogMeta} loading={auditLogLoading} onPage={(p) => loadAuditLog(p)} />}
         </div>
       )}
 

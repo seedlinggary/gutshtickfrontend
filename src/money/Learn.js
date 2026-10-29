@@ -119,11 +119,107 @@ export default function Learn() {
           ]} />
         </div>
 
+        <div className="fin-masthead" style={{ marginTop: 36 }}>
+          <div className="fin-masthead-kicker"><BookOpen size={13} /> Israel</div>
+          <h1 className="fin-masthead-title">Money in Israel, A to Z</h1>
+          <p className="fin-masthead-sub">How Israeli income tax, National Insurance, pensions and investing actually work -- written for anyone who's never had to deal with mas hachnasa, Bituach Leumi or a keren pensia before.</p>
+        </div>
+
+        <div className="fin-guide-section">
+          <span className="fin-guide-kicker">Income tax (Mas Hachnasa)</span>
+          <h2>How your paycheck gets taxed</h2>
+          <p>Israel uses a <strong>marginal bracket system</strong> just like the US does: each bracket's rate only applies to the slice of income inside it, not your whole salary. For 2026-2027 (frozen, not adjusted for inflation during this period), the annual brackets are 10% up to ₪84,120, 14% up to ₪120,720, 20% up to ₪228,000, 31% up to ₪301,200, 35% up to ₪560,280, then 47% above that -- plus a 3% surtax ("mas yisuf") on income over ₪721,560/year, pushing the effective top rate to 50% for very high earners.</p>
+          <h3>Tax credit points (nekudot zikui)</h3>
+          <p>Before you pay a shekel of calculated tax, it gets reduced by your <strong>credit points</strong> -- each one worth ₪242/month (₪2,904/year) in 2026. Every resident starts with a base amount (2.25 points for men, 2.75 for women), with extra points for children, single parents, new immigrants (for their first 54 months on a declining schedule), discharged soldiers, and more. Unlike a US tax deduction, points reduce the tax bill itself, not your taxable income -- and if your calculated tax is lower than your points are worth, it just drops to zero rather than paying you the difference (with a few specific exceptions).</p>
+          <div className="fin-guide-note">Run your own numbers -- gross salary in, net pay out, with the full breakdown -- on the <strong>Israel Net Salary</strong> calculator on the <Link to="/">Calculators page</Link>.</div>
+          <Sources items={[
+            { label: 'Taxes in Israel 2026: brackets, credit points, refunds (Din-AI)', url: 'https://din-ai.co.il/legal-guide/en/taxes' },
+            { label: 'Net Salary Calculator Israel 2026 (Expatriation.io)', url: 'https://app.expatriation.io/net-salary/israel' },
+            { label: 'Nekudot Zikui for Olim: NIS 242 a Point (Meidahon)', url: 'https://meidahon.co.il/olim/taxes/israeli-taxes/nekudot-zikui-basics' },
+          ]} />
+        </div>
+
+        <div className="fin-guide-section">
+          <span className="fin-guide-kicker">Bituach Leumi &amp; Bituach Briut</span>
+          <h2>National Insurance and the health tax</h2>
+          <p>Separate from income tax, every paycheck also has <strong>Bituach Leumi</strong> (National Insurance, which funds things like maternity leave, unemployment, disability and old-age pensions) and <strong>Bituach Briut</strong> (the health tax, which funds Israel's public healthcare system). Both are calculated on the same two-tier structure based on 60% of the national average wage (₪7,703/month in 2026): a low combined rate of about 4.27% up to that threshold, and a much higher 12.16% on the portion above it, up to a monthly ceiling of ₪51,910 (nothing is owed on pay above the ceiling). Your employer pays its own separate, larger share on top -- that part never touches your paycheck.</p>
+          <Sources items={[
+            { label: 'Israel Payroll 2026: Bituach Leumi, Tax & Form 102 (WhichPayroll)', url: 'https://whichpayroll.com/countries/israel/global-payroll' },
+            { label: 'Israel Bituach Leumi Calculator 2026 (Teamz Lab)', url: 'https://tool.teamzlab.com/il/bituach-leumi-2026-calculator/' },
+          ]} />
+        </div>
+
+        <div className="fin-guide-section">
+          <span className="fin-guide-kicker">New immigrants</span>
+          <h2>Tax benefits for olim and returning residents</h2>
+          <p>A new immigrant (oleh) or long-term returning resident gets a <strong>10-year exemption on foreign-source income and capital gains</strong> -- money earned or invested outside Israel generally isn't taxed by Israel during that window (it may still be taxed by the country it came from). On top of that, olim get extra tax credit points for their first 54 months. Rules around reporting foreign assets have been tightening for residencies starting in 2026, so this exemption no longer means "nothing to report" -- it just means "not taxed," and the income/assets still need to be disclosed. None of this applies to Israeli-source income, which is taxed the same as for any other resident.</p>
+          <Sources items={[
+            { label: 'Olim Tax Exemption Israel 2026 (CWS Israel)', url: 'https://www.cwsisrael.com/olim-tax-exemption-israel-2026/' },
+            { label: 'Your Taxes: The budget\'s tax breaks (Jerusalem Post)', url: 'https://www.jpost.com/business-and-innovation/banking-and-finance/article-892524' },
+          ]} />
+        </div>
+
+        <div className="fin-guide-section">
+          <span className="fin-guide-kicker">Long-term savings</span>
+          <h2>Pension, Kupat Gemel, and Keren Hishtalmut</h2>
+          <p>Israel has three main tax-advantaged savings vehicles, usually all deducted straight from your payslip:</p>
+          <ul>
+            <li><strong>Keren Pensia (pension fund)</strong> -- mandatory for employees. A common split is around 6% from you and 6.5-8.5% more from your employer (split between retirement savings and severance), all going into a pension fund that pays out as a monthly income in retirement, with life/disability insurance built in.</li>
+            <li><strong>Kupat Gemel (provident fund)</strong> -- a more flexible investment fund, these days mostly used by the self-employed or for additional voluntary savings, since employer-sponsored plans mostly default to pension funds now.</li>
+            <li><strong>Keren Hishtalmut (study fund)</strong> -- despite the name, this isn't just for education. Usually a 2.5% employee / 7.5% employer split, it's tax-free on the way in (up to a salary ceiling, ₪15,712/month in 2026) and the entire balance -- contributions plus all investment growth -- comes out completely tax-free after a <strong>6-year lock-in</strong>. It's one of the best tax-advantaged accounts available to Israeli employees precisely because of that full tax-free growth.</li>
+          </ul>
+          <p>Self-employed people don't get an employer match on any of these, but can still deduct pension contributions (recognized up to roughly 16.5% of qualifying income, split between a deductible expense and a tax credit) and keren hishtalmut contributions (up to about 4.5% of income) against their own tax bill.</p>
+          <div className="fin-guide-note">Turn on "Include pension + study fund contributions" in the <strong>Israel Net Salary</strong> calculator to see exactly how much these take out of your paycheck versus how much they save you in tax.</div>
+          <Sources items={[
+            { label: 'Study Fund (Keren Hishtalmut): Complete Guide 2026 (Yesh Cash)', url: 'https://yesh-cash.com/en/pension/study-fund' },
+            { label: 'The ultimate guide to Keren Hishtalmut (Blue & White Finance)', url: 'https://bluewhitefinance.com/the-ultimate-guide-to-keren-hishtalmut/' },
+            { label: 'Freelancer Pension Rights in Israel: The 2026 Guide (CWS Israel)', url: 'https://www.cwsisrael.com/freelancer-pension-rights-israel-2026/' },
+          ]} />
+        </div>
+
+        <div className="fin-guide-section">
+          <span className="fin-guide-kicker">Investing in Israel</span>
+          <h2>Where Israeli investing actually happens</h2>
+          <p>The <strong>Tel Aviv Stock Exchange (TASE)</strong> is Israel's main stock market -- its flagship index is the TA-125. Most everyday investors don't pick individual TASE stocks though; they buy into <strong>kranot</strong> (mutual funds) or <strong>ETFs</strong> ("katrot sal" / tracker funds), which pool money across many companies or bonds the same way a US index fund does, including funds that track US indexes like the S&amp;P 500 for Israelis who want international exposure.</p>
+          <h3>How to actually open an account</h3>
+          <p>Three common routes: (1) your <strong>bank's own brokerage arm</strong> -- easiest to set up since you likely already bank there, but usually the highest fees; (2) a dedicated <strong>Israeli brokerage</strong> (e.g. Meitav, IBI, Psagot) -- typically lower fees than a bank, built specifically for trading and funds; (3) an <strong>international broker</strong> that accepts Israeli residents -- can offer the lowest fees and widest access to US/global markets, but adds currency conversion and foreign-reporting considerations. Whichever route, compare the per-trade commission, account-keeping fees, and currency-conversion spread -- these vary a lot between providers and compound over decades of investing.</p>
+          <div className="fin-guide-note">Look up real TASE and US tickers, compare them against Israeli economic indicators, and track a watchlist on the <Link to="/investing">Investing page</Link>.</div>
+          <Sources items={[
+            { label: 'Taxation in Israel (Wikipedia)', url: 'https://en.wikipedia.org/wiki/Taxation_in_Israel' },
+            { label: 'Global Expansion Guide: Tax in Israel (DLA Piper)', url: 'https://intelligence.dlapiper.com/global-expansion-tax/?c=IL' },
+          ]} />
+        </div>
+
+        <div className="fin-guide-section">
+          <span className="fin-guide-kicker">Investment taxes</span>
+          <h2>What you owe when you sell</h2>
+          <p>Capital gains on securities (stocks, ETFs, mutual funds) are taxed at a flat <strong>25%</strong> for individuals, or <strong>30%</strong> if you held 10% or more of the company ("substantial shareholder"). Dividends are generally taxed the same way. There's one major exception: a <strong>foreign (non-Israeli) tax resident</strong> selling securities listed on the TASE is usually exempt from Israeli capital gains tax entirely -- except on REITs and short-term government bonds -- though a withholding-exemption certificate from the Tax Authority is needed beforehand to avoid tax being withheld automatically at the sale. Real estate uses a completely different set of taxes, covered next.</p>
+          <div className="fin-guide-note">Estimate the tax on a specific sale with the <strong>Israel Investment Tax</strong> calculator on the <Link to="/">Calculators page</Link>.</div>
+          <Sources items={[
+            { label: 'Doing Business in Israel (Harris Consulting & Tax)', url: 'https://hcat.co/doing-business-in-israel/' },
+          ]} />
+        </div>
+
+        <div className="fin-guide-section">
+          <span className="fin-guide-kicker">Real estate</span>
+          <h2>Selling (and buying) property in Israel</h2>
+          <h3>Selling: mas shevach (the gain tax)</h3>
+          <p>When you sell real estate, the <strong>gain</strong> (sale price minus purchase price, roughly -- a real calculation also adjusts for inflation and deducts documented improvement costs) is taxed as <strong>mas shevach</strong>, not regular capital gains tax. Most people selling their own home never pay it at all, thanks to the <strong>sole qualifying-residence exemption</strong>: if the property is your only home in Israel, you've owned it 18+ months, and you haven't used this exemption on a different sale in the prior 18 months, the gain is fully exempt up to a sale price of <strong>₪5,008,000</strong> (2026). Sell above that ceiling and the exemption still applies, just proportionally -- the share of the gain attributable to the value under the ceiling stays exempt, and only the rest is taxed at up to 25%. An investment property, a second home, or a sale that doesn't meet those conditions is taxed on the full real gain instead (at up to 25%, with a more favorable linear calculation for any part of the gain that built up before 2014).</p>
+          <h3>Buying: mas rechisha (purchase tax)</h3>
+          <p>Buyers pay a separate bracketed <strong>purchase tax</strong>, and which bracket table applies depends entirely on whether this is your only home. A <strong>sole/only-home</strong> purchase gets a 0% band on roughly the first ₪1.98M, then climbing rates (3.5%, 5%, 8%, 10%) on the value above that. An <strong>additional or investment property</strong> -- including a non-resident's only Israeli home -- skips the 0% band entirely and starts at a flat <strong>8%</strong> from the first shekel, rising to 10% above roughly ₪6.06M. This is exactly why timing matters if you're selling one home to buy another: buying the new place before closing the sale on the old one can mean paying the much higher "additional dwelling" rate, even though you'll only own two homes for a short overlap.</p>
+          <div className="fin-guide-note">Run a specific sale or purchase through the <strong>Israel Property Tax</strong> calculator on the <Link to="/">Calculators page</Link> -- it covers both mas shevach and mas rechisha, with the sole-residence exemption and the additional-dwelling rate built in.</div>
+          <Sources items={[
+            { label: 'Mas Shevach Israel 2026 - Capital Gains Tax Guide (New Homes Israel)', url: 'https://newhomesisrael.com/en/blog/mas-shevach-capital-gains' },
+            { label: 'מס רכישה 2026: מדרגות דירה יחידה מול דירה נוספת (Bizportal)', url: 'https://www.bizportal.co.il/realestates/news/article/20038028' },
+            { label: 'Israel Purchase Tax & Real Estate Taxes 2026 (Global Law Experts)', url: 'https://globallawexperts.com/purchase-tax-israel/' },
+          ]} />
+        </div>
+
         <p style={{ fontSize: 12.5, color: 'var(--muted)', marginTop: 24 }}>
           This page is a general overview, not financial, tax or investment advice. It was written from the sources
           linked in each section, but rules, limits and typical guidance all change over time and those sources may
-          have updated since -- always confirm current details with a licensed financial advisor, accountant, or the
-          IRS directly before making a decision.
+          have updated since -- always confirm current details with a licensed financial advisor, accountant (ro'eh
+          cheshbon), the Israel Tax Authority, Bituach Leumi, or the IRS directly before making a decision.
         </p>
       </div>
     </div>

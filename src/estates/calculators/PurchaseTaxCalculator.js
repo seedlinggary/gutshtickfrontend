@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, X } from 'lucide-react';
 import { tieredTax, formatMoney } from '../../shared/calculatorMath';
+import { DonutChart, BarChart } from '../../shared/SimpleCharts';
 
 // Approximate brackets reported for the instruction covering 16.01.2025
 // through 15.01.2028 (see the Learn page's Sources list) -- the Tax
@@ -99,6 +100,31 @@ export default function PurchaseTaxCalculator() {
           </table>
           <button type="button" className="gs-btn gs-btn-outline gs-btn-sm" onClick={addRow}><Plus size={13} /> Add bracket</button>
         </div>
+
+        <div className="est-chart-card">
+          <h3 style={{ marginTop: 0, fontSize: 14 }}>Total to close</h3>
+          <DonutChart
+            segments={[
+              { label: 'Property price', value: price },
+              { label: 'Purchase tax', value: total },
+            ]}
+            formatValue={(v) => formatMoney(v, 'ILS')}
+            centerLabel="Total to close"
+          />
+        </div>
+
+        {breakdown.length > 1 && (
+          <div className="est-chart-card">
+            <h3 style={{ marginTop: 0, fontSize: 14 }}>Tax owed per bracket</h3>
+            <BarChart
+              bars={breakdown.map((b) => ({
+                label: `${formatMoney(b.from, 'ILS')}–${b.to === Infinity ? '∞' : formatMoney(b.to, 'ILS')} @ ${b.ratePct}%`,
+                value: b.tax,
+              }))}
+              formatValue={(v) => formatMoney(v, 'ILS')}
+            />
+          </div>
+        )}
       </div>
 
       <div className="est-calc-results">

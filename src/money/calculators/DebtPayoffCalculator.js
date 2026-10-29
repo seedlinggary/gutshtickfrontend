@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { monthsToPayoff, formatMoney } from '../../shared/calculatorMath';
-import { LineChart } from '../../shared/SimpleCharts';
+import { LineChart, StackedAreaChart } from '../../shared/SimpleCharts';
 import SavedScenarios from '../SavedScenarios';
 
 const DEFAULTS = { balance: 8000, rate: 22, monthlyPayment: 300 };
@@ -8,8 +8,11 @@ const DEFAULTS = { balance: 8000, rate: 22, monthlyPayment: 300 };
 function buildSchedule(balance, annualRatePct, monthlyPayment) {
   const r = annualRatePct / 100 / 12;
   const points = [{ x: 0, y: balance }];
+  const principalPaid = [{ x: 0, y: 0 }];
+  const interestPaid = [{ x: 0, y: 0 }];
   let b = balance;
   let totalInterest = 0;
+  let totalPrincipal = 0;
   let month = 0;
   while (b > 0 && month < 600) {
     const interest = b * r;
@@ -17,10 +20,13 @@ function buildSchedule(balance, annualRatePct, monthlyPayment) {
     if (principal <= 0) break; // payment doesn't cover interest -- never pays off
     b -= principal;
     totalInterest += interest;
+    totalPrincipal += principal;
     month += 1;
     points.push({ x: month, y: Math.max(0, b) });
+    principalPaid.push({ x: month, y: totalPrincipal });
+    interestPaid.push({ x: month, y: totalInterest });
   }
-  return { points, totalInterest, months: month };
+  return { points, principalPaid, interestPaid, totalInterest, months: month };
 }
 
 export default function DebtPayoffCalculator() {
@@ -52,10 +58,23 @@ export default function DebtPayoffCalculator() {
             </div>
           </div>
           {!isStuck && (
-            <div className="fin-chart-card">
-              <h3 style={{ marginTop: 0, fontSize: 14 }}>Balance remaining over time</h3>
-              <LineChart points={schedule.points} formatY={(v) => formatMoney(v)} xLabel={(p) => `Mo ${p.x}`} ariaLabel="Remaining debt balance over time" />
-            </div>
+            <>
+              <div className="fin-chart-card">
+                <h3 style={{ marginTop: 0, fontSize: 14 }}>Balance remaining over time</h3>
+                <LineChart points={schedule.points} formatY={(v) => formatMoney(v)} xLabel={(p) => `Mo ${p.x}`} ariaLabel="Remaining debt balance over time" />
+              </div>
+              <div className="fin-chart-card">
+                <h3 style={{ marginTop: 0, fontSize: 14 }}>Where each payment goes, cumulatively</h3>
+                <StackedAreaChart
+                  series={[
+                    { label: 'Principal paid', points: schedule.principalPaid },
+                    { label: 'Interest paid', points: schedule.interestPaid },
+                  ]}
+                  formatY={(v) => formatMoney(v)} xLabel={(p) => `Mo ${p.x}`}
+                  ariaLabel="Cumulative principal vs interest paid over time"
+                />
+              </div>
+            </>
           )}
         </div>
         <div className="fin-calc-results">

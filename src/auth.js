@@ -1,5 +1,6 @@
 export const getRole = () => localStorage.getItem('role') || 'viewer';
 export const getEmail = () => localStorage.getItem('email') || null;
+export const getPublicId = () => localStorage.getItem('public_id') || null;
 export const getToken = () => localStorage.getItem('cookie') || null;
 export const isLoggedIn = () => !!getEmail() && !!getToken();
 export const isAdmin = () => ['admin', 'super_admin'].includes(getRole());

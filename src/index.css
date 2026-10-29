@@ -244,7 +244,7 @@ iframe {
    with its margin-left:auto and still didn't clear it) guarantees no
    overlap regardless of how wide either one renders on a real device,
    since the two no longer share any horizontal range at all. */
-@media (max-width: 1299.98px) {
+@media (max-width: 1399.98px) {
   .lang-select-corner-wrap { top: calc(10px + var(--site-banner-h)); right: 70px; }
   .lang-select-corner {
     max-width: 58px;
@@ -359,13 +359,20 @@ iframe {
   box-shadow: var(--shadow-sm);
 }
 .gs-navbar .navbar-inner {
-  max-width: 1140px;
+  /* Widened from 1140px -- with search added to every nav alongside what
+     was already there, 1140px wasn't enough room on common desktop widths
+     and items were wrapping to a second row that the fixed-height bar
+     below couldn't accommodate, displacing/overlapping page content under
+     it. 1480px plus the tighter gap/padding below gives real breathing
+     room up to large desktop widths while still centering on anything
+     wider than that. */
+  max-width: 1480px;
   height: 100%;
   margin: 0 auto;
   padding: 0 20px;
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 14px;
 }
 .gs-navbar .navbar-brand {
   font-family: var(--font-serif);
@@ -447,7 +454,7 @@ iframe {
   color: var(--muted);
   font-weight: 600;
   font-size: 14px;
-  padding: 10px 12px;
+  padding: 10px 9px;
   cursor: pointer;
   transition: color var(--transition);
   white-space: nowrap;
@@ -540,7 +547,7 @@ iframe {
   margin: 6px 2px;
 }
 
-@media (max-width: 1299.98px) {
+@media (max-width: 1399.98px) {
   .gs-navbar .navbar-toggler {
     display: block;
   }
@@ -3084,6 +3091,107 @@ iframe {
 .notif-item-time {
   font-size: 11px;
   color: var(--muted);
+}
+
+/* ── Global search (nav icon + expanding input, see search/GlobalSearchBar.js) ── */
+.global-search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.global-search-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 20px;
+  padding: 8px 10px;
+  cursor: pointer;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+}
+.global-search-form {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 999px;
+  padding: 6px 10px;
+}
+.global-search-icon {
+  color: var(--muted);
+  flex-shrink: 0;
+}
+.global-search-input {
+  border: none;
+  outline: none;
+  background: none;
+  font-family: inherit;
+  font-size: 13.5px;
+  color: var(--text);
+  width: 160px;
+}
+.global-search-close {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 2px;
+  flex-shrink: 0;
+}
+.global-search-close:hover {
+  color: var(--text);
+}
+@media (max-width: 640px) {
+  .global-search-input { width: 110px; }
+}
+
+/* ── Search results page (search/SearchResults.js) ── */
+.search-page-form {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.search-page-icon {
+  display: none;
+}
+.search-page-input {
+  flex: 1;
+}
+.search-result-row {
+  cursor: pointer;
+}
+.search-result-row-btn {
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: var(--surface);
+  font-family: inherit;
+}
+.search-result-group {
+  margin-bottom: 8px;
+}
+.search-result-meta {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 2px;
+  font-size: 11.5px;
+  color: var(--muted);
+}
+.search-result-site {
+  background: var(--surface-deep);
+  color: var(--accent-hover);
+  border-radius: 999px;
+  padding: 1px 8px;
+  font-weight: 700;
+}
+@media (max-width: 640px) {
+  .search-page-form { flex-wrap: wrap; }
 }
 
 /* ── Share button ── */

@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { futureValueWithContributions, formatMoney } from '../../shared/calculatorMath';
-import { LineChart } from '../../shared/SimpleCharts';
+import { StackedAreaChart, DonutChart } from '../../shared/SimpleCharts';
 import SavedScenarios from '../SavedScenarios';
 
 const DEFAULTS = { currentAge: 30, retireAge: 65, currentSavings: 20000, monthlyContribution: 500, rate: 7, withdrawalRatePct: 4 };
@@ -14,13 +14,22 @@ export default function RetirementCalculator() {
   const sustainableAnnual = nestEgg * (f.withdrawalRatePct / 100);
   const sustainableMonthly = sustainableAnnual / 12;
 
-  const points = useMemo(() => {
-    const pts = [];
+  const series = useMemo(() => {
+    const contributed = []; const growth = [];
     for (let y = 0; y <= years; y++) {
-      pts.push({ x: f.currentAge + y, y: futureValueWithContributions(f.currentSavings, f.monthlyContribution, f.rate, y) });
+      const balance = futureValueWithContributions(f.currentSavings, f.monthlyContribution, f.rate, y);
+      const contributedSoFar = f.currentSavings + f.monthlyContribution * 12 * y;
+      contributed.push({ x: f.currentAge + y, y: contributedSoFar });
+      growth.push({ x: f.currentAge + y, y: Math.max(0, balance - contributedSoFar) });
     }
-    return pts;
+    return [
+      { label: 'Contributed', points: contributed },
+      { label: 'Growth', points: growth },
+    ];
   }, [f.currentAge, f.currentSavings, f.monthlyContribution, f.rate, years]);
+
+  const totalContributed = f.currentSavings + f.monthlyContribution * 12 * years;
+  const totalGrowth = Math.max(0, nestEgg - totalContributed);
 
   return (
     <div>
@@ -54,8 +63,19 @@ export default function RetirementCalculator() {
             </div>
           </div>
           <div className="fin-chart-card">
-            <h3 style={{ marginTop: 0, fontSize: 14 }}>Projected growth by age</h3>
-            <LineChart points={points} formatY={(v) => formatMoney(v)} xLabel={(p) => `Age ${p.x}`} ariaLabel="Projected retirement savings by age" />
+            <h3 style={{ marginTop: 0, fontSize: 14 }}>Projected growth by age -- contributed vs. growth</h3>
+            <StackedAreaChart series={series} formatY={(v) => formatMoney(v)} xLabel={(p) => `Age ${p.x}`} ariaLabel="Projected retirement savings by age, split into contributions and growth" />
+          </div>
+          <div className="fin-chart-card">
+            <h3 style={{ marginTop: 0, fontSize: 14 }}>Your nest egg at {f.retireAge}</h3>
+            <DonutChart
+              segments={[
+                { label: 'Contributed', value: totalContributed },
+                { label: 'Growth', value: totalGrowth },
+              ]}
+              formatValue={(v) => formatMoney(v)}
+              centerLabel="Nest egg"
+            />
           </div>
         </div>
         <div className="fin-calc-results">

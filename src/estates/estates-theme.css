@@ -810,6 +810,13 @@
   width: 100%;
   accent-color: var(--gold);
 }
+.est-chart-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  margin-bottom: 16px;
+}
 .est-calc-brackets {
   width: 100%;
   border-collapse: collapse;

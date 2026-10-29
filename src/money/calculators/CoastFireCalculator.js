@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import { formatMoney, futureValue, presentValue } from '../../shared/calculatorMath';
+import { LineChart } from '../../shared/SimpleCharts';
 import SavedScenarios from '../SavedScenarios';
 
 const DEFAULTS = { currentAge: 30, retireAge: 65, fireNumber: 1200000, currentSavings: 150000, rate: 7 };
@@ -16,6 +17,14 @@ export default function CoastFireCalculator() {
   const hasCoasted = f.currentSavings >= coastFireNumberToday;
   const gap = Math.max(0, coastFireNumberToday - f.currentSavings);
   const projectedAtRetirement = futureValue(f.currentSavings, f.rate, years);
+
+  const projection = useMemo(() => {
+    const pts = [];
+    for (let y = 0; y <= years; y++) {
+      pts.push({ x: f.currentAge + y, y: futureValue(f.currentSavings, f.rate, y) });
+    }
+    return pts;
+  }, [f.currentAge, f.currentSavings, f.rate, years]);
 
   return (
     <div>
@@ -49,6 +58,10 @@ export default function CoastFireCalculator() {
               <div className="fin-calc-field-row"><label>Expected annual return</label><span className="fin-calc-field-value">{f.rate}%</span></div>
               <input className="fin-calc-slider" type="range" min="0" max="12" step="0.5" value={f.rate} onChange={set('rate')} />
             </div>
+          </div>
+          <div className="fin-chart-card">
+            <h3 style={{ marginTop: 0, fontSize: 14 }}>Coasting from today's savings, with no more contributions</h3>
+            <LineChart points={projection} formatY={(v) => formatMoney(v)} xLabel={(p) => `Age ${p.x}`} ariaLabel="Projected balance coasting to retirement with no further contributions" />
           </div>
         </div>
         <div className="fin-calc-results">
