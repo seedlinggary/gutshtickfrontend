@@ -8,6 +8,7 @@ import TypeTagPicker from './TypeTagPicker';
 import LocationTypeIcon from './LocationTypeIcon';
 import { CATEGORY_LABELS, FOOD_CATEGORIES, LOCATION_TYPE_META } from './categories';
 import { normalizePhone, isValidPhone } from '../shared/phone';
+import { Check } from 'lucide-react';
 
 const NAME_MAX = 150;
 const ABOUT_MAX = 4000;
@@ -80,7 +81,9 @@ function LocationEditor({ loc, index, isFood, onChange, onRemove }) {
             />
             {loc.city && (
               <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 4 }}>
-                Using: {composedAddress(loc)} {loc.lat && loc.lng ? '(located on map ✓)' : ''}
+                Using: {composedAddress(loc)} {loc.lat && loc.lng ? (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}>(located on map <Check size={12} />)</span>
+                ) : ''}
               </div>
             )}
           </div>

@@ -556,6 +556,18 @@
 }
 .est-expiry-note.expired { background: var(--gold-wash); color: var(--gold-hover); font-weight: 600; }
 
+/* ── "Can you afford this?" inline estimate (AffordabilityInline.js) --
+   sits right under the price/spec row, same muted-wash-card language as
+   .est-expiry-note above, just its own hook since the content shape
+   (headline + caption + link) is different. ── */
+.est-afford-inline {
+  background: var(--navy-wash);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin: 14px 0;
+}
+.est-afford-inline strong { color: var(--accent); }
+
 /* ── Photo upload widget (up to MAX_PHOTOS slots) ── */
 .est-photo-grid {
   display: grid;

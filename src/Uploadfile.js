@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Check } from 'lucide-react';
 
 const UploadFile = ({ setInvestors, apiextension }) => {
   const [uploading, setUploading] = useState(false);
@@ -49,7 +50,7 @@ const UploadFile = ({ setInvestors, apiextension }) => {
         style={{ fontSize: 13 }}
       />
       {uploading && <span style={{ fontSize: 12, color: 'var(--muted)' }}>Uploading…</span>}
-      {uploaded && !uploading && <span style={{ fontSize: 12, color: 'var(--muted)' }}>Uploaded ✓</span>}
+      {uploaded && !uploading && <span style={{ fontSize: 12, color: 'var(--muted)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>Uploaded <Check size={13} /></span>}
     </div>
   );
 };

@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
+import { Megaphone } from 'lucide-react';
 import apiRequest from '../ApiRequest';
 
 const STYLES = [
-  { value: 'info', label: 'ℹ️ Info (blue)' },
-  { value: 'success', label: '✅ Success (green)' },
-  { value: 'warning', label: '⚠️ Warning (yellow)' },
-  { value: 'urgent', label: '🚨 Urgent (red)' },
+  { value: 'info', label: 'Info (blue)' },
+  { value: 'success', label: 'Success (green)' },
+  { value: 'warning', label: 'Warning (yellow)' },
+  { value: 'urgent', label: 'Urgent (red)' },
 ];
 
 /** Super Admin control for the site-wide announcement banner -- shown above
@@ -76,7 +77,7 @@ export default function AdminSiteBanner() {
 
   return (
     <div className="admin-card" style={{ maxWidth: 640 }}>
-      <h3>📣 Site Banner</h3>
+      <h3><Megaphone size={18} /> Site Banner</h3>
       <p style={{ color: 'var(--muted)', marginTop: 0 }}>
         A dismissible announcement shown above the navbar on every GUT site. Anyone who
         closes it won't see that exact message again, but editing it here brings it back

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Bell, CheckCircle2 } from 'lucide-react';
 import apiRequest from '../ApiRequest';
 import { isLoggedIn } from '../auth';
 
@@ -50,18 +51,22 @@ export default function GetAlertsButton({ searchType, filters, label }) {
   if (!open) {
     return (
       <button type="button" className="gs-btn gs-btn-outline gs-btn-sm" onClick={() => setOpen(true)}>
-        🔔 Get alerts for this search
+        <Bell size={14} /> Get alerts for this search
       </button>
     );
   }
 
   if (status === 'done') {
-    return <div className="gs-success-box" style={{ fontSize: 13.5 }}>✅ {message}</div>;
+    return (
+      <div className="gs-success-box" style={{ fontSize: 13.5, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+        <CheckCircle2 size={14} /> {message}
+      </div>
+    );
   }
 
   return (
     <form onSubmit={submit} className="gs-card" style={{ display: 'inline-flex', flexDirection: 'column', gap: 8, padding: 14, maxWidth: 360 }}>
-      <strong style={{ fontSize: 13.5 }}>🔔 Get alerts for: {label}</strong>
+      <strong style={{ fontSize: 13.5, display: 'inline-flex', alignItems: 'center', gap: 4 }}><Bell size={13} /> Get alerts for: {label}</strong>
       {!loggedIn && (
         <input
           type="email" className="gs-input" placeholder="Your email"

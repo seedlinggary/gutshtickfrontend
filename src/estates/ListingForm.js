@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Home } from 'lucide-react';
+import { Home, ClipboardPaste } from 'lucide-react';
 import apiRequest from '../ApiRequest';
 import EstatesPhotoUpload from './EstatesPhotoUpload';
 import { normalizePhone, isValidPhone } from '../shared/phone';
@@ -141,8 +141,8 @@ export default function ListingForm() {
         {!editing && (
           <div className="est-form-section">
             {!pasteOpen ? (
-              <button type="button" className="gs-btn gs-btn-outline" onClick={() => setPasteOpen(true)}>
-                📋 Paste a WhatsApp post instead
+              <button type="button" className="gs-btn gs-btn-outline" onClick={() => setPasteOpen(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <ClipboardPaste size={15} /> Paste a WhatsApp post instead
               </button>
             ) : (
               <>

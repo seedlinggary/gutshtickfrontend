@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   Phone, Mail, Clock, Truck, Navigation, Map, ShieldCheck, ArrowLeft,
-  Globe2, Sparkles, Wrench, MessageCircle,
+  Globe2, Sparkles, Wrench, MessageCircle, Check, Accessibility, Info, Hourglass,
 } from 'lucide-react';
 import apiRequest from '../ApiRequest';
 import timeAgo from '../utils/timeAgo';
@@ -139,7 +139,7 @@ function ReviewsList({ businessId }) {
             <div style={{ fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
               {r.user?.profile_name || 'A customer'}
               <StarRating value={r.stars} size={13} />
-              {r.verified && <span className="biz-verified-badge" title="This reviewer redeemed a deal at this business">✓ Verified visit</span>}
+              {r.verified && <span className="biz-verified-badge" title="This reviewer redeemed a deal at this business" style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}><Check size={11} /> Verified visit</span>}
             </div>
             {r.review_text && <div style={{ marginTop: 2 }}>{r.review_text}</div>}
           </div>
@@ -318,14 +318,23 @@ export default function BusinessProfile() {
               {business.logo_url ? <img src={business.logo_url} alt={business.name} /> : <CategoryIcon category={business.category} size={30} />}
             </div>
             <div style={{ flex: 1 }}>
-              <h1>{business.name} {business.is_claimed && <span className="biz-badge biz-badge-claimed" title="Claimed by verified owner">✓ Claimed</span>}</h1>
+              <h1>{business.name} {business.is_claimed && <span className="biz-badge biz-badge-claimed" title="Claimed by verified owner"><Check size={12} /> Claimed</span>}</h1>
               <div className="biz-hero-category">{CATEGORY_LABELS[business.category] || business.category}</div>
               {['shul', 'mikvah'].includes(business.category) && (() => {
                 const attrs = business.attributes || {};
                 const parts = business.category === 'shul'
                   ? [attrs.rabbi_name && `Rabbi ${attrs.rabbi_name}`, attrs.hashkafa, attrs.families_count && `~${attrs.families_count} families`].filter(Boolean)
-                  : [attrs.wheelchair_accessible ? '♿ Wheelchair accessible' : null, attrs.mikvah_schedule].filter(Boolean);
-                return parts.length ? <div style={{ fontSize: 13, opacity: 0.9, marginTop: 2 }}>{parts.join(' · ')}</div> : null;
+                  : [attrs.wheelchair_accessible ? (<span key="wc" style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}><Accessibility size={13} /> Wheelchair accessible</span>) : null, attrs.mikvah_schedule].filter(Boolean);
+                return parts.length ? (
+                  <div style={{ fontSize: 13, opacity: 0.9, marginTop: 2, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 4 }}>
+                    {parts.map((p, i) => (
+                      <React.Fragment key={i}>
+                        {i > 0 && <span>·</span>}
+                        {p}
+                      </React.Fragment>
+                    ))}
+                  </div>
+                ) : null;
               })()}
               <TypeTags types={business.attributes?.types} />
               <div style={{ marginTop: 6 }}>
@@ -367,8 +376,8 @@ export default function BusinessProfile() {
             {business.about && <p style={{ whiteSpace: 'pre-wrap' }}>{business.about}</p>}
 
             {business.imported && (
-              <p style={{ fontSize: 12, color: 'var(--muted)' }}>
-                ℹ️ This listing was added from a public directory
+              <p style={{ fontSize: 12, color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                <Info size={13} /> This listing was added from a public directory
                 {business.source_name && <> — <em>{business.source_name}</em></>}
                 {business.source_url && <> (<a href={business.source_url} target="_blank" rel="noopener noreferrer">source</a>)</>}.
                 {!business.is_claimed && ' Is this your business? Claim it below to take over and correct anything.'}
@@ -379,7 +388,7 @@ export default function BusinessProfile() {
               <div className="gs-card" style={{ marginBottom: 16 }}>
                 <div className="gs-card-body">
                   {business.my_claim_status === 'pending' ? (
-                    <p style={{ margin: 0 }}>⏳ Your claim on this business is pending admin review.</p>
+                    <p style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 5 }}><Hourglass size={14} /> Your claim on this business is pending admin review.</p>
                   ) : business.my_claim_status === 'rejected' ? (
                     <>
                       <p>Your previous claim on this business was rejected. You can submit another one below.</p>

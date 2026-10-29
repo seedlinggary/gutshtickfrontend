@@ -8,6 +8,7 @@ import ShareButton from '../ShareButton';
 import { fetchCategory, fetchData } from '../actions';
 import { isLoggedIn } from '../auth';
 import formatDate from '../utils/timeAgo';
+import { Pin } from 'lucide-react';
 import { cardGenre } from '../utils/cardGenre';
 import { tallyMarks } from '../utils/tally';
 
@@ -71,7 +72,7 @@ const ShowMessage = ({ message, pinned }) => {
     <div className={`gs-card genre-${genre.genre}${pinned ? ' shtick-pinned' : ''}`}>
       <div className="gs-card-body">
         <span className="card-kind">
-          {pinned ? '📌 Pinned by the editors' : `${genre.label} · ${allCats[0]?.name || 'Gut Shtick'}`}
+          {pinned ? <><Pin size={12} /> Pinned by the editors</> : `${genre.label} · ${allCats[0]?.name || 'Gut Shtick'}`}
         </span>
         {/* Meta row */}
         <div className="shtick-meta">

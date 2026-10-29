@@ -11,6 +11,12 @@ import AdminAnalytics from './AdminAnalytics';
 import AdminBusinessAnalytics from './AdminBusinessAnalytics';
 import AdminAlertSchedule from './AdminAlertSchedule';
 import AdminSiteBanner from './AdminSiteBanner';
+import {
+  ShieldCheck, LayoutDashboard, Search, Users, CheckCircle2, Megaphone, Bell, Flag, Tag,
+  ScrollText, Bot, LineChart, Store, UserSearch, Newspaper, MessagesSquare, MessageCircle,
+  Briefcase, Home, BookOpen, ImageOff, Eye, MousePointerClick, Target, Archive, Pencil,
+  Trash2, BarChart3, Undo2, Check, X, Clock, UserCircle2, Play, Pause, Heart, Gamepad2, Plus,
+} from 'lucide-react';
 
 const ROLES = ['viewer', 'user', 'admin', 'super_admin'];
 const ROLE_LABELS = { viewer: 'Viewer', user: 'User', admin: 'Admin', super_admin: 'Super Admin' };
@@ -456,7 +462,7 @@ export default function SuperAdminDashboard() {
   return (
     <div className="admin-page superadmin-page">
       <div className="admin-header">
-        <h1>⭐ Super Admin</h1>
+        <h1><ShieldCheck size={24} /> Super Admin</h1>
         <p>Full platform control — users, roles, analytics, approval history.</p>
       </div>
 
@@ -464,22 +470,22 @@ export default function SuperAdminDashboard() {
 
       <div className="admin-tabs">
         {[
-          ['overview', '📊 Overview'],
-          ['search', '🔎 Search'],
-          ['users', `👥 Users (${usersMeta.total})`],
-          ['approvals', `✅ Approval History (${approvalsMeta.total})`],
-          ['ads', `📢 Ads (${adsMeta.total})`],
-          ['alerts', '🔔 Alerts'],
-          ['banner', '📣 Banner'],
-          ['categories', `🏷️ Categories (${categories.length})`],
-          ['audit_log', '📜 Audit Log'],
-          ['content_pipeline', '🤖 Content Pipeline'],
-          ['analytics', '📈 Analytics'],
-          ['business_analytics', '🏪 Business'],
-          ['activity', selectedUser ? `🔍 ${selectedUser.profile_name}` : '🔍 Activity'],
-        ].map(([key, label]) => (
+          ['overview', LayoutDashboard, 'Overview'],
+          ['search', Search, 'Search'],
+          ['users', Users, `Users (${usersMeta.total})`],
+          ['approvals', CheckCircle2, `Approval History (${approvalsMeta.total})`],
+          ['ads', Megaphone, `Ads (${adsMeta.total})`],
+          ['alerts', Bell, 'Alerts'],
+          ['banner', Flag, 'Banner'],
+          ['categories', Tag, `Categories (${categories.length})`],
+          ['audit_log', ScrollText, 'Audit Log'],
+          ['content_pipeline', Bot, 'Content Pipeline'],
+          ['analytics', LineChart, 'Analytics'],
+          ['business_analytics', Store, 'Business'],
+          ['activity', UserSearch, selectedUser ? selectedUser.profile_name : 'Activity'],
+        ].map(([key, Icon, label]) => (
           <button key={key} className={`admin-tab${tab === key ? ' active' : ''}`} onClick={() => setTab(key)}>
-            {label}
+            <Icon size={14} /> {label}
           </button>
         ))}
       </div>
@@ -493,7 +499,7 @@ export default function SuperAdminDashboard() {
             type="text"
             className="auth-input games-search-input"
             style={{ marginBottom: 16, maxWidth: 480 }}
-            placeholder="🔎 Search everything by id, title, body, category, or submitted by…"
+            placeholder="Search everything by id, title, body, category, or submitted by…"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             autoFocus
@@ -513,7 +519,7 @@ export default function SuperAdminDashboard() {
 
               {searchResults.shticks.length > 0 && (
                 <div style={{ marginBottom: 24 }}>
-                  <h3>📰 Feed Posts ({searchResults.shticks.length})</h3>
+                  <h3 className="admin-section-label"><Newspaper size={16} /> Feed Posts ({searchResults.shticks.length})</h3>
                   {searchResults.shticks.map((s) => (
                     <div key={s.id} className="admin-card">
                       <div className="admin-card-top">
@@ -533,7 +539,7 @@ export default function SuperAdminDashboard() {
 
               {searchResults.hock_posts.length > 0 && (
                 <div style={{ marginBottom: 24 }}>
-                  <h3>🗣 Hock Posts ({searchResults.hock_posts.length})</h3>
+                  <h3 className="admin-section-label"><MessagesSquare size={16} /> Hock Posts ({searchResults.hock_posts.length})</h3>
                   {searchResults.hock_posts.map((p) => (
                     <div key={p.id} className="admin-card" style={{ borderLeft: '4px solid #6366f1' }}>
                       <div className="admin-card-top">
@@ -555,7 +561,7 @@ export default function SuperAdminDashboard() {
 
               {searchResults.hock_comments.length > 0 && (
                 <div style={{ marginBottom: 24 }}>
-                  <h3>💬 Hock Comments ({searchResults.hock_comments.length})</h3>
+                  <h3 className="admin-section-label"><MessageCircle size={16} /> Hock Comments ({searchResults.hock_comments.length})</h3>
                   {searchResults.hock_comments.map((c) => (
                     <div key={c.id} className="admin-card comment-card">
                       <div className="admin-card-top">
@@ -571,7 +577,7 @@ export default function SuperAdminDashboard() {
 
               {searchResults.tachlis_posts.length > 0 && (
                 <div style={{ marginBottom: 24 }}>
-                  <h3>💼 Job Board Posts ({searchResults.tachlis_posts.length})</h3>
+                  <h3 className="admin-section-label"><Briefcase size={16} /> Job Board Posts ({searchResults.tachlis_posts.length})</h3>
                   {searchResults.tachlis_posts.map((t) => (
                     <div key={t.id} className="admin-card" style={{ borderLeft: '4px solid #6366f1' }}>
                       <div className="admin-card-top">
@@ -591,7 +597,7 @@ export default function SuperAdminDashboard() {
 
               {searchResults.comments.length > 0 && (
                 <div style={{ marginBottom: 24 }}>
-                  <h3>💬 Feed Comments ({searchResults.comments.length})</h3>
+                  <h3 className="admin-section-label"><MessageCircle size={16} /> Feed Comments ({searchResults.comments.length})</h3>
                   {searchResults.comments.map((c) => (
                     <div key={c.id} className="admin-card comment-card">
                       <div className="admin-card-top">
@@ -607,7 +613,7 @@ export default function SuperAdminDashboard() {
 
               {searchResults.users.length > 0 && (
                 <div style={{ marginBottom: 24 }}>
-                  <h3>👥 Users ({searchResults.users.length})</h3>
+                  <h3 className="admin-section-label"><Users size={16} /> Users ({searchResults.users.length})</h3>
                   {searchResults.users.map((u) => (
                     <div key={u.id} className="admin-card" style={{ cursor: 'pointer' }} onClick={() => viewActivity(u)}>
                       <div className="admin-card-top">
@@ -625,7 +631,7 @@ export default function SuperAdminDashboard() {
 
               {searchResults.businesses.length > 0 && (
                 <div style={{ marginBottom: 24 }}>
-                  <h3>🏪 Business Listings ({searchResults.businesses.length})</h3>
+                  <h3 className="admin-section-label"><Store size={16} /> Business Listings ({searchResults.businesses.length})</h3>
                   {searchResults.businesses.map((b) => (
                     <div key={b.id} className="admin-card" style={{ borderLeft: '4px solid #6366f1' }}>
                       <div className="admin-card-top">
@@ -645,7 +651,7 @@ export default function SuperAdminDashboard() {
 
               {searchResults.estates_listings.length > 0 && (
                 <div style={{ marginBottom: 24 }}>
-                  <h3>🏠 Estates Listings ({searchResults.estates_listings.length})</h3>
+                  <h3 className="admin-section-label"><Home size={16} /> Estates Listings ({searchResults.estates_listings.length})</h3>
                   {searchResults.estates_listings.map((e) => (
                     <div key={e.id} className="admin-card" style={{ borderLeft: '4px solid #6366f1' }}>
                       <div className="admin-card-top">
@@ -665,7 +671,7 @@ export default function SuperAdminDashboard() {
 
               {searchResults.torah_posts.length > 0 && (
                 <div style={{ marginBottom: 24 }}>
-                  <h3>📖 Torah Posts ({searchResults.torah_posts.length})</h3>
+                  <h3 className="admin-section-label"><BookOpen size={16} /> Torah Posts ({searchResults.torah_posts.length})</h3>
                   {searchResults.torah_posts.map((t) => (
                     <div key={t.id} className="admin-card" style={{ borderLeft: '4px solid #6366f1' }}>
                       <div className="admin-card-top">
@@ -685,7 +691,7 @@ export default function SuperAdminDashboard() {
 
               {searchResults.ads.length > 0 && (
                 <div style={{ marginBottom: 24 }}>
-                  <h3>📢 Ads ({searchResults.ads.length})</h3>
+                  <h3 className="admin-section-label"><Megaphone size={16} /> Ads ({searchResults.ads.length})</h3>
                   {searchResults.ads.map((a) => (
                     <div key={a.id} className="admin-card" style={{ cursor: 'pointer' }} onClick={() => setTab('ads')}>
                       <div className="admin-card-top">
@@ -717,26 +723,32 @@ export default function SuperAdminDashboard() {
       {tab === 'overview' && stats && !loading && (
         <div className="superadmin-stats-grid">
           <div className="sa-stat-card blue">
+            <Users size={18} className="sa-stat-icon" />
             <div className="sa-stat-num">{stats.users}</div>
             <div className="sa-stat-label">Total Users</div>
           </div>
           <div className="sa-stat-card amber">
+            <Clock size={18} className="sa-stat-icon" />
             <div className="sa-stat-num">{stats.shticks?.pending}</div>
             <div className="sa-stat-label">Pending Posts</div>
           </div>
           <div className="sa-stat-card green">
+            <CheckCircle2 size={18} className="sa-stat-icon" />
             <div className="sa-stat-num">{stats.shticks?.approved}</div>
             <div className="sa-stat-label">Approved Posts</div>
           </div>
           <div className="sa-stat-card purple">
+            <MessageCircle size={18} className="sa-stat-icon" />
             <div className="sa-stat-num">{stats.comments}</div>
             <div className="sa-stat-label">Comments</div>
           </div>
           <div className="sa-stat-card red">
+            <Heart size={18} className="sa-stat-icon" />
             <div className="sa-stat-num">{stats.likes}</div>
             <div className="sa-stat-label">Total Likes</div>
           </div>
           <div className="sa-stat-card teal">
+            <Gamepad2 size={18} className="sa-stat-icon" />
             <div className="sa-stat-num">{stats.game_sessions}</div>
             <div className="sa-stat-label">Game Sessions</div>
           </div>
@@ -811,7 +823,7 @@ export default function SuperAdminDashboard() {
             <div key={s.id} className="admin-card">
               <div className="admin-card-top">
                 <span className={`admin-badge ${s.approved_to_publish ? 'approved' : 'rejected'}`}>
-                  {s.approved_to_publish ? '✓ Approved' : '✕ Rejected'}
+                  {s.approved_to_publish ? <><Check size={12} /> Approved</> : <><X size={12} /> Rejected</>}
                 </span>
                 <span className="admin-date">{formatDate(s.pub_date)} <span style={{ fontSize: 11 }} title="Post ID">#{s.id}</span></span>
               </div>
@@ -821,7 +833,7 @@ export default function SuperAdminDashboard() {
                 {s.approver && <span> · Decision by: <b>{s.approver.profile_name}</b></span>}
               </div>
               <div className="admin-actions">
-                <button className="gs-btn gs-btn-sm" onClick={() => unapproveShtick(s.id)}>↩ Unapprove</button>
+                <button className="gs-btn gs-btn-sm" onClick={() => unapproveShtick(s.id)}><Undo2 size={13} /> Unapprove</button>
               </div>
             </div>
           ))}
@@ -838,7 +850,7 @@ export default function SuperAdminDashboard() {
           <div className="ad-manager-toolbar">
             <h3 style={{ margin: 0 }}>Advertisements</h3>
             {!adForm && (
-              <button className="gs-btn gs-btn-primary gs-btn-sm" onClick={openNewAdForm}>+ New Ad</button>
+              <button className="gs-btn gs-btn-primary gs-btn-sm" onClick={openNewAdForm}><Plus size={14} /> New Ad</button>
             )}
           </div>
 
@@ -1001,12 +1013,12 @@ export default function SuperAdminDashboard() {
 
           {adsLoading && <div className="gs-loading"><div className="gs-spinner" /></div>}
           <div className="ad-manager-list">
-            {!adsLoading && ads.length === 0 && <div className="admin-empty">No ads yet — click "+ New Ad" to create one.</div>}
+            {!adsLoading && ads.length === 0 && <div className="admin-empty">No ads yet — click "New Ad" to create one.</div>}
             {!adsLoading && ads.map((ad) => (
               <div key={ad.id} className="ad-manager-row">
                 {ad.image_url
                   ? <img className="ad-manager-thumb" src={ad.image_url} alt={ad.name} />
-                  : <div className="ad-manager-thumb" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24 }}>🖼️</div>
+                  : <div className="ad-manager-thumb ad-manager-thumb-empty"><ImageOff size={20} /></div>
                 }
                 <div className="ad-manager-info">
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -1023,13 +1035,13 @@ export default function SuperAdminDashboard() {
                     {ad.advertiser_name && <span>· {ad.advertiser_name}</span>}
                   </div>
                   <div className="ad-manager-meta">
-                    <span>👁 {ad.impression_count || 0} impressions</span>
-                    <span>🖱 {ad.click_count || 0} clicks</span>
+                    <span><Eye size={13} /> {ad.impression_count || 0} impressions</span>
+                    <span><MousePointerClick size={13} /> {ad.click_count || 0} clicks</span>
                     <span>
                       CTR {ad.impression_count ? ((ad.click_count / ad.impression_count) * 100).toFixed(1) : '0.0'}%
                     </span>
                     {(ad.target_age_min || ad.target_age_max || ad.target_gender || ad.target_countries) && (
-                      <span>· 🎯 targeted</span>
+                      <span><Target size={13} /> targeted</span>
                     )}
                   </div>
                   <div style={{ marginTop: 8 }}>
@@ -1041,20 +1053,20 @@ export default function SuperAdminDashboard() {
                 </div>
                 <div className="ad-manager-actions">
                   {ad.status !== 'active' && ad.status !== 'archived' && (
-                    <button className="gs-btn gs-btn-outline gs-btn-sm" onClick={() => setAdStatus(ad.id, 'active')}>▶ Activate</button>
+                    <button className="gs-btn gs-btn-outline gs-btn-sm" onClick={() => setAdStatus(ad.id, 'active')}><Play size={13} /> Activate</button>
                   )}
                   {ad.status === 'active' && (
-                    <button className="gs-btn gs-btn-outline gs-btn-sm" onClick={() => setAdStatus(ad.id, 'paused')}>⏸ Pause</button>
+                    <button className="gs-btn gs-btn-outline gs-btn-sm" onClick={() => setAdStatus(ad.id, 'paused')}><Pause size={13} /> Pause</button>
                   )}
                   {ad.status !== 'archived' && (
-                    <button className="gs-btn gs-btn-outline gs-btn-sm" onClick={() => setAdStatus(ad.id, 'archived')}>🗄 Archive</button>
+                    <button className="gs-btn gs-btn-outline gs-btn-sm" onClick={() => setAdStatus(ad.id, 'archived')}><Archive size={13} /> Archive</button>
                   )}
-                  <button className="gs-btn gs-btn-outline gs-btn-sm" onClick={() => openEditAdForm(ad)}>✎ Edit</button>
+                  <button className="gs-btn gs-btn-outline gs-btn-sm" onClick={() => openEditAdForm(ad)}><Pencil size={13} /> Edit</button>
                   {ad.status === 'draft' && (
-                    <button className="gs-btn gs-btn-danger gs-btn-sm" onClick={() => deleteAd(ad.id)}>🗑 Delete</button>
+                    <button className="gs-btn gs-btn-danger gs-btn-sm" onClick={() => deleteAd(ad.id)}><Trash2 size={13} /> Delete</button>
                   )}
                   <button className="gs-btn gs-btn-outline gs-btn-sm" onClick={() => toggleAdStats(ad.id)}>
-                    📊 {expandedStatsAdId === ad.id ? 'Hide' : 'Detailed'} Stats
+                    <BarChart3 size={13} /> {expandedStatsAdId === ad.id ? 'Hide' : 'Detailed'} Stats
                   </button>
                 </div>
                 {expandedStatsAdId === ad.id && (
@@ -1106,11 +1118,11 @@ export default function SuperAdminDashboard() {
           style={{ display: tab === 'content_pipeline' ? 'block' : 'none' }}
         >
           <section style={{ marginBottom: 32 }}>
-            <h3 className="shtick-caption" style={{ marginBottom: 10 }}>🤖 AI-Generated Posts</h3>
+            <h3 className="shtick-caption admin-section-label" style={{ marginBottom: 10 }}><Bot size={17} /> AI-Generated Posts</h3>
             <AdminAiPosts />
           </section>
           <section style={{ marginBottom: 32 }}>
-            <h3 className="shtick-caption" style={{ marginBottom: 10 }}>📰 News Scrapers</h3>
+            <h3 className="shtick-caption admin-section-label" style={{ marginBottom: 10 }}><Newspaper size={17} /> News Scrapers</h3>
             <AdminScrapers />
           </section>
           <section>
@@ -1220,7 +1232,7 @@ export default function SuperAdminDashboard() {
               {activity.shticks?.map((s, i) => (
                 <div key={i} className="sa-activity-item">
                   <span className={`admin-badge ${s.approved ? 'approved' : s.approved === false ? 'rejected' : 'pending'}`}>
-                    {s.approved ? '✓' : s.approved === false ? '✕' : '⏳'}
+                    {s.approved ? <Check size={11} /> : s.approved === false ? <X size={11} /> : <Clock size={11} />}
                   </span>
                   <span>{s.caption}</span>
                   <span className="admin-date">{formatDate(s.pub_date)}</span>

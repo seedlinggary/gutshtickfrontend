@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Star } from 'lucide-react';
 
 /** Read-only stars when `onRate` isn't given; an interactive 1-5 picker when it is. */
 export default function StarRating({ value = 0, count, onRate, size = 16 }) {
@@ -21,7 +22,7 @@ export default function StarRating({ value = 0, count, onRate, size = 16 }) {
               onBlur={() => interactive && setHover(0)}
               onClick={() => interactive && onRate(n)}
               style={{
-                fontSize: size,
+                display: 'inline-flex',
                 color: n <= display ? 'var(--gold, #f5a623)' : 'var(--border)',
                 cursor: interactive ? 'pointer' : 'default',
                 lineHeight: 1,
@@ -31,7 +32,7 @@ export default function StarRating({ value = 0, count, onRate, size = 16 }) {
                 fontFamily: 'inherit',
               }}
             >
-              ★
+              <Star size={size} fill={n <= display ? 'var(--gold, #f5a623)' : 'none'} color={n <= display ? 'var(--gold, #f5a623)' : 'var(--border)'} />
             </Tag>
           );
         })}

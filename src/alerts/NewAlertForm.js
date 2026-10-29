@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Bell } from 'lucide-react';
 import apiRequest from '../ApiRequest';
 
 const ESTATES_TYPES = [
@@ -113,7 +114,7 @@ export default function NewAlertForm({ onCreated, onCancel }) {
 
   return (
     <form onSubmit={submit} className="gs-card" style={{ padding: 16, marginBottom: 14, display: 'flex', flexDirection: 'column', gap: 12 }}>
-      <strong>🔔 New alert</strong>
+      <strong style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Bell size={14} /> New alert</strong>
 
       <div style={{ display: 'flex', gap: 16 }}>
         <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>

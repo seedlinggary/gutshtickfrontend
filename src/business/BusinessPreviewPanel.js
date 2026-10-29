@@ -5,7 +5,7 @@ import TypeTags from './TypeTags';
 import { CATEGORY_LABELS, CATEGORY_TINTS } from './categories';
 import { hoursToday, isOpenNow } from './hours';
 import CategoryIcon from './CategoryIcon';
-import { ShieldCheck, ArrowLeft, Clock, Navigation, ArrowRight } from 'lucide-react';
+import { ShieldCheck, ArrowLeft, Clock, Navigation, ArrowRight, Check } from 'lucide-react';
 
 /** Shown in the Directory's list column in place of the results list when a
  * map pin is clicked -- a quick look at that one business with a path to
@@ -28,7 +28,7 @@ export default function BusinessPreviewPanel({ business, onBack }) {
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
             <h3 className="shtick-caption" style={{ margin: 0 }}>{business.name}</h3>
-            {business.is_claimed && <span className="biz-badge biz-badge-claimed" title="Claimed by verified owner">✓</span>}
+            {business.is_claimed && <span className="biz-badge biz-badge-claimed" title="Claimed by verified owner"><Check size={12} /></span>}
           </div>
           <div style={{ fontSize: 13, color: 'var(--muted)', marginTop: 2 }}>
             {CATEGORY_LABELS[business.category] || business.category}

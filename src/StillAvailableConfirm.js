@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import apiRequest from './ApiRequest';
+import { CheckCircle2 } from 'lucide-react';
 
 /** Stage 5's "Still available?" check -- landing page for the one-click
  * confirm link in that email. `apiPrefix` points at whichever site's API
@@ -22,8 +23,8 @@ export default function StillAvailableConfirm({ apiPrefix }) {
       <div className="gs-container" style={{ maxWidth: 480, textAlign: 'center' }}>
         {state === 'loading' && <div className="gs-loading"><div className="gs-spinner" /> Confirming…</div>}
         {state === 'done' && (
-          <div className="gs-success-box">
-            ✅ Thanks! {title && <strong>{title}</strong>} is confirmed still available.
+          <div className="gs-success-box" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <CheckCircle2 size={16} /> Thanks! {title && <strong>{title}</strong>} is confirmed still available.
           </div>
         )}
         {state === 'error' && (

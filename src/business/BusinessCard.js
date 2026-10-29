@@ -7,7 +7,7 @@ import TypeTags from './TypeTags';
 import KashrutInfo from './kashrutInfo';
 import CategoryIcon from './CategoryIcon';
 import LocationTypeIcon from './LocationTypeIcon';
-import { Rocket, ShieldCheck, MapPin, ChevronRight } from 'lucide-react';
+import { Rocket, ShieldCheck, MapPin, ChevronRight, Accessibility, Check } from 'lucide-react';
 
 function locationBlurb(loc) {
   if (!loc) return null;
@@ -28,11 +28,20 @@ function CommunityInfoLine({ category, info }) {
     if (info.hashkafa) parts.push(info.hashkafa);
     if (info.families_count) parts.push(`~${info.families_count} families`);
   } else if (category === 'mikvah') {
-    if (info.wheelchair_accessible) parts.push('♿ Wheelchair accessible');
+    if (info.wheelchair_accessible) parts.push(<span key="wc" style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}><Accessibility size={12} /> Wheelchair accessible</span>);
     if (info.mikvah_schedule) parts.push(info.mikvah_schedule);
   }
   if (!parts.length) return null;
-  return <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 4 }}>{parts.join(' · ')}</div>;
+  return (
+    <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 4, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 4 }}>
+      {parts.map((p, i) => (
+        <React.Fragment key={i}>
+          {i > 0 && <span>·</span>}
+          {p}
+        </React.Fragment>
+      ))}
+    </div>
+  );
 }
 
 /** `onHover(id|null)` -- if given, lets the Directory's split view highlight
@@ -57,7 +66,9 @@ export default function BusinessCard({ business, onHover, active, onCompareToggl
           className={`biz-compare-toggle${isComparing ? ' biz-compare-toggle-active' : ''}`}
           onClick={(e) => { e.preventDefault(); e.stopPropagation(); onCompareToggle(business); }}
         >
-          {isComparing ? '✓ Comparing' : '+ Compare'}
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+            {isComparing ? <><Check size={11} /> Comparing</> : '+ Compare'}
+          </span>
         </button>
       )}
       <Link to={`/business/${business.slug}`} style={{ textDecoration: 'none', color: 'inherit' }}>
@@ -70,7 +81,7 @@ export default function BusinessCard({ business, onHover, active, onCompareToggl
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
               <h3 className="shtick-caption" style={{ margin: 0 }}>{business.name}</h3>
-              {business.is_claimed && <span className="biz-badge biz-badge-claimed" title="Claimed by verified owner">✓</span>}
+              {business.is_claimed && <span className="biz-badge biz-badge-claimed" title="Claimed by verified owner"><Check size={12} /></span>}
               {business.is_boosted && <span className="biz-badge biz-badge-boost" title="Boosted placement"><Rocket size={11} /></span>}
             </div>
             <div style={{ fontSize: 13, color: 'var(--muted)', marginTop: 2, display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>

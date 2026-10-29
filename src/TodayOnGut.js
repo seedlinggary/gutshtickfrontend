@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Newspaper, Sunrise, Home as HomeIcon, Briefcase } from 'lucide-react';
 import apiRequest from './ApiRequest';
 import { siteUrl } from './siteMode';
 import ShareButton from './ShareButton';
@@ -64,7 +65,7 @@ export default function TodayOnGut() {
     <div className="feed-section">
       <div className="gs-container" style={{ maxWidth: 820 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10, marginBottom: 4 }}>
-          <h1 style={{ margin: 0 }}>📰 Today on GUT</h1>
+          <h1 style={{ margin: 0, display: 'inline-flex', alignItems: 'center', gap: 8 }}><Newspaper size={22} /> Today on GUT</h1>
           <ShareButton
             title="Today on GUT"
             text={`${totalCount} new homes and jobs posted today across GUT -- `}
@@ -83,14 +84,14 @@ export default function TodayOnGut() {
 
         {data && totalCount === 0 && (
           <div className="gs-empty">
-            <p style={{ fontSize: 40, marginBottom: 8 }}>🌅</p>
+            <div className="gs-empty-icon"><Sunrise size={26} /></div>
             <p>Nothing new in the last 24 hours yet -- check back soon.</p>
           </div>
         )}
 
         {data && data.estates.length > 0 && (
           <div style={{ marginTop: 24 }}>
-            <h2 style={{ fontSize: 18 }}>🏠 New homes ({data.estates.length})</h2>
+            <h2 style={{ fontSize: 18, display: 'inline-flex', alignItems: 'center', gap: 6 }}><HomeIcon size={16} /> New homes ({data.estates.length})</h2>
             {estatesGroups.map(([area, items]) => (
               <div key={area} className="today-group">
                 <div className="today-group-label">{area} <span className="today-group-count">({items.length})</span></div>
@@ -102,7 +103,7 @@ export default function TodayOnGut() {
 
         {data && data.jobs.length > 0 && (
           <div style={{ marginTop: 24 }}>
-            <h2 style={{ fontSize: 18 }}>💼 New jobs ({data.jobs.length})</h2>
+            <h2 style={{ fontSize: 18, display: 'inline-flex', alignItems: 'center', gap: 6 }}><Briefcase size={16} /> New jobs ({data.jobs.length})</h2>
             {jobsGroups.map(([category, items]) => (
               <div key={category} className="today-group">
                 <div className="today-group-label">{category} <span className="today-group-count">({items.length})</span></div>

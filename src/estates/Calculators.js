@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Calculator } from 'lucide-react';
 import MortgageCalculator from './calculators/MortgageCalculator';
 import AffordabilityCalculator from './calculators/AffordabilityCalculator';
@@ -15,8 +16,23 @@ const TABS = [
 ];
 
 export default function Calculators() {
-  const [tab, setTab] = useState('mortgage');
+  const [searchParams] = useSearchParams();
+  // Lets a listing's "Open full mortgage calculator" link (see
+  // AffordabilityInline.js) land directly on the right tab, pre-filled with
+  // the price it already knows -- same read-once-on-mount pattern
+  // EstatesDirectory.js uses for its own filters.
+  const [tab, setTab] = useState(() => {
+    const requested = searchParams.get('tab');
+    return TABS.some((t) => t.key === requested) ? requested : 'mortgage';
+  });
   const Active = TABS.find((t) => t.key === tab).Component;
+
+  const priceParam = searchParams.get('price');
+  const parsedPrice = priceParam != null ? Number(priceParam) : undefined;
+  const initialValues = {
+    price: isFinite(parsedPrice) ? parsedPrice : undefined,
+    currency: searchParams.get('currency') || undefined,
+  };
 
   return (
     <div className="feed-section">
@@ -35,7 +51,7 @@ export default function Calculators() {
           ))}
         </div>
 
-        <Active />
+        <Active initialValues={initialValues} />
       </div>
     </div>
   );

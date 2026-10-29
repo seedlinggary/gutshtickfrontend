@@ -7,6 +7,7 @@ import { getEmail, getToken, isAdmin, isSuperAdmin, clearAuth } from './auth';
 import NotificationBell from './NotificationBell';
 import NavStreakChip from './NavStreakChip';
 import GlobalSearchBar from './search/GlobalSearchBar';
+import { Newspaper, MessagesSquare, Coffee, Settings, Plus, Bell, Inbox, Heart, Hourglass } from 'lucide-react';
 
 function useOutsideClose(open, setOpen) {
   const ref = useRef(null);
@@ -93,7 +94,7 @@ function AppNavbar() {
                 <ul className="dropdown-menu">
                   {boss && (
                     <li><button className="dropdown-item" onClick={() => goToFeed('/feed/0', '0')}>
-                      ⏳ Pending Approval
+                      <Hourglass size={14} /> Pending Approval
                     </button></li>
                   )}
                   <li><button className="dropdown-item" onClick={() => goToFeed('/feed/all', 'all')}>
@@ -101,7 +102,7 @@ function AppNavbar() {
                   </button></li>
                   {email && (
                     <li><button className="dropdown-item" onClick={() => goToFeed('/feed/liked', 'liked')}>
-                      ❤ My Liked Posts
+                      <Heart size={14} /> My Liked Posts
                     </button></li>
                   )}
                   {categories && categories.length > 0 && <li><hr className="dropdown-divider" /></li>}
@@ -116,14 +117,14 @@ function AppNavbar() {
               )}
             </li>
 
-            <li className="nav-item"><button className="nav-link" onClick={() => go('/today')}>📰 Today</button></li>
-            <li className="nav-item"><button className="nav-link" onClick={() => go('/hock')}>🗣️ Hock</button></li>
-            <li className="nav-item"><button className="nav-link" onClick={() => go('/games')}>☕ Coffee Break</button></li>
+            <li className="nav-item"><button className="nav-link" onClick={() => go('/today')}><Newspaper size={15} /> Today</button></li>
+            <li className="nav-item"><button className="nav-link" onClick={() => go('/hock')}><MessagesSquare size={15} /> Hock</button></li>
+            <li className="nav-item"><button className="nav-link" onClick={() => go('/games')}><Coffee size={15} /> Coffee Break</button></li>
 
             {boss && (
               <li className="nav-item dropdown" ref={adminRef}>
                 <button className="nav-link dropdown-toggle" onClick={() => setAdminOpen((o) => !o)}>
-                  ⚙ Admin
+                  <Settings size={15} /> Admin
                 </button>
                 {adminOpen && (
                   <ul className="dropdown-menu">
@@ -143,10 +144,10 @@ function AppNavbar() {
               <>
                 <li className="nav-item"><NavStreakChip /></li>
                 <li className="nav-item navbar-notif"><NotificationBell /></li>
-                <li className="nav-item"><button className="nav-link nav-link-pin" onClick={() => go('/CreateShtick')}>＋ Pin Something</button></li>
+                <li className="nav-item"><button className="nav-link nav-link-pin" onClick={() => go('/CreateShtick')}><Plus size={15} /> Pin Something</button></li>
                 <li className="nav-item"><button className="nav-link" onClick={() => go('/profile')}>Profile</button></li>
-                <li className="nav-item"><button className="nav-link" onClick={() => go('/alerts')}>🔔 My Alerts</button></li>
-                <li className="nav-item"><button className="nav-link" onClick={() => go('/my-feed')}>📬 My Feed</button></li>
+                <li className="nav-item"><button className="nav-link" onClick={() => go('/alerts')}><Bell size={15} /> My Alerts</button></li>
+                <li className="nav-item"><button className="nav-link" onClick={() => go('/my-feed')}><Inbox size={15} /> My Feed</button></li>
                 <li className="nav-item"><button className="nav-link" onClick={handleSignOut}>Sign Out</button></li>
               </>
             ) : (
@@ -155,7 +156,7 @@ function AppNavbar() {
                     pre-login, so a visitor never saw an invitation to contribute
                     anywhere on the site. */}
                 <li className="nav-item">
-                  <button className="nav-link nav-link-pin" onClick={() => go('/signup?next=%2FCreateShtick')}>＋ Pin Something</button>
+                  <button className="nav-link nav-link-pin" onClick={() => go('/signup?next=%2FCreateShtick')}><Plus size={15} /> Pin Something</button>
                 </li>
                 <li className="nav-item"><button className="nav-link" onClick={() => go('/signin')}>Sign In</button></li>
                 <li className="nav-item"><button className="nav-link" onClick={() => go('/signup')}>Sign Up</button></li>

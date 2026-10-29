@@ -1,11 +1,15 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500..600&family=Figtree:wght@400;500;600;700;800&display=swap');
+
 :root {
   /* "Sunny Board" palette -- warm coral + sky blue on cream, replacing the
      old dark-ink/mustard kraft-paper newspaper look with something lighter
-     and friendlier. --bg/--surface/--primary/--accent/--font-serif etc. keep
-     their original names on purpose (even though several no longer match
-     their literal name -- --font-serif is a sans stack now, --hot/--fresh
-     are repurposed as the Hock/deal tag colors) so every existing var()
-     reference across the codebase repaints without a find-and-replace. */
+     and friendlier. --bg/--surface/--primary/--accent etc. keep their
+     original names on purpose (--hot/--fresh are repurposed as the
+     Hock/deal tag colors) so every existing var() reference across the
+     codebase repaints without a find-and-replace. --font-serif went back to
+     an actual serif (Fraunces) paired with Figtree for body copy -- a
+     warmer, more distinctive pairing than the Inter-everywhere default that
+     reads as templated/AI-generated at a glance. */
   --bg: #fff8f0;
   --surface: #ffffff;
   --surface-deep: #ffefdd;
@@ -33,7 +37,7 @@
   --shadow: 0 1px 2px rgba(74, 63, 53, 0.04), 0 8px 24px rgba(74, 63, 53, 0.07);
   --shadow-lg: 0 4px 8px rgba(74, 63, 53, 0.06), 0 16px 40px rgba(74, 63, 53, 0.10);
   --transition: 180ms ease;
-  --font-serif: "Trebuchet MS", "Century Gothic", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-serif: 'Fraunces', Georgia, 'Times New Roman', serif;
   --font-mono: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   /* Pastel tag-pill colors, one pair per card genre + a neutral fallback. */
   --tag-joke-bg: #fff3d6; --tag-joke-text: #a9761e;
@@ -62,7 +66,7 @@ html, body {
 
 body {
   margin: 0;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: 'Figtree', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   font-size: 15px;
   line-height: 1.6;
   color: var(--text);
@@ -73,8 +77,9 @@ body {
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-serif);
-  font-weight: 700;
-  line-height: 1.3;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
   color: var(--text);
   margin: 0 0 0.5rem;
   text-wrap: balance;
@@ -270,6 +275,154 @@ iframe {
   color: #1f2430;
 }
 
+/* ── Ask GUT -- floating cross-site chat assistant, mounted once in App.js
+   right next to the language selector above (same "global, outside any
+   one navbar" reasoning). Pinned bottom-LEFT so it doesn't sit on top of
+   .cross-site-wrap's "switch sites" icon, which already owns bottom-right;
+   lifted clear of .mobile-tabbar (z-index 900, ~64-84px tall with its
+   safe-area padding) on narrow screens the same way .ad-slot-bottom
+   already does. ── */
+.askgut-wrap {
+  position: fixed;
+  left: 16px;
+  bottom: calc(20px + env(safe-area-inset-bottom));
+  z-index: 950;
+}
+@media (max-width: 768px) {
+  .askgut-wrap { bottom: calc(84px + env(safe-area-inset-bottom)); left: 12px; }
+}
+.askgut-fab {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background var(--transition), transform var(--transition);
+}
+.askgut-fab:hover { background: var(--accent-hover); transform: translateY(-1px); }
+.askgut-panel {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 12px);
+  width: min(360px, calc(100vw - 32px));
+  max-height: min(520px, calc(100vh - 140px));
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.askgut-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 14px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+}
+.askgut-panel-header span { display: inline-flex; align-items: center; gap: 7px; }
+.askgut-close {
+  background: none; border: none; color: #fff; opacity: 0.85; cursor: pointer;
+  display: flex; align-items: center; padding: 2px;
+}
+.askgut-close:hover { opacity: 1; }
+.askgut-panel-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.askgut-intro {
+  color: var(--muted);
+  font-size: 13.5px;
+  line-height: 1.5;
+  margin: 0;
+}
+.askgut-msg { display: flex; flex-direction: column; gap: 6px; }
+.askgut-msg-user { align-items: flex-end; }
+.askgut-msg-assistant { align-items: flex-start; }
+.askgut-msg-bubble {
+  max-width: 88%;
+  padding: 9px 13px;
+  border-radius: var(--radius);
+  font-size: 13.5px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+.askgut-msg-user .askgut-msg-bubble { background: var(--accent); color: #fff; }
+.askgut-msg-assistant .askgut-msg-bubble { background: var(--surface-deep); color: var(--text); }
+.askgut-typing { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
+.askgut-spin { animation: gs-spin 0.8s linear infinite; }
+.askgut-error {
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: var(--danger);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  font-size: 13px;
+}
+.askgut-result-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+.askgut-result-row {
+  padding: 9px 10px;
+  margin-bottom: 0;
+  font-size: 13px;
+}
+.askgut-result-row .search-result-title { font-size: 13px; white-space: normal; }
+.askgut-result-row .search-result-snippet { font-size: 11.5px; }
+.askgut-panel-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-top: 1px solid var(--border);
+}
+.askgut-panel-form input {
+  flex: 1;
+  border: 1.5px solid var(--border);
+  border-radius: 999px;
+  padding: 9px 14px;
+  font-family: inherit;
+  font-size: 13.5px;
+  background: var(--bg);
+  color: var(--text);
+  min-width: 0;
+}
+.askgut-panel-form input:focus { outline: none; border-color: var(--accent); }
+.askgut-panel-form button {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background var(--transition);
+}
+.askgut-panel-form button:hover:not(:disabled) { background: var(--accent-hover); }
+.askgut-panel-form button:disabled { opacity: 0.5; cursor: default; }
+
 /* ── Cross-site link -- the *only* way to jump between sites, deliberately a
    small icon rather than a nav item. Opens a menu listing every site this
    deployment serves (see CrossSiteLink.js/siteMode.js's listAllSites()). ── */
@@ -448,7 +601,9 @@ iframe {
   position: relative;
 }
 .gs-navbar .nav-link {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   background: none;
   border: none;
   color: var(--muted);
@@ -458,6 +613,10 @@ iframe {
   cursor: pointer;
   transition: color var(--transition);
   white-space: nowrap;
+}
+.gs-navbar .nav-link svg {
+  flex-shrink: 0;
+  opacity: 0.8;
 }
 .gs-navbar .nav-link:hover {
   color: var(--accent-hover);
@@ -524,7 +683,9 @@ iframe {
   right: 0;
 }
 .gs-navbar .dropdown-item {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   width: 100%;
   text-align: left;
   background: none;
@@ -536,6 +697,10 @@ iframe {
   border-radius: var(--radius-sm);
   cursor: pointer;
   white-space: nowrap;
+}
+.gs-navbar .dropdown-item svg {
+  flex-shrink: 0;
+  color: var(--muted);
 }
 .gs-navbar .dropdown-item:hover {
   background: rgba(245, 158, 11, 0.1);
@@ -698,6 +863,17 @@ iframe {
 .gs-card.shtick-pinned .card-kind { background: var(--surface-deep); color: var(--accent-hover); font-weight: 800; }
 .shtick-caption-pinned { font-size: 22px; }
 
+/* ── Tachlis "posted by a claimed business" badge (PostCard/TachlisPostPage,
+   business ↔ Job Board hiring loop) -- same small-pill shape as
+   .ad-status-badge/.admin-badge, just its own color since it links out to a
+   business profile rather than signaling a status. ── */
+.tachlis-business-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 10px; border-radius: 999px; font-size: 11px; font-weight: 700;
+  background: var(--tag-deal-bg); color: var(--tag-deal-text);
+  text-decoration: none;
+}
+
 /* ── Mid-feed encouragement nudge -- a one-time, friendly prompt (see
    FeedHome.js) meant to pull a reader one more card deeper instead of
    letting the scroll go flat, not a recurring/naggy banner. ── */
@@ -705,7 +881,7 @@ iframe {
   text-align: center; padding: 20px 18px; margin: 4px 0 18px;
   background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);
 }
-.feed-nudge-emoji { display: block; font-size: 24px; margin-bottom: 6px; }
+.feed-nudge-emoji { display: flex; align-items: center; justify-content: center; color: var(--accent-hover); margin-bottom: 6px; }
 .feed-nudge p { margin: 0; font-size: 14px; color: var(--muted); font-weight: 600; }
 
 /* ── Cross-pollination strips (Hock highlight, Tachlis fresh) ── */
@@ -721,7 +897,7 @@ iframe {
 .cross-heat { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
 .cross-heat-bar { width: 56px; height: 5px; border-radius: 3px; background: var(--border); overflow: hidden; }
 .cross-heat-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--hot)); }
-.cross-heat-label { font-family: var(--font-mono); font-size: 10.5px; color: var(--muted); text-transform: uppercase; }
+.cross-heat-label { display: inline-flex; align-items: center; gap: 3px; font-family: var(--font-mono); font-size: 10.5px; color: var(--muted); text-transform: uppercase; }
 
 /* ── Punch card (Profile streak) ── */
 .punch-card {
@@ -994,6 +1170,17 @@ iframe {
   color: var(--muted);
   font-size: 15px;
 }
+.gs-empty-icon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  background: var(--surface-deep);
+  color: var(--accent-hover);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
 /* ── "Today on GUT" page ── */
 .today-group {
@@ -1246,6 +1433,7 @@ iframe {
   flex-wrap: wrap;
 }
 .gs-hero-shake {
+  display: inline-flex; align-items: center; gap: 7px;
   font-size: 14px; font-weight: 700;
   background: var(--text); border: none; color: #fff;
   border-radius: 100px; padding: 10px 20px; cursor: pointer; transition: opacity var(--transition);
@@ -1253,11 +1441,90 @@ iframe {
 .gs-hero-shake:hover { opacity: 0.85; }
 .gs-hero-shake:disabled { opacity: .5; cursor: default; }
 .gs-hero-pin {
+  display: inline-flex; align-items: center; gap: 7px;
   font-size: 14px; font-weight: 700;
   background: rgba(255,255,255,.75); border: none; color: var(--text);
   border-radius: 100px; padding: 10px 20px; cursor: pointer; transition: background var(--transition);
 }
 .gs-hero-pin:hover { background: #fff; }
+
+/* ── Board hero (generic) -- same "masthead card" treatment as the Daily
+   Board's own .gs-hero above, but built entirely from theme variables
+   instead of a hardcoded coral/cream/sky gradient, so any site's board
+   page (Job Board today) gets the same warm, designed feel while still
+   rendering in that site's own distinct palette/fonts -- a Money page
+   gets this in navy/teal + Spectral, a Business page would get it in
+   navy/brass + its own display face, entirely for free via the existing
+   --surface/--accent/--font-serif (and h1's own per-site override) vars. ── */
+.gs-board-hero {
+  background: linear-gradient(135deg, var(--surface-deep) 0%, var(--surface) 65%, var(--bg) 100%);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 26px 24px 24px;
+  margin-bottom: 20px;
+}
+.gs-board-hero-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.gs-board-hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--accent-hover);
+  background: var(--surface);
+  border-radius: 999px;
+  padding: 5px 12px;
+  margin-bottom: 12px;
+  box-shadow: var(--shadow-sm);
+}
+.gs-board-hero-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: clamp(24px, 4vw, 30px);
+  margin: 0;
+}
+.gs-board-hero-title svg {
+  color: var(--accent-hover);
+  flex-shrink: 0;
+}
+.gs-board-hero-sub {
+  font-size: 14.5px;
+  color: var(--muted);
+  max-width: 480px;
+  margin: 8px 0 0;
+  line-height: 1.6;
+}
+.gs-board-hero-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 14px;
+  font-weight: 700;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 100px;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: background var(--transition);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.gs-board-hero-cta:hover { background: var(--accent-hover); }
+@media (max-width: 640px) {
+  .gs-board-hero { padding: 20px 18px; }
+}
 
 /* ── Pin Something card -- the site-wide invitation to contribute ── */
 .pin-something {
@@ -1523,7 +1790,78 @@ iframe {
   gap: 8px;
   margin-bottom: 4px;
 }
+
+/* ── Board toolbar -- the search/sort/filter/alerts controls above a
+   scrolling list of posts (Job Board today; any similar board can reuse
+   this). Groups what used to be 3 separate loose flex rows sitting
+   directly on the page background into one contained card, so it reads as
+   a single control panel instead of a pile of disconnected bars. ── */
+.board-toolbar {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 14px 16px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.board-toolbar-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.board-toolbar-search-icon {
+  position: absolute;
+  left: 12px;
+  color: var(--muted);
+  pointer-events: none;
+}
+.board-toolbar-search-input {
+  width: 100%;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 14px 10px 36px;
+  font-family: inherit;
+  font-size: 14px;
+  background: var(--bg);
+  color: var(--text);
+  transition: border-color var(--transition);
+}
+.board-toolbar-search-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.board-toolbar-search-input::placeholder {
+  color: var(--muted-faint);
+}
+.board-toolbar-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.board-toolbar-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.board-toolbar-filters {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
 .content-type-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   flex: 1;
   min-width: 120px;
   padding: 12px 14px;
@@ -1777,6 +2115,7 @@ iframe {
 /* ── Comments ── */
 .comments-section { margin-top: 14px; border-top: 1px solid var(--border); padding-top: 10px; }
 .comments-toggle {
+  display: inline-flex; align-items: center; gap: 5px;
   background: none; border: none; color: var(--muted); font-size: 13px;
   cursor: pointer; padding: 4px 0; font-weight: 500; transition: color var(--transition);
 }
@@ -1830,25 +2169,38 @@ iframe {
 
 /* ── Admin / Super-Admin ── */
 .admin-page {
-  max-width: 900px; margin: 0 auto; padding: 32px 20px 80px;
+  max-width: 980px; margin: 0 auto; padding: 32px 20px 80px;
 }
 .admin-header { margin-bottom: 28px; }
-.admin-header h1 { font-size: 26px; font-weight: 800; color: var(--primary); margin-bottom: 4px; }
+.admin-header h1 {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 26px; font-weight: 700; color: var(--primary); margin-bottom: 4px;
+}
+.admin-header h1 svg { color: var(--accent-hover); }
 .admin-header p { color: var(--muted); font-size: 14px; }
-.admin-tabs { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
+.admin-section-label { display: flex; align-items: center; gap: 8px; }
+.admin-section-label svg { color: var(--muted); flex-shrink: 0; }
+.admin-tabs {
+  display: flex; gap: 6px; margin-bottom: 24px; flex-wrap: wrap;
+  padding: 5px; background: var(--surface-deep); border-radius: var(--radius);
+}
 .admin-tab {
-  padding: 7px 18px; border-radius: 20px; border: 1.5px solid var(--border);
-  background: var(--surface); font-size: 13px; font-weight: 600;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 14px; border-radius: var(--radius-sm); border: none;
+  background: none; font-size: 13px; font-weight: 600;
   cursor: pointer; color: var(--muted); transition: all var(--transition);
 }
-.admin-tab.active, .admin-tab:hover {
-  background: var(--primary); color: #fff; border-color: var(--primary);
+.admin-tab:hover { color: var(--accent-hover); background: rgba(255,255,255,0.5); }
+.admin-tab.active {
+  background: var(--surface); color: var(--accent-hover); box-shadow: var(--shadow-sm);
 }
 .admin-list { display: flex; flex-direction: column; gap: 14px; }
 .admin-card {
   background: var(--surface); border: 1px solid var(--border);
   border-radius: var(--radius); padding: 18px 20px; box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--transition);
 }
+.admin-card:hover { box-shadow: var(--shadow); }
 .admin-card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 6px; }
 .admin-caption { font-size: 15px; font-weight: 700; color: var(--primary); margin-bottom: 4px; }
 .admin-meta { font-size: 12px; color: var(--muted); margin: 4px 0; }
@@ -1856,42 +2208,50 @@ iframe {
 .admin-date { font-size: 12px; color: var(--muted); }
 .admin-empty { text-align: center; padding: 40px; color: var(--muted); font-size: 15px; }
 .admin-badge {
-  display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 11px; font-weight: 700;
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 10px; border-radius: 20px; font-size: 11px; font-weight: 700;
 }
-.admin-badge.pending { background: #fef3c7; color: #92400e; }
-.admin-badge.approved { background: #d1fae5; color: #065f46; }
-.admin-badge.rejected { background: #fee2e2; color: #991b1b; }
-.superadmin-page .admin-header h1 { color: #7c3aed; }
+.admin-badge.pending { background: var(--tag-joke-bg); color: var(--tag-joke-text); }
+.admin-badge.approved { background: var(--tag-deal-bg); color: var(--tag-deal-text); }
+.admin-badge.rejected { background: var(--tag-forum-bg); color: var(--tag-forum-text); }
+.superadmin-page .admin-header h1 { color: var(--primary); }
+.superadmin-page .admin-header h1 svg { color: var(--tag-flyer-text); }
 .superadmin-stats-grid {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 14px; margin-bottom: 28px;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; margin-bottom: 28px;
 }
 .sa-stat-card {
-  border-radius: var(--radius); padding: 20px 16px; text-align: center;
+  position: relative;
+  border-radius: var(--radius); padding: 18px 16px 16px; text-align: left;
+  background: var(--surface); border: 1px solid var(--border);
+  border-left: 4px solid var(--stat-color, var(--accent));
   box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--transition), transform var(--transition);
 }
-.sa-stat-card.blue { background: #dbeafe; }
-.sa-stat-card.amber { background: #fef3c7; }
-.sa-stat-card.green { background: #d1fae5; }
-.sa-stat-card.purple { background: #ede9fe; }
-.sa-stat-card.red { background: #fee2e2; }
-.sa-stat-card.teal { background: #ccfbf1; }
-.sa-stat-num { font-size: 32px; font-weight: 800; color: var(--primary); line-height: 1; }
+.sa-stat-card:hover { box-shadow: var(--shadow); transform: translateY(-1px); }
+.sa-stat-icon { color: var(--stat-color, var(--accent)); margin-bottom: 10px; }
+.sa-stat-card.blue   { --stat-color: var(--tag-news-text); }
+.sa-stat-card.amber  { --stat-color: var(--tag-joke-text); }
+.sa-stat-card.green  { --stat-color: var(--tag-deal-text); }
+.sa-stat-card.purple { --stat-color: var(--tag-flyer-text); }
+.sa-stat-card.red    { --stat-color: var(--tag-forum-text); }
+.sa-stat-card.teal   { --stat-color: #2f9e8f; }
+.sa-stat-num { font-family: var(--font-serif); font-size: 30px; font-weight: 600; color: var(--primary); line-height: 1; }
 .sa-stat-label { font-size: 12px; font-weight: 600; color: var(--muted); margin-top: 4px; text-transform: uppercase; letter-spacing: .04em; }
 .sa-user-filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
-.sa-user-table { border: 1px solid var(--border); border-radius: var(--radius); overflow-x: auto; overflow-y: hidden; }
+.sa-user-table { border: 1px solid var(--border); border-radius: var(--radius); overflow-x: auto; overflow-y: hidden; box-shadow: var(--shadow-sm); }
 .sa-user-row {
   display: grid; grid-template-columns: 160px 1fr 130px 60px 90px 120px;
-  gap: 12px; padding: 10px 16px; align-items: center;
+  gap: 12px; padding: 11px 16px; align-items: center;
   border-bottom: 1px solid var(--border); font-size: 13px;
   min-width: 700px;
 }
-.sa-user-row.header { background: var(--bg); font-weight: 700; font-size: 11px; text-transform: uppercase; color: var(--muted); }
+.sa-user-row.header { background: var(--bg); font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--muted); }
 .sa-user-row:last-child { border-bottom: none; }
-.sa-user-row:not(.header):hover { background: rgba(245,158,11,0.04); }
+.sa-user-row:not(.header):hover { background: var(--surface-deep); }
 .sa-profile { display: flex; gap: 8px; align-items: center; font-weight: 600; }
 .sa-role-select {
-  border: 1.5px solid; border-radius: 6px; font-size: 12px; font-weight: 600;
-  padding: 3px 6px; cursor: pointer; background: var(--surface);
+  border: 1.5px solid; border-radius: var(--radius-sm); font-size: 12px; font-weight: 600;
+  padding: 4px 8px; cursor: pointer; background: var(--surface); font-family: inherit;
 }
 .sa-activity { margin-top: 8px; }
 .sa-activity h2 { font-size: 20px; margin-bottom: 4px; }
@@ -2868,7 +3228,10 @@ iframe {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--transition);
 }
+.ad-manager-row:hover { box-shadow: var(--shadow); }
 .ad-manager-thumb {
   width: 72px;
   height: 72px;
@@ -2878,30 +3241,43 @@ iframe {
   border: 1px solid var(--border);
   flex-shrink: 0;
 }
+.ad-manager-thumb-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted-faint);
+}
 .ad-manager-info {
   flex: 1;
   min-width: 200px;
 }
 .ad-manager-meta {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   flex-wrap: wrap;
+  align-items: center;
   font-size: 12px;
   color: var(--muted);
   margin-top: 4px;
 }
+.ad-manager-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
 .ad-status-badge {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
   padding: 2px 10px;
   border-radius: 999px;
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
 }
-.ad-status-badge.status-draft { background: rgba(100,116,139,.14); color: #475569; }
-.ad-status-badge.status-active { background: rgba(34,197,94,.14); color: #16a34a; }
-.ad-status-badge.status-paused { background: rgba(245,158,11,.14); color: #d97706; }
-.ad-status-badge.status-archived { background: rgba(239,68,68,.14); color: #dc2626; }
+.ad-status-badge.status-draft { background: var(--tag-neutral-bg); color: var(--muted); }
+.ad-status-badge.status-active { background: var(--tag-deal-bg); color: var(--tag-deal-text); }
+.ad-status-badge.status-paused { background: var(--tag-joke-bg); color: var(--tag-joke-text); }
+.ad-status-badge.status-archived { background: var(--tag-forum-bg); color: var(--tag-forum-text); }
 .ad-manager-actions {
   display: flex;
   gap: 8px;
@@ -3103,21 +3479,30 @@ iframe {
   background: none;
   border: none;
   color: #fff;
-  font-size: 20px;
-  padding: 8px 10px;
+  padding: 8px 9px;
   cursor: pointer;
   line-height: 1;
   display: flex;
   align-items: center;
+  border-radius: 999px;
+  transition: background var(--transition);
+}
+.global-search-btn:hover {
+  background: rgba(255, 255, 255, 0.16);
 }
 .global-search-form {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   background: var(--surface);
   border: 1.5px solid var(--border);
   border-radius: 999px;
-  padding: 6px 10px;
+  padding: 7px 8px 7px 12px;
+  box-shadow: var(--shadow-sm);
+  transition: border-color var(--transition);
+}
+.global-search-form:focus-within {
+  border-color: var(--accent);
 }
 .global-search-icon {
   color: var(--muted);
@@ -3133,55 +3518,184 @@ iframe {
   width: 160px;
 }
 .global-search-close {
-  background: none;
+  background: var(--bg);
   border: none;
   color: var(--muted);
   cursor: pointer;
   display: flex;
   align-items: center;
-  padding: 2px;
+  padding: 4px;
+  border-radius: 50%;
   flex-shrink: 0;
+  transition: all var(--transition);
 }
 .global-search-close:hover {
   color: var(--text);
+  background: var(--surface-deep);
 }
 @media (max-width: 640px) {
   .global-search-input { width: 110px; }
 }
 
 /* ── Search results page (search/SearchResults.js) ── */
+.search-page-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.search-page-heading svg {
+  color: var(--accent-hover);
+}
 .search-page-form {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 20px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 6px 8px 6px 18px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-sm);
+  transition: border-color var(--transition);
+}
+.search-page-form:focus-within {
+  border-color: var(--accent);
 }
 .search-page-icon {
-  display: none;
+  color: var(--muted);
+  flex-shrink: 0;
 }
 .search-page-input {
   flex: 1;
+  border: none;
+  outline: none;
+  background: none;
+  font-family: inherit;
+  font-size: 15px;
+  color: var(--text);
+  min-width: 0;
+}
+.search-page-input::placeholder {
+  color: var(--muted-faint);
+}
+.search-page-count {
+  color: var(--muted);
+  font-size: 13.5px;
+  margin: 0 0 18px;
+}
+
+/* Empty/no-results state -- a soft icon badge in the accent tint instead of
+   a giant literal emoji glyph, which is where the page read most "AI demo"
+   before (the one spot the user specifically flagged). */
+.search-page-empty {
+  text-align: center;
+  padding: 56px 20px;
+  color: var(--muted);
+  font-size: 15px;
+}
+.search-page-empty-badge {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  background: var(--surface-deep);
+  color: var(--accent-hover);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.search-page-empty p {
+  max-width: 440px;
+  margin: 0 auto;
+}
+
+.search-result-group {
+  margin-bottom: 20px;
+}
+.search-result-group-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-weight: 700;
+  font-size: 12.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.search-result-group-count {
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--muted-faint);
 }
 .search-result-row {
-  cursor: pointer;
-}
-.search-result-row-btn {
+  display: flex;
+  align-items: center;
+  gap: 14px;
   width: 100%;
   text-align: left;
-  border: none;
+  border: 1px solid var(--border);
   background: var(--surface);
-  font-family: inherit;
-}
-.search-result-group {
+  border-radius: var(--radius);
+  padding: 12px 14px;
   margin-bottom: 8px;
+  text-decoration: none;
+  color: inherit;
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--transition), transform var(--transition), border-color var(--transition);
+}
+.search-result-row:hover {
+  box-shadow: var(--shadow);
+  transform: translateY(-1px);
+  border-color: var(--border);
+  text-decoration: none;
+  color: inherit;
+}
+.search-result-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.search-result-body {
+  min-width: 0;
+  flex: 1;
+}
+.search-result-title {
+  font-weight: 700;
+  font-size: 14.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.search-result-snippet {
+  font-size: 12.5px;
+  color: var(--muted);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.search-result-mark {
+  background: var(--surface-deep);
+  color: var(--accent-hover);
+  border-radius: 3px;
+  padding: 0 1px;
 }
 .search-result-meta {
   display: flex;
   gap: 8px;
   align-items: center;
-  margin-top: 2px;
+  margin-top: 4px;
   font-size: 11.5px;
-  color: var(--muted);
+  color: var(--muted-faint);
 }
 .search-result-site {
   background: var(--surface-deep);
@@ -3190,8 +3704,13 @@ iframe {
   padding: 1px 8px;
   font-weight: 700;
 }
+.search-result-chevron {
+  color: var(--muted-faint);
+  flex-shrink: 0;
+}
 @media (max-width: 640px) {
   .search-page-form { flex-wrap: wrap; }
+  .search-result-snippet { white-space: normal; }
 }
 
 /* ── Share button ── */

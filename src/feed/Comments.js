@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import apiRequest from '../ApiRequest';
 import { isLoggedIn, isAdmin } from '../auth';
 import formatDate from '../utils/timeAgo';
+import { MessageCircle } from 'lucide-react';
 
 export default function Comments({ shtickId }) {
   const [comments, setComments] = useState([]);
@@ -44,7 +45,7 @@ export default function Comments({ shtickId }) {
   return (
     <div className="comments-section">
       <button className="comments-toggle" onClick={() => setExpanded((e) => !e)}>
-        💬 {comments.length} comment{comments.length !== 1 ? 's' : ''}
+        <MessageCircle size={14} /> {comments.length} comment{comments.length !== 1 ? 's' : ''}
         {!expanded && comments.length > 3 ? ` · show all` : expanded ? ' · collapse' : ''}
       </button>
 

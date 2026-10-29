@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { AlertTriangle, CheckCircle2 } from 'lucide-react';
 import apiRequest from '../ApiRequest';
 
 const SITE_LABEL = { estates: 'Gut Estates', tachlis: 'Gut Money' };
@@ -26,14 +27,14 @@ export default function AlertConfirm() {
         {state === 'loading' && <div className="gs-loading"><div className="gs-spinner" /> Confirming…</div>}
         {state === 'error' && (
           <>
-            <p style={{ fontSize: 40, marginBottom: 8 }}>⚠️</p>
+            <div className="gs-empty-icon"><AlertTriangle size={26} /></div>
             <h1 style={{ fontSize: 22 }}>Link not valid</h1>
             <p style={{ color: 'var(--muted)' }}>This confirmation link is invalid or has already been used.</p>
           </>
         )}
         {state === 'done' && (
           <>
-            <p style={{ fontSize: 40, marginBottom: 8 }}>✅</p>
+            <div className="gs-empty-icon"><CheckCircle2 size={26} /></div>
             <h1 style={{ fontSize: 22 }}>Alert confirmed</h1>
             <p style={{ color: 'var(--muted)' }}>
               You're set -- you'll get an email whenever there's a new match for

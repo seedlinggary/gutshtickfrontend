@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Bell } from 'lucide-react';
 import apiRequest from '../ApiRequest';
 import NewAlertForm from './NewAlertForm';
 
@@ -45,7 +46,7 @@ export default function MyAlerts() {
   return (
     <div className="feed-section">
       <div className="gs-container" style={{ maxWidth: 680 }}>
-        <h1 style={{ margin: '0 0 4px' }}>🔔 My Alerts</h1>
+        <h1 style={{ margin: '0 0 4px', display: 'inline-flex', alignItems: 'center', gap: 8 }}><Bell size={22} /> My Alerts</h1>
         <p style={{ color: 'var(--muted)', marginTop: 0 }}>
           Searches you're getting emailed about. Set one up here, or from any search or area page on Gut Estates or Gut Money's Job Board.
         </p>
@@ -67,7 +68,7 @@ export default function MyAlerts() {
 
         {alerts && alerts.length === 0 && !creating && (
           <div className="gs-empty">
-            <p style={{ fontSize: 40, marginBottom: 8 }}>🔔</p>
+            <div className="gs-empty-icon"><Bell size={26} /></div>
             <p>No alerts yet. Create one above, or look for "Get alerts for this search" on any listing or job search.</p>
           </div>
         )}

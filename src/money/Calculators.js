@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Calculator } from 'lucide-react';
 import CompoundInterestCalculator from './calculators/CompoundInterestCalculator';
 import RetirementCalculator from './calculators/RetirementCalculator';
@@ -25,8 +26,21 @@ const TABS = [
 ];
 
 export default function Calculators() {
-  const [tab, setTab] = useState('compound');
+  const [searchParams] = useSearchParams();
+  // Lets a Tachlis post's "See this after Israeli tax" link (see
+  // CompensationEquivalent.js) land directly on the Israel Net Salary tab,
+  // pre-filled with the gross monthly figure it already parsed -- same
+  // read-once-on-mount pattern Tachlis.js/EstatesDirectory.js use for
+  // their own filters.
+  const [tab, setTab] = useState(() => {
+    const requested = searchParams.get('tab');
+    return TABS.some((t) => t.key === requested) ? requested : 'compound';
+  });
   const Active = TABS.find((t) => t.key === tab).Component;
+
+  const grossParam = searchParams.get('grossMonthly');
+  const parsedGross = grossParam != null ? Number(grossParam) : undefined;
+  const initialValues = { grossMonthly: isFinite(parsedGross) ? parsedGross : undefined };
 
   return (
     <div className="feed-section">
@@ -45,7 +59,7 @@ export default function Calculators() {
           ))}
         </div>
 
-        <Active />
+        <Active initialValues={initialValues} />
       </div>
     </div>
   );

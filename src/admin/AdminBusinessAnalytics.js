@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Copy, Check } from 'lucide-react';
+import { Copy, Check, Search, Plus, Store } from 'lucide-react';
 import apiRequest from '../ApiRequest';
 import { siteUrl } from '../siteMode';
 
@@ -130,7 +130,7 @@ export default function AdminBusinessAnalytics() {
     <div className="admin-analytics">
       {/* ── Look up a business: jump straight into its account ── */}
       <div style={{ marginBottom: 28 }}>
-        <h3 className="shtick-caption" style={{ marginBottom: 4 }}>🔎 Look Up a Business</h3>
+        <h3 className="shtick-caption admin-section-label" style={{ marginBottom: 4 }}><Search size={16} /> Look Up a Business</h3>
         <p className="admin-empty" style={{ marginTop: 0, marginBottom: 10 }}>
           Search by business name, city, or the owner's email/name — then jump straight into
           its public profile or Owner Tools (open to Super Admin regardless of ownership).
@@ -210,7 +210,7 @@ export default function AdminBusinessAnalytics() {
           unattended bulk import, which "whose" a raw created_by id can't. ── */}
       <div style={{ marginBottom: 28 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4, flexWrap: 'wrap', gap: 8 }}>
-          <h3 className="shtick-caption" style={{ margin: 0 }}>🆕 Recently Added Businesses</h3>
+          <h3 className="shtick-caption admin-section-label" style={{ margin: 0 }}><Plus size={16} /> Recently Added Businesses</h3>
           <button className="gs-btn gs-btn-outline gs-btn-sm" onClick={() => loadRecent(1)} disabled={recentLoading}>
             ↻ Refresh
           </button>
@@ -322,7 +322,7 @@ export default function AdminBusinessAnalytics() {
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
         <div>
-          <h3 className="shtick-caption" style={{ marginBottom: 4 }}>🏪 Business Site Analytics</h3>
+          <h3 className="shtick-caption admin-section-label" style={{ marginBottom: 4 }}><Store size={16} /> Business Site Analytics</h3>
           <p className="admin-empty" style={{ margin: 0 }}>
             Traffic and engagement for Gut Community — kept separate from the main site's numbers.
             Localhost/dev traffic and staff activity are excluded automatically.

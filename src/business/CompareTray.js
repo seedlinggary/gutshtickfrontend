@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Star } from 'lucide-react';
 import { CATEGORY_LABELS } from './categories';
 import { describeKashrut } from './kashrutInfo';
 
@@ -62,7 +63,11 @@ function CompareModal({ items, onClose }) {
 
   const rows = [
     { label: 'Category', get: (b) => CATEGORY_LABELS[b.category] || b.category },
-    { label: 'Rating', get: (b) => (b.rating_count ? `★ ${b.rating_avg.toFixed(1)} (${b.rating_count})` : 'No ratings yet') },
+    { label: 'Rating', get: (b) => (b.rating_count ? (
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+        <Star size={13} fill="var(--gold, #f5a623)" color="var(--gold, #f5a623)" /> {b.rating_avg.toFixed(1)} ({b.rating_count})
+      </span>
+    ) : 'No ratings yet') },
     { label: 'Kashrut', get: (b) => b.primary_location?.kashrut || '—' },
     { label: 'Certifies', get: (b) => describeKashrut(b.primary_location?.kashrut).map((k) => k.label).join(', ') || '—' },
     { label: 'City', get: (b) => b.primary_location?.city || '—' },

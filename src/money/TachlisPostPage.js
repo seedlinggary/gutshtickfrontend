@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import { SearchX, MapPin, DollarSign, Zap, CheckCircle2, Eye, Phone } from 'lucide-react';
 import apiRequest from '../ApiRequest';
 import ShareButton from '../ShareButton';
 import { isLoggedIn, isAdmin } from '../auth';
-import { TypeBadge } from './Tachlis';
+import { TypeBadge, BusinessPostBadge } from './Tachlis';
+import CompensationEquivalent from './CompensationEquivalent';
 import timeAgo from '../utils/timeAgo';
 
 const TITLE_MAX = 150;
@@ -174,7 +176,7 @@ export default function TachlisPostPage() {
 
         {!loading && error && (
           <div className="gs-empty">
-            <p style={{ fontSize: 40, marginBottom: 8 }}>🤷</p>
+            <div className="gs-empty-icon"><SearchX size={26} /></div>
             <p>This post isn't available — it may have been removed, or you may not have access.</p>
           </div>
         )}
@@ -188,11 +190,12 @@ export default function TachlisPostPage() {
                 <div className="shtick-meta">
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
                     <TypeBadge type={post.post_type} />
+                    <BusinessPostBadge post={post} />
                     {post.location && (
-                      <span style={{ fontSize: 13, color: 'var(--muted)' }}>📍 {post.location}</span>
+                      <span style={{ fontSize: 13, color: 'var(--muted)', display: 'inline-flex', alignItems: 'center', gap: 4 }}><MapPin size={13} /> {post.location}</span>
                     )}
                     {post.compensation && (
-                      <span style={{ fontSize: 13, color: 'var(--muted)' }}>💰 {post.compensation}</span>
+                      <span style={{ fontSize: 13, color: 'var(--muted)', display: 'inline-flex', alignItems: 'center', gap: 4 }}><DollarSign size={13} /> {post.compensation}</span>
                     )}
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -205,6 +208,8 @@ export default function TachlisPostPage() {
                     />
                   </div>
                 </div>
+
+                <CompensationEquivalent compensation={post.compensation} />
 
                 {editingPost ? (
                   <form onSubmit={savePostEdit} style={{ marginTop: 10 }}>
@@ -261,8 +266,8 @@ export default function TachlisPostPage() {
                         <div className="gs-card-body">
                           {!applyResult ? (
                             <>
-                              <button type="button" className="gs-btn gs-btn-primary gs-btn-sm" onClick={handleApply} disabled={applying}>
-                                {applying ? 'Applying…' : '⚡ One-tap apply'}
+                              <button type="button" className="gs-btn gs-btn-primary gs-btn-sm" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }} onClick={handleApply} disabled={applying}>
+                                {applying ? 'Applying…' : <><Zap size={14} /> One-tap apply</>}
                               </button>
                               <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 6 }}>
                                 Sends your CV summary from your <Link to="/profile">profile</Link> to the poster.
@@ -270,7 +275,7 @@ export default function TachlisPostPage() {
                               {applyError && <div className="gs-error-box" style={{ marginTop: 6 }}>{applyError}</div>}
                             </>
                           ) : applyResult.sent ? (
-                            <div className="gs-success-box">✅ Applied! Your CV summary was sent to the poster.</div>
+                            <div className="gs-success-box" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><CheckCircle2 size={15} /> Applied! Your CV summary was sent to the poster.</div>
                           ) : (
                             <>
                               <div className="gs-success-box">
@@ -295,7 +300,7 @@ export default function TachlisPostPage() {
 
                     {isOwner && (
                       <div style={{ display: 'flex', gap: 8, marginTop: 12, alignItems: 'center', flexWrap: 'wrap', fontSize: 13, color: 'var(--muted)' }}>
-                        <span>👁 {post.views_count || 0} views · 📞 {post.contact_taps || 0} contact taps</span>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Eye size={13} /> {post.views_count || 0} views · <Phone size={13} /> {post.contact_taps || 0} contact taps</span>
                         {post.status === 'active' ? (
                           <>
                             <button type="button" className="gs-btn gs-btn-outline gs-btn-sm" onClick={handleRenew} disabled={busy}>Renew</button>

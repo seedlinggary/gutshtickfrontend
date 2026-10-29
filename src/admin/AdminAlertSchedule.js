@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Bell, Mail, HelpCircle } from 'lucide-react';
 import apiRequest from '../ApiRequest';
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
@@ -142,7 +143,7 @@ export default function AdminAlertSchedule() {
 
   return (
     <div className="admin-card" style={{ maxWidth: 560 }}>
-      <h3>🔔 Alert Digest Schedule</h3>
+      <h3><Bell size={18} /> Alert Digest Schedule</h3>
       <p style={{ color: 'var(--muted)', marginTop: 0 }}>
         Once a day, every confirmed, unpaused alert gets emailed its new matches.
         This is when that happens -- in Israel time, regardless of where the server
@@ -189,7 +190,7 @@ export default function AdminAlertSchedule() {
           </div>
 
           <div style={{ marginTop: 20, borderTop: '1px solid var(--border)', paddingTop: 14 }}>
-            <h4 style={{ margin: '0 0 6px' }}>📬 "Your Week" digest</h4>
+            <h4 style={{ margin: '0 0 6px' }}><Mail size={15} /> "Your Week" digest</h4>
             <p style={{ color: 'var(--muted)', marginTop: 0, fontSize: 13.5 }}>
               A weekly roundup email for every opted-in member, same time of day as above, on this day:
             </p>
@@ -216,7 +217,7 @@ export default function AdminAlertSchedule() {
           </div>
 
           <div style={{ marginTop: 20, borderTop: '1px solid var(--border)', paddingTop: 14 }}>
-            <h4 style={{ margin: '0 0 6px' }}>❓ "Still available?" check</h4>
+            <h4 style={{ margin: '0 0 6px' }}><HelpCircle size={15} /> "Still available?" check</h4>
             <p style={{ color: 'var(--muted)', marginTop: 0, fontSize: 13.5 }}>
               14 days after posting, asks the poster to confirm a sale/long-term listing or job post is still
               available. No reply within a few days hides it. <strong>Messages real posters and hides their

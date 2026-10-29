@@ -148,7 +148,7 @@ function BudgetEditor({ budgetId, onBack, onDeleted }) {
       </div>
 
       <button type="button" className="gs-btn gs-btn-primary" onClick={save} disabled={saving} style={{ marginBottom: 20 }}>
-        <Save size={15} /> {saving ? 'Saving…' : saved ? 'Saved ✓' : 'Save budget'}
+        <Save size={15} /> {saving ? 'Saving…' : saved ? <>Saved <Check size={14} /></> : 'Save budget'}
       </button>
 
       <div className="fin-form-section">
@@ -161,7 +161,7 @@ function BudgetEditor({ budgetId, onBack, onDeleted }) {
             <label className="fin-field-label">Monthly savings goal</label>
             <input className="gs-input" type="number" placeholder="e.g. 500" value={goalInput} onChange={(e) => setGoalInput(e.target.value)} onBlur={saveGoal} />
           </div>
-          {goalSaved && <span style={{ fontSize: 12.5, color: 'var(--muted)' }}>Saved ✓</span>}
+          {goalSaved && <span style={{ fontSize: 12.5, color: 'var(--muted)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>Saved <Check size={13} /></span>}
         </div>
       </div>
 

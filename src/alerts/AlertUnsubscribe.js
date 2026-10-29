@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { AlertTriangle, BellOff } from 'lucide-react';
 import apiRequest from '../ApiRequest';
 
 /** Landing page for the one-click unsubscribe link in every alert email --
@@ -22,14 +23,14 @@ export default function AlertUnsubscribe() {
         {state === 'loading' && <div className="gs-loading"><div className="gs-spinner" /> Unsubscribing…</div>}
         {state === 'error' && (
           <>
-            <p style={{ fontSize: 40, marginBottom: 8 }}>⚠️</p>
+            <div className="gs-empty-icon"><AlertTriangle size={26} /></div>
             <h1 style={{ fontSize: 22 }}>Already gone</h1>
             <p style={{ color: 'var(--muted)' }}>This alert no longer exists -- it may already be unsubscribed.</p>
           </>
         )}
         {state === 'done' && (
           <>
-            <p style={{ fontSize: 40, marginBottom: 8 }}>👋</p>
+            <div className="gs-empty-icon"><BellOff size={26} /></div>
             <h1 style={{ fontSize: 22 }}>Unsubscribed</h1>
             <p style={{ color: 'var(--muted)' }}>You won't get any more emails for this alert.</p>
             <Link to="/" className="gs-btn gs-btn-outline" style={{ marginTop: 12 }}>Back to Gut Shtick</Link>

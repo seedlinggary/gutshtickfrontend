@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import apiRequest from '../ApiRequest';
 import ShowMessage from './ShowMessage';
+import { AlertCircle } from 'lucide-react';
 
 /** Permalink for a single post — this is what a shared link actually opens,
  * as opposed to the paginated "/feed/<category>" view a share recipient
@@ -29,7 +30,7 @@ export default function PostPage() {
         )}
         {!loading && error && (
           <div className="gs-empty">
-            <p style={{ fontSize: 40, marginBottom: 8 }}>🤷</p>
+            <div className="gs-empty-icon"><AlertCircle size={26} /></div>
             <p>This post isn't available — it may have been removed.</p>
             <Link to="/" className="gs-btn gs-btn-outline gs-btn-sm" style={{ marginTop: 12 }}>Back to feed</Link>
           </div>

@@ -7,6 +7,7 @@ import {
 import apiRequest from '../ApiRequest';
 import { isLoggedIn } from '../auth';
 import ShareButton from '../ShareButton';
+import AffordabilityInline from './AffordabilityInline';
 
 const TYPE_LABEL = {
   sale: 'For Sale',
@@ -141,6 +142,10 @@ export default function ListingProfile() {
             {listing.bathrooms != null && <div className="est-spec"><span className="est-spec-value">{listing.bathrooms}</span><span className="est-spec-label">Bathrooms</span></div>}
             {listing.size_value != null && <div className="est-spec"><span className="est-spec-value">{listing.size_value}</span><span className="est-spec-label">{listing.size_unit === 'sqm' ? 'm²' : 'sq ft'}</span></div>}
           </div>
+        )}
+
+        {listing.listing_type === 'sale' && listing.price != null && (
+          <AffordabilityInline price={listing.price} currency={listing.currency} />
         )}
 
         {listing.description && <p dir="auto" style={{ lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{listing.description}</p>}

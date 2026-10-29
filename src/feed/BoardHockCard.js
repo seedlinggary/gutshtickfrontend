@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { MessagesSquare, ThumbsUp, MessageCircle } from 'lucide-react';
 import timeAgo from '../utils/timeAgo';
 
 /**
@@ -17,7 +18,7 @@ export default function BoardHockCard({ post }) {
     <Link to={`/hock/post/${post.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
       <div className="gs-card genre-forum cross-post" style={{ marginBottom: 14 }}>
         <div className="gs-card-body">
-          <span className="card-kind">🗣 From Hock</span>
+          <span className="card-kind"><MessagesSquare size={13} /> From Hock</span>
           <div className="shtick-meta">
             <div className="shtick-author" style={{ flex: 1 }}>
               <div className="shtick-author-avatar">{authorInitial}</div>
@@ -32,8 +33,9 @@ export default function BoardHockCard({ post }) {
             </p>
           )}
           <div className="shtick-footer" style={{ marginTop: 10 }}>
-            <span style={{ fontSize: 13, color: 'var(--muted)' }}>
-              👍 {post.like_count || 0} · 💬 {post.comment_count || 0}
+            <span style={{ fontSize: 13, color: 'var(--muted)', display: 'inline-flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><ThumbsUp size={13} /> {post.like_count || 0}</span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><MessageCircle size={13} /> {post.comment_count || 0}</span>
             </span>
           </div>
         </div>

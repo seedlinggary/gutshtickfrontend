@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Star } from 'lucide-react';
 import apiRequest from '../ApiRequest';
 
 const FEEDBACK_MAX = 1000;
@@ -38,8 +39,8 @@ export default function ReviewFunnel({ businessId, googleReviewUrl }) {
     return (
       <div className="biz-review-funnel biz-review-funnel-positive">
         <p>Glad to hear it! Mind sharing that on Google too? It really helps.</p>
-        <a href={googleReviewUrl} target="_blank" rel="noopener noreferrer" className="gs-btn gs-btn-primary">
-          ⭐ Leave a Google review
+        <a href={googleReviewUrl} target="_blank" rel="noopener noreferrer" className="gs-btn gs-btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+          <Star size={15} fill="currentColor" /> Leave a Google review
         </a>
       </div>
     );
@@ -68,7 +69,9 @@ export default function ReviewFunnel({ businessId, googleReviewUrl }) {
       <p className="biz-review-funnel-explainer">A great rating takes you to leave a quick Google review; anything less comes straight to the owner, privately.</p>
       <div className="biz-review-funnel-stars">
         {[1, 2, 3, 4, 5].map((n) => (
-          <button key={n} type="button" onClick={() => submit(n)} disabled={busy} aria-label={`${n} stars`}>★</button>
+          <button key={n} type="button" onClick={() => submit(n)} disabled={busy} aria-label={`${n} stars`} style={{ display: 'inline-flex', alignItems: 'center' }}>
+            <Star size={18} />
+          </button>
         ))}
       </div>
     </div>

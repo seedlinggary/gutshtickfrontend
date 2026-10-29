@@ -8,6 +8,7 @@ import { connect } from 'react-redux';
 import { fetchLimitsLoaded, fetchData } from '../actions';
 import PinSomethingCard from '../PinSomethingCard';
 import apiRequest from '../ApiRequest';
+import { Inbox, Eye } from 'lucide-react';
 
 const AD_EVERY_N_POSTS = 5;
 const CROSS_SITE_EVERY_N_POSTS = 6;
@@ -57,7 +58,7 @@ const FeedHome = ({ feed, error, isLoading, fetchLimitsLoaded, fetchData }) => {
   if (!feed || feed.length === 0) {
     return (
       <div className="gs-empty">
-        <p style={{ fontSize: 40, marginBottom: 8 }}>🤷</p>
+        <div className="gs-empty-icon"><Inbox size={26} /></div>
         <p>Nothing here yet. Check back soon!</p>
         {isRoot && (
           <div style={{ maxWidth: 360, margin: '20px auto 0' }}>
@@ -109,7 +110,7 @@ const FeedHome = ({ feed, error, isLoading, fetchLimitsLoaded, fetchData }) => {
             <React.Fragment key={`${message.kind || 'shtick'}-${message.id}`}>
               {showNudge && (
                 <div className="feed-nudge">
-                  <span className="feed-nudge-emoji">👀</span>
+                  <span className="feed-nudge-emoji"><Eye size={18} /></span>
                   <p>Hock's got a live conversation going — take a peek?</p>
                 </div>
               )}

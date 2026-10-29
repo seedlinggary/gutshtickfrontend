@@ -40,8 +40,11 @@ const NI_HEALTH_BRACKETS = [
 
 const CREDIT_POINT_VALUE = 242; // NIS/month, 2026
 
-export default function IsraelTaxCalculator() {
-  const [f, setF] = useState(DEFAULTS);
+export default function IsraelTaxCalculator({ initialValues } = {}) {
+  // Drop any `undefined` entries so a missing query param doesn't blank
+  // out a default that was never actually meant to be overridden.
+  const cleanInitial = Object.fromEntries(Object.entries(initialValues || {}).filter(([, v]) => v !== undefined));
+  const [f, setF] = useState({ ...DEFAULTS, ...cleanInitial });
   const [form106, setForm106] = useState(null);
   const set = (key) => (e) => setF((s) => ({ ...s, [key]: Number(e.target.value) }));
   const setBool = (key) => (e) => setF((s) => ({ ...s, [key]: e.target.checked }));

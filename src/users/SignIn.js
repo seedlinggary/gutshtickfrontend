@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import base64 from 'base-64';
+import { Star, Shield } from 'lucide-react';
 import { getEmail, clearAuth, saveAuth } from '../auth';
+
+const ROLE_ICON = { super_admin: Star, admin: Shield };
 
 const SignIn = () => {
   const [email, setEmail] = useState('');
@@ -47,15 +50,16 @@ const SignIn = () => {
 
   if (storedEmail) {
     const role = localStorage.getItem('role') || 'user';
-    const roleBadge = { super_admin: '⭐ Super Admin', admin: '🛡 Admin', user: 'User', viewer: 'Viewer' }[role] || 'User';
+    const roleBadge = { super_admin: 'Super Admin', admin: 'Admin', user: 'User', viewer: 'Viewer' }[role] || 'User';
+    const RoleIcon = ROLE_ICON[role];
     return (
       <div className="auth-page">
         <div className="auth-card" style={{ textAlign: 'center' }}>
           <span className="auth-brand">Gut Shtick</span>
           <h2 className="auth-title">You're signed in</h2>
           <p className="auth-subtitle">Signed in as <strong>{storedEmail}</strong></p>
-          <div style={{ display: 'inline-block', padding: '4px 12px', background: 'var(--accent)', borderRadius: 20, fontSize: 13, color: '#fff', marginBottom: 16 }}>
-            {roleBadge}
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 12px', background: 'var(--accent)', borderRadius: 20, fontSize: 13, color: '#fff', marginBottom: 16 }}>
+            {RoleIcon && <RoleIcon size={13} />} {roleBadge}
           </div>
           <button className="gs-btn gs-btn-danger gs-btn-block" onClick={handleSignOut}>
             Sign Out

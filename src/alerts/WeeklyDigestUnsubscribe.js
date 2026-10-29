@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { AlertTriangle, BellOff } from 'lucide-react';
 import apiRequest from '../ApiRequest';
 
 /** Landing page for the one-click unsubscribe link in Stage 4's "Your week"
@@ -24,14 +25,14 @@ export default function WeeklyDigestUnsubscribe() {
         {state === 'loading' && <div className="gs-loading"><div className="gs-spinner" /> Unsubscribing…</div>}
         {state === 'error' && (
           <>
-            <p style={{ fontSize: 40, marginBottom: 8 }}>⚠️</p>
+            <div className="gs-empty-icon"><AlertTriangle size={26} /></div>
             <h1 style={{ fontSize: 22 }}>Invalid link</h1>
             <p style={{ color: 'var(--muted)' }}>This unsubscribe link isn't valid -- it may already have been used.</p>
           </>
         )}
         {state === 'done' && (
           <>
-            <p style={{ fontSize: 40, marginBottom: 8 }}>👋</p>
+            <div className="gs-empty-icon"><BellOff size={26} /></div>
             <h1 style={{ fontSize: 22 }}>Unsubscribed</h1>
             <p style={{ color: 'var(--muted)' }}>
               You won't get the weekly digest or job-match emails anymore. You can turn them back on anytime from your profile.

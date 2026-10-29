@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Pin, MapPin, Home, Tag, DollarSign, CheckCircle2, ClipboardPaste, Briefcase, Search, SlidersHorizontal, Plus, Store } from 'lucide-react';
 import apiRequest from '../ApiRequest';
 import ShareButton from '../ShareButton';
 import { isLoggedIn } from '../auth';
@@ -8,6 +9,7 @@ import PinSomethingCard from '../PinSomethingCard';
 import { AdCard, useInThreadAds } from '../ads/AdSlot';
 import FreshnessBadge from '../utils/FreshnessBadge';
 import GetAlertsButton from '../alerts/GetAlertsButton';
+import { siteUrl } from '../siteMode';
 
 const TITLE_MAX = 150;
 const BODY_MAX = 8000;
@@ -29,7 +31,7 @@ const TYPE_META = {
   // via its own business/vendor listings) -- kept here only so any
   // already-posted service listing still renders with a real label/color
   // instead of falling back to TypeBadge's generic muted default.
-  service: { label: 'Service', color: '#6366f1' },
+  service: { label: 'Service', color: 'var(--tag-flyer-text)' },
 };
 
 export function TypeBadge({ type }) {
@@ -51,6 +53,25 @@ export function TypeBadge({ type }) {
   );
 }
 
+/** Small "Posted by [Business]" pill for a post that came from a claimed
+ * business's own Hiring tab (post.business_id set, see
+ * BusinessOwnerTools.js's HiringTab) -- links out to that business's public
+ * profile, which lives on the Business sub-site, not this one. Shared by
+ * PostCard and TachlisPostPage. */
+export function BusinessPostBadge({ post }) {
+  if (!post.business_id || !post.business_slug) return null;
+  return (
+    <a
+      href={siteUrl('business', `/business/${post.business_slug}`)}
+      target="_blank" rel="noopener noreferrer"
+      className="tachlis-business-badge"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <Store size={12} /> Posted by {post.business_name || 'a local business'}
+    </a>
+  );
+}
+
 export function PostCard({ post }) {
   const authorInitial = post.user?.profile_name?.charAt(0).toUpperCase() || '?';
   const preview = post.body?.length > 220 ? `${post.body.slice(0, 220)}…` : post.body;
@@ -62,22 +83,23 @@ export function PostCard({ post }) {
     <Link to={`/tachlis/post/${post.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
       <div className="gs-card genre-flyer" style={{ marginBottom: 14 }}>
         <div className="gs-card-body">
-          <span className="card-kind">📌 Flyer · Job Board</span>
+          <span className="card-kind" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Pin size={13} /> Flyer · Job Board</span>
           <div className="shtick-meta">
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, flexWrap: 'wrap' }}>
               <TypeBadge type={post.post_type} />
               <FreshnessBadge item={post} />
+              <BusinessPostBadge post={post} />
               {post.location && (
-                <span style={{ fontSize: 13, color: 'var(--muted)' }}>📍 {post.location}</span>
+                <span style={{ fontSize: 13, color: 'var(--muted)', display: 'inline-flex', alignItems: 'center', gap: 4 }}><MapPin size={13} /> {post.location}</span>
               )}
               {post.remote && (
-                <span style={{ fontSize: 13, color: 'var(--muted)' }}>🏠 Remote</span>
+                <span style={{ fontSize: 13, color: 'var(--muted)', display: 'inline-flex', alignItems: 'center', gap: 4 }}><Home size={13} /> Remote</span>
               )}
               {post.category && (
-                <span style={{ fontSize: 13, color: 'var(--muted)' }}>🏷 {post.category}</span>
+                <span style={{ fontSize: 13, color: 'var(--muted)', display: 'inline-flex', alignItems: 'center', gap: 4 }}><Tag size={13} /> {post.category}</span>
               )}
               {post.compensation && (
-                <span style={{ fontSize: 13, color: 'var(--muted)' }}>💰 {post.compensation}</span>
+                <span style={{ fontSize: 13, color: 'var(--muted)', display: 'inline-flex', alignItems: 'center', gap: 4 }}><DollarSign size={13} /> {post.compensation}</span>
               )}
             </div>
             <span className="shtick-time">
@@ -182,8 +204,8 @@ function CreatePostForm({ onCreated, onCancel }) {
     return (
       <div className="gs-card" style={{ marginBottom: 20 }}>
         <div className="gs-card-body">
-          <div className="gs-success-box">
-            ✅ Your post is in! It's pending review and will appear on the board once an admin approves it.
+          <div className="gs-success-box" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+            <CheckCircle2 size={15} /> Your post is in! It's pending review and will appear on the board once an admin approves it.
           </div>
           <button className="gs-btn gs-btn-outline" style={{ marginTop: 10 }} onClick={onCancel}>Close</button>
         </div>
@@ -201,8 +223,8 @@ function CreatePostForm({ onCreated, onCancel }) {
         {error && <div className="gs-error-box">{error}</div>}
 
         {!pasteOpen ? (
-          <button type="button" className="gs-btn gs-btn-outline gs-btn-sm" style={{ marginBottom: 14 }} onClick={() => setPasteOpen(true)}>
-            📋 Paste a WhatsApp post instead
+          <button type="button" className="gs-btn gs-btn-outline gs-btn-sm" style={{ marginBottom: 14, display: 'inline-flex', alignItems: 'center', gap: 4 }} onClick={() => setPasteOpen(true)}>
+            <ClipboardPaste size={14} /> Paste a WhatsApp post instead
           </button>
         ) : (
           <div className="gs-field" style={{ marginBottom: 14 }}>
@@ -438,66 +460,72 @@ export default function Tachlis() {
   return (
     <div className="feed-section">
       <div className="gs-container" style={{ maxWidth: 680 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-          <h1 style={{ margin: 0 }}>💼 Job Board</h1>
-          <button className="gs-btn gs-btn-primary" onClick={startCompose}>
-            {composing ? 'Close' : '+ New Post'}
-          </button>
+        <div className="gs-board-hero">
+          <div className="gs-board-hero-top">
+            <div>
+              <span className="gs-board-hero-eyebrow">Gut Money Classifieds</span>
+              <h1 className="gs-board-hero-title"><Briefcase size={24} /> Job Board</h1>
+              <p className="gs-board-hero-sub">
+                Post a job opening or your resume. Every post is contact-first: reach out directly.
+              </p>
+            </div>
+            <button className="gs-board-hero-cta" onClick={startCompose}>
+              {composing ? 'Close' : <><Plus size={14} /> New Post</>}
+            </button>
+          </div>
         </div>
-        <p style={{ color: 'var(--muted)', marginTop: 0 }}>
-          Gut Money's classifieds board — post a job opening or your resume. Every post is contact-first: reach out directly.
-        </p>
 
         {composing && loggedIn && (
           <CreatePostForm onCreated={handleCreated} onCancel={() => setComposing(false)} />
         )}
 
-        <div className="games-search-row" style={{ marginBottom: 12 }}>
-          <input
-            type="text"
-            className="auth-input games-search-input"
-            placeholder="🔎 Search Job Board posts by title, body, location, id, or author…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
-          <div className="content-type-tabs">
-            {TABS.map((t) => (
-              <button
-                key={t.key}
-                type="button"
-                className={`content-type-tab${type === t.key ? ' active' : ''}`}
-                onClick={() => setType(t.key)}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <button
-              type="button"
-              className="gs-btn gs-btn-outline gs-btn-sm"
-              onClick={() => setFilterOpen((o) => !o)}
-            >
-              🔧 Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
-            </button>
-            <GetAlertsButton
-              searchType="tachlis"
-              filters={{
-                type, q: debouncedSearch, location, category,
-                remote: remoteOnly ? '1' : '', has_pay: hasPay ? '1' : '',
-              }}
-              label={[TABS.find((t) => t.key === type)?.label !== 'All' ? TABS.find((t) => t.key === type)?.label : null, location || category]
-                .filter(Boolean).join(' in ') || 'Job Board posts'}
+        <div className="board-toolbar">
+          <div className="board-toolbar-search">
+            <Search size={15} className="board-toolbar-search-icon" />
+            <input
+              type="text"
+              className="board-toolbar-search-input"
+              placeholder="Search Job Board posts by title, body, location, id, or author…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-        </div>
 
-        {filterOpen && (
-          <div className="gs-card" style={{ marginBottom: 16 }}>
-            <div className="gs-card-body" style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+          <div className="board-toolbar-controls">
+            <div className="content-type-tabs" style={{ margin: 0 }}>
+              {TABS.map((t) => (
+                <button
+                  key={t.key}
+                  type="button"
+                  className={`content-type-tab${type === t.key ? ' active' : ''}`}
+                  onClick={() => setType(t.key)}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+            <div className="board-toolbar-actions">
+              <button
+                type="button"
+                className={`gs-btn gs-btn-outline gs-btn-sm${activeFilterCount > 0 ? ' active' : ''}`}
+                onClick={() => setFilterOpen((o) => !o)}
+              >
+                <SlidersHorizontal size={13} /> Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
+              </button>
+              <GetAlertsButton
+                searchType="tachlis"
+                filters={{
+                  type, q: debouncedSearch, location, category,
+                  remote: remoteOnly ? '1' : '', has_pay: hasPay ? '1' : '',
+                }}
+                label={[TABS.find((t) => t.key === type)?.label !== 'All' ? TABS.find((t) => t.key === type)?.label : null, location || category]
+                  .filter(Boolean).join(' in ') || 'Job Board posts'}
+              />
+            </div>
+          </div>
+
+          {filterOpen && (
+            <div className="board-toolbar-filters">
               <div className="gs-field" style={{ margin: 0 }}>
                 <label className="gs-label">Location</label>
                 <select className="gs-input" style={{ minWidth: 180 }} value={location} onChange={(e) => setLocation(e.target.value)}>
@@ -537,8 +565,8 @@ export default function Tachlis() {
                 </button>
               )}
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {loading && (
           <div className="gs-loading"><div className="gs-spinner" /> Loading…</div>
@@ -550,7 +578,7 @@ export default function Tachlis() {
 
         {!loading && !error && posts.length === 0 && (
           <div className="gs-empty">
-            <p style={{ fontSize: 40, marginBottom: 8 }}>💼</p>
+            <div className="gs-empty-icon"><Briefcase size={26} /></div>
             <p>{debouncedSearch ? `No posts match "${debouncedSearch}".` : 'No posts here yet. Be the first!'}</p>
           </div>
         )}

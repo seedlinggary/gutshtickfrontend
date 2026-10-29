@@ -4,6 +4,7 @@ import apiRequest from '../ApiRequest';
 import ShareButton from '../ShareButton';
 import { isLoggedIn, isAdmin } from '../auth';
 import timeAgo from '../utils/timeAgo';
+import { AlertCircle, MessageCircle } from 'lucide-react';
 
 const MAX_INDENT_DEPTH = 6; // stop indenting past this so deep threads stay readable
 
@@ -288,7 +289,7 @@ export default function HockPostPage() {
 
         {!loading && error && (
           <div className="gs-empty">
-            <p style={{ fontSize: 40, marginBottom: 8 }}>🤷</p>
+            <div className="gs-empty-icon"><AlertCircle size={26} /></div>
             <p>This post isn't available — it may have been removed.</p>
           </div>
         )}
@@ -335,7 +336,7 @@ export default function HockPostPage() {
                   <button className={`like-btn${liked ? ' liked' : ''}`} onClick={likePost} title={liked ? 'Unlike' : 'Like'}>
                     <HeartIcon filled={liked} />{likeCount > 0 && <span>{likeCount}</span>}
                   </button>
-                  <span className="like-btn" style={{ cursor: 'default' }}>💬 {totalComments}</span>
+                  <span className="like-btn" style={{ cursor: 'default' }}><MessageCircle size={15} /> {totalComments}</span>
                   <ShareButton
                     title={post.title}
                     text={shareExcerpt}

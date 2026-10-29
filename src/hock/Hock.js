@@ -7,14 +7,15 @@ import { isLoggedIn } from '../auth';
 import timeAgo from '../utils/timeAgo';
 import { tallyMarks } from '../utils/tally';
 import PinSomethingCard from '../PinSomethingCard';
+import { Flame, Clock, Trophy, MessagesSquare, MessageCircle, Check, Plus } from 'lucide-react';
 
 const TITLE_MAX = 200;
 const BODY_MAX = 10000;
 
 const SORTS = [
-  { key: 'hot', label: '🔥 Hot' },
-  { key: 'new', label: '🆕 New' },
-  { key: 'top', label: '🏆 Top' },
+  { key: 'hot', label: 'Hot', Icon: Flame },
+  { key: 'new', label: 'New', Icon: Clock },
+  { key: 'top', label: 'Top', Icon: Trophy },
 ];
 
 function HeartIcon({ filled }) {
@@ -66,7 +67,7 @@ function PostCard({ post, onLikeChange, heat }) {
   return (
     <div className="gs-card genre-forum">
       <div className="gs-card-body">
-        <span className="card-kind">🗣 Hock thread</span>
+        <span className="card-kind"><MessagesSquare size={13} /> Hock thread</span>
         <div className="shtick-meta">
           <div className="shtick-author" style={{ flex: 1 }}>
             <div className="shtick-author-avatar">{authorInitial}</div>
@@ -81,7 +82,7 @@ function PostCard({ post, onLikeChange, heat }) {
         {typeof heat === 'number' && (
           <div className="cross-heat" style={{ marginBottom: 10 }}>
             <span className="cross-heat-bar"><span className="cross-heat-fill" style={{ width: `${heat}%` }} /></span>
-            <span className="cross-heat-label">{heat >= 60 ? '🔥 hot' : heat >= 25 ? 'warm' : 'new'}</span>
+            <span className="cross-heat-label">{heat >= 60 ? <><Flame size={11} /> hot</> : heat >= 25 ? 'warm' : 'new'}</span>
           </div>
         )}
 
@@ -108,7 +109,7 @@ function PostCard({ post, onLikeChange, heat }) {
             {likeCount > 0 && <span className="tally-marks">{tallyMarks(likeCount)}</span>}
           </button>
           <Link to={`/hock/post/${post.id}`} className="like-btn" style={{ textDecoration: 'none' }}>
-            💬 {post.comment_count || 0}
+            <MessageCircle size={15} /> {post.comment_count || 0}
             <span style={{ marginLeft: 4 }}>
               comment{post.comment_count !== 1 ? 's' : ''}
             </span>
@@ -181,7 +182,7 @@ function CreatePostForm({ onCreated, onCancel }) {
             <label className="gs-label">Image (optional)</label>
             <UploadFile setInvestors={(name) => setImage(name)} apiextension="/hock/upload" />
             {image && (
-              <p style={{ fontSize: 12, color: 'var(--success)', marginTop: 6 }}>✓ Image attached</p>
+              <p style={{ fontSize: 12, color: 'var(--success)', marginTop: 6, display: 'flex', alignItems: 'center', gap: 4 }}><Check size={13} /> Image attached</p>
             )}
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
@@ -258,9 +259,9 @@ export default function Hock() {
     <div className="feed-section">
       <div className="gs-container" style={{ maxWidth: 680 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-          <h1 style={{ margin: 0 }}>🗣️ Hock</h1>
+          <h1 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 10 }}><MessagesSquare size={22} /> Hock</h1>
           <button className="gs-btn gs-btn-primary" onClick={startCompose}>
-            {composing ? 'Close' : '+ New Post'}
+            {composing ? 'Close' : <><Plus size={14} /> New Post</>}
           </button>
         </div>
         <p style={{ color: 'var(--muted)', marginTop: 0 }}>
@@ -275,7 +276,7 @@ export default function Hock() {
           <input
             type="text"
             className="auth-input games-search-input"
-            placeholder="🔎 Search Hock posts by title, body, id, or author…"
+            placeholder="Search Hock posts by title, body, id, or author…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -289,7 +290,7 @@ export default function Hock() {
               className={`content-type-tab${sort === s.key ? ' active' : ''}`}
               onClick={() => setSort(s.key)}
             >
-              {s.label}
+              <s.Icon size={13} /> {s.label}
             </button>
           ))}
         </div>
@@ -304,7 +305,7 @@ export default function Hock() {
 
         {!loading && !error && posts.length === 0 && (
           <div className="gs-empty">
-            <p style={{ fontSize: 40, marginBottom: 8 }}>🗣️</p>
+            <div className="gs-empty-icon"><MessagesSquare size={26} /></div>
             <p>{debouncedSearch ? `No posts match "${debouncedSearch}".` : 'No conversations yet. Be the first to start one!'}</p>
           </div>
         )}

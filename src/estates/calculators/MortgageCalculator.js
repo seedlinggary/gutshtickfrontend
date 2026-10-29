@@ -7,8 +7,11 @@ const DEFAULTS = {
   taxPct: 1.1, insuranceAnnual: 1400, hoaMonthly: 0, pmiRatePct: 0.6,
 };
 
-export default function MortgageCalculator() {
-  const [f, setF] = useState(DEFAULTS);
+export default function MortgageCalculator({ initialValues } = {}) {
+  // Drop any `undefined` entries (e.g. a listing with no currency set) so
+  // they don't blank out a default that was never actually overridden.
+  const cleanInitial = Object.fromEntries(Object.entries(initialValues || {}).filter(([, v]) => v !== undefined));
+  const [f, setF] = useState({ ...DEFAULTS, ...cleanInitial });
   const set = (key) => (e) => setF((s) => ({ ...s, [key]: e.target.type === 'number' || e.target.type === 'range' ? Number(e.target.value) : e.target.value }));
 
   const downAmount = f.price * (f.downPct / 100);

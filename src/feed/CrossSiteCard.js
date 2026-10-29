@@ -1,4 +1,5 @@
 import React from 'react';
+import { Briefcase, Home, Store, Tag, BookOpen, Search } from 'lucide-react';
 import { siteUrl } from '../siteMode';
 import timeAgo from '../utils/timeAgo';
 
@@ -8,12 +9,12 @@ import timeAgo from '../utils/timeAgo';
  * mix that cross-site activity directly into the main board's own feed
  * (see FeedHome.js), the same way Hock items are already mixed in there. */
 
-const SOURCE_EMOJI = {
-  tachlis: '💼',
-  estates_listing: '🏠',
-  business_new: '🏪',
-  business_deal: '🏷️',
-  torah_post: '📖',
+const SOURCE_ICON = {
+  tachlis: Briefcase,
+  estates_listing: Home,
+  business_new: Store,
+  business_deal: Tag,
+  torah_post: BookOpen,
 };
 
 const SOURCE_LABELS = {
@@ -25,6 +26,7 @@ const SOURCE_LABELS = {
 };
 
 export default function CrossSiteCard({ item }) {
+  const SourceIcon = SOURCE_ICON[item.source] || Search;
   return (
     <a
       href={siteUrl(item.site_id, item.url_path)}
@@ -33,7 +35,7 @@ export default function CrossSiteCard({ item }) {
       style={{ display: 'block', marginBottom: 14, textDecoration: 'none', color: 'inherit' }}
     >
       <div className="gs-card-body">
-        <span className="card-kind">{SOURCE_EMOJI[item.source] || '🔎'} {SOURCE_LABELS[item.source] || item.source}</span>
+        <span className="card-kind"><SourceIcon size={13} /> {SOURCE_LABELS[item.source] || item.source}</span>
         {item.image && (
           <img src={item.image} alt="" style={{ width: '100%', maxHeight: 220, objectFit: 'cover', borderRadius: 8, margin: '8px 0' }} />
         )}

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Bot, CheckCircle2 } from 'lucide-react';
 import apiRequest from '../ApiRequest';
 
 /**
@@ -60,7 +61,7 @@ export default function AdminAiPosts() {
     <div className="admin-ai-posts">
       <div className="gs-card" style={{ maxWidth: 560 }}>
         <div className="gs-card-body">
-          <h3 className="shtick-caption" style={{ marginBottom: 6 }}>🤖 AI Content Generator</h3>
+          <h3 className="shtick-caption admin-section-label" style={{ marginBottom: 6 }}><Bot size={16} /> AI Content Generator</h3>
           <p className="admin-empty" style={{ margin: '0 0 18px' }}>
             Generate short posts with the OpenAI API. They land in the <strong>Pending</strong> queue
             for review before going live — nothing is auto-published.
@@ -137,7 +138,7 @@ export default function AdminAiPosts() {
 
           {result && !loading && (
             <div className="gs-success-box" style={{ marginTop: 16 }}>
-              ✅ {result.created} post{result.created === 1 ? '' : 's'} created
+              <CheckCircle2 size={14} /> {result.created} post{result.created === 1 ? '' : 's'} created
               {result.failed > 0 ? `, ${result.failed} failed` : ''}
               {result.duplicates_skipped > 0 ? `, ${result.duplicates_skipped} duplicate${result.duplicates_skipped === 1 ? '' : 's'} skipped` : ''}
               {' '}in “{result.category}”.

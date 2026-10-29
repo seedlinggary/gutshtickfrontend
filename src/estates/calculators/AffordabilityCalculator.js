@@ -7,8 +7,14 @@ const DEFAULTS = {
   rate: 6.5, years: 30, frontEndPct: 28, backEndPct: 36, taxPct: 1.1, insuranceAnnual: 1400, hoaMonthly: 0,
 };
 
-export default function AffordabilityCalculator() {
-  const [f, setF] = useState(DEFAULTS);
+export default function AffordabilityCalculator({ initialValues } = {}) {
+  // This calculator has no `price` input (it solves FOR a price), so only
+  // `currency` is ever worth seeding from the URL -- anything else (e.g. a
+  // stray `price` param meant for the Mortgage tab) is ignored on purpose.
+  const cleanInitial = initialValues && initialValues.currency !== undefined
+    ? { currency: initialValues.currency }
+    : {};
+  const [f, setF] = useState({ ...DEFAULTS, ...cleanInitial });
   const set = (key) => (e) => setF((s) => ({ ...s, [key]: e.target.type === 'number' || e.target.type === 'range' ? Number(e.target.value) : e.target.value }));
 
   const grossMonthly = f.annualIncome / 12;

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Newspaper, CheckCircle2 } from 'lucide-react';
 import { apiRequestRaw } from '../ApiRequest';
 
 /**
@@ -157,7 +158,7 @@ function SiteScraper({ site, base = BASE }) {
 
         {result && !running && (
           <div className="gs-success-box" style={{ marginTop: 14 }}>
-            ✅ {result.added} new article{result.added === 1 ? '' : 's'} added
+            <CheckCircle2 size={14} /> {result.added} new article{result.added === 1 ? '' : 's'} added
             {' '}(stopped: {stopLabel(result.stopped_reason)}).
             {' '}Checked {result.checked}.
           </div>
@@ -171,7 +172,7 @@ export default function AdminScrapers() {
   return (
     <div className="admin-scrapers">
       <div style={{ maxWidth: 640 }}>
-        <h3 className="shtick-caption" style={{ marginBottom: 6 }}>📰 News Scrapers</h3>
+        <h3 className="shtick-caption admin-section-label" style={{ marginBottom: 6 }}><Newspaper size={16} /> News Scrapers</h3>
         <p className="admin-empty" style={{ margin: '0 0 18px' }}>
           Pull the most-recent articles from each source into the Pending queue for review.
           Each source runs independently. Already-scraped articles are skipped automatically.
@@ -182,7 +183,7 @@ export default function AdminScrapers() {
       ))}
 
       <div style={{ maxWidth: 640, marginTop: 28 }}>
-        <h3 className="shtick-caption" style={{ marginBottom: 6 }}>📰 Gut News Scrapers</h3>
+        <h3 className="shtick-caption admin-section-label" style={{ marginBottom: 6 }}><Newspaper size={16} /> Gut News Scrapers</h3>
         <p className="admin-empty" style={{ margin: '0 0 18px' }}>
           Same pending-queue pattern, feeding Gut News's own article queue instead of Shtick's.
         </p>

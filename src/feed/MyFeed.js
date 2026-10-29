@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import apiRequest from '../ApiRequest';
 import CrossSiteCard from './CrossSiteCard';
+import { Inbox } from 'lucide-react';
 
 /** Stage 4's "one profile, one personal feed" -- GET /feed/aggregate with
  * personalized=1, which biases the existing cross-site merge toward the
@@ -37,7 +38,7 @@ export default function MyFeed() {
   return (
     <div className="feed-section">
       <div className="gs-container" style={{ maxWidth: 680 }}>
-        <h1 style={{ margin: '0 0 4px' }}>📬 My Feed</h1>
+        <h1 style={{ margin: '0 0 4px', display: 'flex', alignItems: 'center', gap: 10 }}><Inbox size={22} /> My Feed</h1>
         <p style={{ color: 'var(--muted)', marginTop: 0 }}>
           {personalized
             ? "Homes, jobs and businesses from across GUT, weighted toward your profile."
@@ -53,7 +54,7 @@ export default function MyFeed() {
         {error && <div className="gs-error-box">Couldn't load your feed right now.</div>}
 
         {!loading && items.length === 0 && !error && (
-          <div className="gs-empty"><p>Nothing here yet. Check back soon!</p></div>
+          <div className="gs-empty"><div className="gs-empty-icon"><Inbox size={26} /></div><p>Nothing here yet. Check back soon!</p></div>
         )}
 
         {items.map((item) => <CrossSiteCard key={item.key} item={item} />)}

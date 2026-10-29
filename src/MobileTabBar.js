@@ -1,11 +1,12 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { Pin, MessagesSquare, Coffee, User } from 'lucide-react';
 import { getEmail } from './auth';
 
 const STOPS = [
-  { path: '/', label: 'Board', icon: '📌' },
-  { path: '/hock', label: 'Hock', icon: '🗣️' },
-  { path: '/games', label: 'Break', icon: '☕' },
+  { path: '/', label: 'Board', icon: Pin },
+  { path: '/hock', label: 'Hock', icon: MessagesSquare },
+  { path: '/games', label: 'Break', icon: Coffee },
 ];
 
 /**
@@ -18,8 +19,8 @@ export default function MobileTabBar() {
   const location = useLocation();
   const loggedIn = !!getEmail();
   const lastStop = loggedIn
-    ? { path: '/profile', label: 'You', icon: '🧾' }
-    : { path: '/signin', label: 'You', icon: '🧾' };
+    ? { path: '/profile', label: 'You', icon: User }
+    : { path: '/signin', label: 'You', icon: User };
   const stops = [...STOPS, lastStop];
 
   return (
@@ -33,7 +34,7 @@ export default function MobileTabBar() {
             onClick={() => navigate(s.path)}
             type="button"
           >
-            <span className="mobile-tabbar-icon">{s.icon}</span>
+            <span className="mobile-tabbar-icon"><s.icon size={18} /></span>
             <span className="mobile-tabbar-label">{s.label}</span>
           </button>
         );

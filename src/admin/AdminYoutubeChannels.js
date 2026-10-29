@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { Tv, CheckCircle2 } from 'lucide-react';
 import { apiRequestRaw } from '../ApiRequest';
 import timeAgo from '../utils/timeAgo';
 
@@ -140,7 +141,7 @@ export default function AdminYoutubeChannels() {
     <div className="admin-youtube-channels">
       <div className="gs-card" style={{ maxWidth: 640 }}>
         <div className="gs-card-body">
-          <h3 className="shtick-caption" style={{ marginBottom: 6 }}>📺 YouTube Channel Monitor</h3>
+          <h3 className="shtick-caption admin-section-label" style={{ marginBottom: 6 }}><Tv size={16} /> YouTube Channel Monitor</h3>
           <p className="admin-empty" style={{ margin: '0 0 18px' }}>
             Track channels and pull their new uploads into the <strong>Pending</strong> queue
             for review — nothing is auto-published. Videos post as embedded players.
@@ -206,7 +207,7 @@ export default function AdminYoutubeChannels() {
 
           {result && !checking && (
             <div className="gs-success-box" style={{ marginBottom: 16 }}>
-              ✅ {result.total_new_videos} new video{result.total_new_videos === 1 ? '' : 's'} added to Pending.
+              <CheckCircle2 size={14} /> {result.total_new_videos} new video{result.total_new_videos === 1 ? '' : 's'} added to Pending.
               {Array.isArray(result.channels) && result.channels.some((c) => c.new_videos > 0 || c.error) && (
                 <ul style={{ margin: '8px 0 0', paddingLeft: 18 }}>
                   {result.channels

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Users } from 'lucide-react';
+import { Users, Tag } from 'lucide-react';
 import apiRequest from '../ApiRequest';
 
-const LINE_OF_WORK_LABEL = {
+export const LINE_OF_WORK_LABEL = {
   tech: 'Tech', healthcare: 'Healthcare', education: 'Education',
   sales_marketing: 'Sales & Marketing', finance_accounting: 'Finance & Accounting',
   skilled_trade: 'Skilled Trade', hospitality: 'Hospitality', legal: 'Legal',
@@ -38,7 +38,7 @@ export default function Talent() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <strong>{t.profile_name || 'GUT member'}</strong>
                 {t.line_of_work && (
-                  <span style={{ fontSize: 12.5, color: 'var(--muted)' }}>🏷 {LINE_OF_WORK_LABEL[t.line_of_work] || t.line_of_work}</span>
+                  <span style={{ fontSize: 12.5, color: 'var(--muted)', display: 'inline-flex', alignItems: 'center', gap: 4 }}><Tag size={13} /> {LINE_OF_WORK_LABEL[t.line_of_work] || t.line_of_work}</span>
                 )}
               </div>
               {t.cv_summary && (

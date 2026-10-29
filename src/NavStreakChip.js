@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Flame } from 'lucide-react';
 import apiRequest from './ApiRequest';
 import { isLoggedIn } from './auth';
 
@@ -22,7 +23,7 @@ export default function NavStreakChip() {
 
   return (
     <button className="nav-streak-chip" onClick={() => navigate('/profile')} title="Your reading streak">
-      <span className="nav-streak-flame">🔥</span>
+      <span className="nav-streak-flame"><Flame size={14} /></span>
       <span>{streak.current_streak}-day streak</span>
     </button>
   );

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { Link2, FileText, Image, CheckCircle2, AlertTriangle, Check } from 'lucide-react';
 import apiRequest from '../ApiRequest';
 import useFetch from '../UseFetch';
 import UploadFile from '../Uploadfile';
@@ -9,9 +10,9 @@ const CAPTION_MAX = 120;
 const CREDIT_MAX = 125;
 
 const CONTENT_TABS = [
-  { key: 'link', label: '🔗 Link / Video' },
-  { key: 'text', label: '📝 Text Quote' },
-  { key: 'image', label: '🖼️ Image' },
+  { key: 'link', icon: Link2, label: 'Link / Video' },
+  { key: 'text', icon: FileText, label: 'Text Quote' },
+  { key: 'image', icon: Image, label: 'Image' },
 ];
 
 const CreateShtick = () => {
@@ -133,7 +134,7 @@ const CreateShtick = () => {
                   className={`content-type-tab${activeTab === t.key ? ' active' : ''}`}
                   onClick={() => selectTab(t.key)}
                 >
-                  {t.label}
+                  <t.icon size={14} /> {t.label}
                 </button>
               ))}
             </div>
@@ -150,10 +151,10 @@ const CreateShtick = () => {
                   autoFocus
                 />
                 <div className="post-help-box">
-                  <p><strong>✅ YouTube</strong> — paste any youtube.com or youtu.be link and it plays right in the post.</p>
-                  <p><strong>✅ Twitter / X</strong> — paste a tweet link (twitter.com/…/status/… or x.com/…/status/…) and it embeds the full tweet.</p>
-                  <p><strong>⚠️ WhatsApp Status</strong> — WhatsApp doesn't give statuses a public link. Save the photo/video from the status to your phone first, then use the <strong>🖼️ Image</strong> tab above to upload it directly.</p>
-                  <p><strong>🔗 Everything else</strong> (Instagram, TikTok, Facebook, articles, etc.) — the link shows as a clickable card pointing to the original post. It won't play inline, just like WhatsApp.</p>
+                  <p><strong style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><CheckCircle2 size={14} /> YouTube</strong> — paste any youtube.com or youtu.be link and it plays right in the post.</p>
+                  <p><strong style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><CheckCircle2 size={14} /> Twitter / X</strong> — paste a tweet link (twitter.com/…/status/… or x.com/…/status/…) and it embeds the full tweet.</p>
+                  <p><strong style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><AlertTriangle size={14} /> WhatsApp Status</strong> — WhatsApp doesn't give statuses a public link. Save the photo/video from the status to your phone first, then use the <strong style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Image size={14} /> Image</strong> tab above to upload it directly.</p>
+                  <p><strong style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Link2 size={14} /> Everything else</strong> (Instagram, TikTok, Facebook, articles, etc.) — the link shows as a clickable card pointing to the original post. It won't play inline, just like WhatsApp.</p>
                 </div>
               </div>
             )}
@@ -183,8 +184,8 @@ const CreateShtick = () => {
                   apiextension="/shtick/upload"
                 />
                 {picture && (
-                  <p style={{ fontSize: 12, color: 'var(--success)', marginTop: 6 }}>
-                    ✓ Image uploaded
+                  <p style={{ fontSize: 12, color: 'var(--success)', marginTop: 6, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                    <Check size={13} /> Image uploaded
                   </p>
                 )}
               </div>

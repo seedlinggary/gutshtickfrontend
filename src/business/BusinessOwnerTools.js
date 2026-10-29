@@ -3,15 +3,42 @@ import { useParams, Link } from 'react-router-dom';
 import {
   LineChart, TrendingUp, Megaphone, Printer, Rocket, Inbox, HelpCircle,
   Ticket, Gem, Gift, PartyPopper, Wrench, ArrowRight, Pencil, Clock,
+  Check, Circle, Star, Briefcase, Tag, CheckCircle2,
 } from 'lucide-react';
 import apiRequest from '../ApiRequest';
 import { isSuperAdmin } from '../auth';
+import { siteUrl } from '../siteMode';
+import { LINE_OF_WORK_LABEL } from '../money/Talent';
 import SocialDesk from './SocialDesk';
 import BusinessAnalytics from './BusinessAnalytics';
 import AskQuestion from './AskQuestion';
 import MinyanTimes from './MinyanTimes';
 import MarketingKit from './MarketingKit';
 import ToolExplainer from './ToolExplainer';
+
+// Default-fill only for the Hiring tab's "category" field (still free text,
+// user-editable) -- mirrors backend/tachlis/routes/tachlis_post.py's own
+// BUSINESS_CATEGORY_TO_JOB_CATEGORY exactly, kept as a frontend copy rather
+// than fetched since it's a tiny static lookup, same reasoning as other
+// small enum-ish maps duplicated client-side elsewhere in this codebase.
+const BUSINESS_CATEGORY_TO_JOB_CATEGORY = {
+  restaurant: 'Hospitality',
+  grocery: 'Retail',
+  retail: 'Retail',
+  professional_services: 'Professional',
+  health_beauty: 'Health & Beauty',
+  home_services: 'Skilled Trade',
+  education: 'Education',
+  entertainment: 'Hospitality',
+  automotive: 'Automotive',
+  nonprofit: 'Other',
+  gemach: 'Other',
+  shul: 'Other',
+  kollel: 'Other',
+  mikvah: 'Other',
+  attraction: 'Other',
+  other: 'Other',
+};
 
 // These six are still being tested end-to-end (real OAuth apps, payment-free
 // reward mechanics, etc.) so they're only visible/reachable for super admins
@@ -26,6 +53,7 @@ const TAB_META = {
   social: { label: 'Social Desk', Icon: Megaphone },
   marketing: { label: 'Marketing Kit', Icon: Printer },
   boost: { label: 'Boost', Icon: Rocket },
+  hiring: { label: 'Hiring', Icon: Briefcase },
   leads: { label: 'Leads', Icon: Inbox },
   questions: { label: 'Questions', Icon: HelpCircle },
   minyanim: { label: 'Minyan Times', Icon: Clock },
@@ -36,7 +64,7 @@ const TAB_META = {
 
 const ALL_GROUPS = [
   { key: 'performance', label: 'Performance', tabs: ['insights', 'analytics'] },
-  { key: 'grow', label: 'Grow', tabs: ['social', 'marketing', 'boost'] },
+  { key: 'grow', label: 'Grow', tabs: ['social', 'marketing', 'boost', 'hiring'] },
   { key: 'customers', label: 'Customers', tabs: ['leads', 'questions', 'minyanim', 'redeem'] },
   { key: 'rewards', label: 'Rewards', tabs: ['loyalty', 'referrals'] },
 ];
@@ -47,6 +75,7 @@ const EXPLAINERS = {
   social: "Connect your Facebook, Instagram, Google Business Profile, X, and LinkedIn accounts once, then write a post here to publish everywhere at once. TikTok and WhatsApp Status don't let outside apps post directly, so for those you'll get a \"Share now\" button that hands your caption and image to your phone -- one more tap and it's posted.",
   marketing: 'Generate a print-ready flyer with your logo and a QR code linking to your profile or your current deals -- good for a shul bulletin board, a table, or your storefront window.',
   boost: "Boosted placement puts your listing at the top of its category and search results for 7 days. It's earned by completing your profile, not paid for -- once one ends, you can activate another.",
+  hiring: "Post a job opening straight to Gut Money's Job Board, prefilled from your business profile. Since your business is already claim-verified, it publishes immediately instead of waiting in the moderation queue. You can also browse members who've opted in as \"open to work.\"",
   leads: 'When someone requests a quote from your profile, it lands here with their contact details so you can follow up directly.',
   questions: 'Customers can ask a question right from your profile instead of needing your phone number. Answer it here and it becomes a public FAQ that future visitors can see too.',
   minyanim: "Add your shul's minyan times here -- they'll show on your public profile and in sitewide minyan search. Every time needs a source (your website, a call to the office, a posted sign) since we never want to show a time we can't back up, and we show everyone a reminder to confirm with you directly since times shift with the season and the sun.",
@@ -159,8 +188,8 @@ function BoostTab({ businessId }) {
         <>
           <ul className="biz-boost-checklist">
             {Object.entries(data.checks).map(([key, ok]) => (
-              <li key={key} className={ok ? 'biz-boost-check-ok' : 'biz-boost-check-missing'}>
-                {ok ? '✓' : '○'} {key.replace(/_/g, ' ')}
+              <li key={key} className={ok ? 'biz-boost-check-ok' : 'biz-boost-check-missing'} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                {ok ? <Check size={14} /> : <Circle size={14} />} {key.replace(/_/g, ' ')}
               </li>
             ))}
           </ul>
@@ -174,14 +203,191 @@ function BoostTab({ businessId }) {
   );
 }
 
+function HiringTab({ business }) {
+  const locations = business.locations || [];
+  const primaryLocation = locations.find((l) => l.is_primary) || locations[0] || null;
+
+  const [title, setTitle] = useState('');
+  const [body, setBody] = useState('');
+  const [contact, setContact] = useState(primaryLocation?.phone || primaryLocation?.email || '');
+  const [location, setLocation] = useState(primaryLocation?.city || '');
+  const [category, setCategory] = useState(BUSINESS_CATEGORY_TO_JOB_CATEGORY[business.category] || '');
+  const [remote, setRemote] = useState(false);
+  const [compensation, setCompensation] = useState('');
+  const [posting, setPosting] = useState(false);
+  const [postError, setPostError] = useState('');
+  const [posted, setPosted] = useState(null);
+
+  const submitJob = (e) => {
+    e.preventDefault();
+    if (!title.trim() || !body.trim() || !contact.trim()) {
+      setPostError('Title, details, and a contact are required.');
+      return;
+    }
+    setPostError('');
+    setPosting(true);
+    apiRequest('POST', {
+      post_type: 'job',
+      title: title.trim(),
+      body: body.trim(),
+      contact: contact.trim(),
+      location: location.trim() || null,
+      compensation: compensation.trim() || null,
+      category: category.trim() || null,
+      remote,
+      business_id: business.id,
+    }, '/tachlis/posts')
+      .then((created) => setPosted(created))
+      .catch((err) => setPostError(typeof err === 'string' ? err : 'Could not post that job -- try again.'))
+      .finally(() => setPosting(false));
+  };
+
+  const postAnother = () => {
+    setPosted(null);
+    setTitle('');
+    setBody('');
+    setCompensation('');
+    setRemote(false);
+  };
+
+  const [candidates, setCandidates] = useState(null);
+  const [candidatesError, setCandidatesError] = useState(false);
+  const [filterLocation, setFilterLocation] = useState('');
+  const [filterLineOfWork, setFilterLineOfWork] = useState('');
+
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (filterLocation.trim()) params.set('location', filterLocation.trim());
+    if (filterLineOfWork) params.set('line_of_work', filterLineOfWork);
+    setCandidatesError(false);
+    apiRequest('GET', null, `/tachlis/talent?${params.toString()}`)
+      .then((res) => setCandidates(res.talent || []))
+      .catch(() => { setCandidates([]); setCandidatesError(true); });
+  }, [filterLocation, filterLineOfWork]);
+
+  return (
+    <div className="biz-hiring-tab">
+      <h4 className="biz-section-title">Post a job</h4>
+      {!posted ? (
+        <form onSubmit={submitJob}>
+          <div className="gs-field">
+            <input
+              className="gs-input"
+              placeholder="Title -- e.g. Part-time bookkeeper"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+          </div>
+          <div className="gs-field">
+            <textarea
+              className="gs-input gs-textarea"
+              placeholder="Details -- describe the role, hours, requirements…"
+              value={body}
+              rows={5}
+              onChange={(e) => setBody(e.target.value)}
+            />
+          </div>
+          <div className="gs-field">
+            <input
+              className="gs-input"
+              placeholder="Contact info (email, phone, or link) -- shown publicly on the post"
+              value={contact}
+              onChange={(e) => setContact(e.target.value)}
+            />
+          </div>
+          <div className="gs-field">
+            <input
+              className="gs-input"
+              placeholder="Location (optional) -- e.g. Lakewood, NJ"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+            />
+          </div>
+          <div className="gs-field">
+            <input
+              className="gs-input"
+              placeholder="Category"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+            />
+          </div>
+          <div className="gs-field">
+            <input
+              className="gs-input"
+              placeholder="Compensation (optional) -- e.g. $18-22/hr"
+              value={compensation}
+              onChange={(e) => setCompensation(e.target.value)}
+            />
+          </div>
+          <div className="gs-field">
+            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14 }}>
+              <input type="checkbox" checked={remote} onChange={(e) => setRemote(e.target.checked)} />
+              This job is remote
+            </label>
+          </div>
+          {postError && <p className="biz-error" style={{ fontSize: 12 }}>{postError}</p>}
+          <button type="submit" className="gs-btn gs-btn-primary gs-btn-sm" disabled={posting}>
+            {posting ? 'Posting…' : 'Post to the Job Board'}
+          </button>
+        </form>
+      ) : (
+        <div className="gs-success-box" style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+          <CheckCircle2 size={15} /> It's live -- claimed businesses skip the moderation queue, so this is already public.
+          <a href={siteUrl('money', `/tachlis/post/${posted.id}`)} target="_blank" rel="noopener noreferrer">
+            View it on the Job Board
+          </a>
+          <button type="button" className="gs-btn gs-btn-outline gs-btn-sm" onClick={postAnother}>Post another</button>
+        </div>
+      )}
+
+      <h4 className="biz-section-title" style={{ marginTop: 24 }}>Browse candidates</h4>
+      <p className="biz-tool-subnote">GUT members who've opted in to be found by employers.</p>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+        <input
+          className="gs-input"
+          style={{ maxWidth: 200 }}
+          placeholder="Filter by location"
+          value={filterLocation}
+          onChange={(e) => setFilterLocation(e.target.value)}
+        />
+        <select className="gs-input" style={{ maxWidth: 200 }} value={filterLineOfWork} onChange={(e) => setFilterLineOfWork(e.target.value)}>
+          <option value="">Any line of work</option>
+          {Object.entries(LINE_OF_WORK_LABEL).map(([key, label]) => (
+            <option key={key} value={key}>{label}</option>
+          ))}
+        </select>
+      </div>
+      {candidates === null && <p>Loading...</p>}
+      {candidatesError && <p className="biz-error">Could not load candidates -- try again.</p>}
+      {candidates && candidates.length === 0 && <p className="biz-empty">No matching candidates right now.</p>}
+      {candidates && candidates.map((t) => (
+        <div key={t.public_id} className="gs-card" style={{ marginBottom: 10 }}>
+          <div className="gs-card-body">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <strong>{t.profile_name || 'GUT member'}</strong>
+              {t.line_of_work && (
+                <span style={{ fontSize: 12.5, color: 'var(--muted)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                  <Tag size={13} /> {LINE_OF_WORK_LABEL[t.line_of_work] || t.line_of_work}
+                </span>
+              )}
+            </div>
+            {t.cv_summary && <p style={{ margin: '8px 0 0', whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>{t.cv_summary}</p>}
+            <p style={{ fontSize: 13, color: 'var(--muted)', marginTop: 8 }}>Contact: {t.cv_contact}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function InsightsTab({ businessId }) {
   const [data, setData] = useState(null);
   useEffect(() => { apiRequest('GET', null, `/business/businesses/${businessId}/insights`).then(setData).catch(() => {}); }, [businessId]);
   if (!data) return <p>Loading...</p>;
 
   const stats = [
-    { label: 'Your rating', value: data.your_stats.rating_avg ? `★ ${data.your_stats.rating_avg.toFixed(1)}` : '—' },
-    { label: 'Category average', value: `★ ${data.category_benchmark.avg_rating.toFixed(1)}` },
+    { label: 'Your rating', value: data.your_stats.rating_avg ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Star size={14} fill="var(--gold, #f5a623)" color="var(--gold, #f5a623)" /> {data.your_stats.rating_avg.toFixed(1)}</span> : '—' },
+    { label: 'Category average', value: <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Star size={14} fill="var(--gold, #f5a623)" color="var(--gold, #f5a623)" /> {data.category_benchmark.avg_rating.toFixed(1)}</span> },
     { label: 'Followers', value: data.your_stats.follower_count },
     { label: 'Profile complete', value: `${data.your_stats.profile_completeness_pct}%` },
     { label: 'Deal redemption rate', value: data.your_stats.deal_redemption_rate_pct != null ? `${data.your_stats.deal_redemption_rate_pct}%` : '—' },
@@ -388,6 +594,7 @@ export default function BusinessOwnerTools() {
           {activeTab === 'questions' && <QuestionsTab businessId={business.id} />}
           {activeTab === 'minyanim' && <MinyanTimes businessId={business.id} canManage />}
           {activeTab === 'boost' && <BoostTab businessId={business.id} />}
+          {activeTab === 'hiring' && <HiringTab business={business} />}
           {canSeeRestricted && activeTab === 'social' && <SocialDesk businessId={business.id} />}
           {canSeeRestricted && activeTab === 'leads' && <LeadsTab businessId={business.id} />}
           {canSeeRestricted && activeTab === 'redeem' && <RedeemTab businessId={business.id} />}

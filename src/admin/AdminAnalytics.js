@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { LineChart } from 'lucide-react';
 import apiRequest from '../ApiRequest';
 
 const NEW_COLOR = 'var(--info, #3b82f6)';
@@ -104,7 +105,7 @@ export default function AdminAnalytics() {
     <div className="admin-analytics">
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, flexWrap: 'wrap', gap: 10 }}>
         <div>
-          <h3 className="shtick-caption" style={{ marginBottom: 4 }}>📈 Visitor Analytics</h3>
+          <h3 className="shtick-caption admin-section-label" style={{ marginBottom: 4 }}><LineChart size={16} /> Visitor Analytics</h3>
           <p className="admin-empty" style={{ margin: 0, padding: 0, textAlign: 'left' }}>
             Anonymous + logged-in traffic. Localhost/dev traffic and any admin or bot account's own activity are excluded automatically.
           </p>

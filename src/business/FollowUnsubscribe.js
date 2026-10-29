@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { AlertTriangle, CheckCircle2 } from 'lucide-react';
 import apiRequest from '../ApiRequest';
 
 /** Landing page for the one-click unsubscribe link in a "new deal" alert
@@ -25,14 +26,14 @@ export default function FollowUnsubscribe() {
         {state === 'loading' && <div className="gs-loading"><div className="gs-spinner" /> Unsubscribing…</div>}
         {state === 'error' && (
           <>
-            <p style={{ fontSize: 40, marginBottom: 8 }}>⚠️</p>
+            <div className="gs-empty-icon"><AlertTriangle size={26} /></div>
             <h1 style={{ fontSize: 22 }}>Already gone</h1>
             <p style={{ color: 'var(--muted)' }}>This follow no longer exists -- you may already be unfollowed.</p>
           </>
         )}
         {state === 'done' && (
           <>
-            <p style={{ fontSize: 40, marginBottom: 8 }}>👋</p>
+            <div className="gs-empty-icon"><CheckCircle2 size={26} /></div>
             <h1 style={{ fontSize: 22 }}>Unfollowed{businessName ? ` ${businessName}` : ''}</h1>
             <p style={{ color: 'var(--muted)' }}>You won't get any more deal emails from them.</p>
             <Link to="/" className="gs-btn gs-btn-outline" style={{ marginTop: 12 }}>Back to Gut Community</Link>

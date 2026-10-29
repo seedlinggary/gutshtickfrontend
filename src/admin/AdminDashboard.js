@@ -5,6 +5,10 @@ import { isAdmin, isSuperAdmin } from '../auth';
 import ShowUrl from '../feed/ShowURL';
 import { TypeBadge } from '../money/Tachlis';
 import timeAgo from '../utils/timeAgo';
+import {
+  Clock, Briefcase, ClipboardList, Trash2, MessageCircle, Store, MessagesSquare,
+  Newspaper, Check, X, MapPin, DollarSign, ThumbsUp, Eye,
+} from 'lucide-react';
 
 function formatDate(d) {
   if (!d) return '';
@@ -67,7 +71,7 @@ export default function AdminDashboard() {
   async function approve(id) {
     await apiRequest('POST', { reject: false }, `/admin/shtick/${id}/approve`);
     setPending((p) => p.filter((s) => s.id !== id));
-    setMsg('Approved ✓');
+    setMsg('Approved');
   }
 
   async function reject(id) {
@@ -93,7 +97,7 @@ export default function AdminDashboard() {
       const res = await apiRequest('POST', { ids: selectedIds, reject }, '/admin/shtick/bulk-approve');
       setPending((p) => p.filter((s) => !selectedIds.includes(s.id)));
       setSelectedIds([]);
-      setMsg(`${res.updated} post${res.updated === 1 ? '' : 's'} ${label === 'reject' ? 'rejected' : 'approved'} ✓`);
+      setMsg(`${res.updated} post${res.updated === 1 ? '' : 's'} ${label === 'reject' ? 'rejected' : 'approved'}`);
     } catch (e) {
       setMsg(typeof e === 'string' ? e : 'Bulk action failed');
     } finally {
@@ -104,7 +108,7 @@ export default function AdminDashboard() {
   async function approveTachlis(id) {
     await apiRequest('POST', { reject: false }, `/tachlis/admin/posts/${id}/approve`);
     setTachlisPending((p) => p.filter((s) => s.id !== id));
-    setMsg('Job Board post approved ✓');
+    setMsg('Job Board post approved');
   }
 
   async function rejectTachlis(id) {
@@ -137,7 +141,7 @@ export default function AdminDashboard() {
     try {
       await apiRequest('POST', null, `/business/admin/claims/${id}/approve`);
       setBusinessClaims((c) => c.filter((x) => x.id !== id));
-      setMsg('Claim approved — business ownership transferred ✓');
+      setMsg('Claim approved — business ownership transferred');
     } catch (e) {
       setMsg(typeof e === 'string' ? e : 'Could not approve claim');
     }
@@ -208,16 +212,16 @@ export default function AdminDashboard() {
 
       <div className="admin-tabs">
         {[
-          ['pending', `⏳ Feed Pending (${pending.length})`],
-          ['tachlis', `💼 Job Board Pending (${tachlisPending.length})`],
-          ['all', '📋 All Posts'],
-          ['rejected', `🗑 Rejected (${rejected.length})`],
-          ['comments', '💬 Comments'],
-          ['business', `🏪 Business Claims (${businessClaims.length})`],
-          ...(isSuperAdmin() ? [['hock', '🗣 Hock Moderation']] : []),
-        ].map(([key, label]) => (
+          ['pending', Clock, `Feed Pending (${pending.length})`],
+          ['tachlis', Briefcase, `Job Board Pending (${tachlisPending.length})`],
+          ['all', ClipboardList, 'All Posts'],
+          ['rejected', Trash2, `Rejected (${rejected.length})`],
+          ['comments', MessageCircle, 'Comments'],
+          ['business', Store, `Business Claims (${businessClaims.length})`],
+          ...(isSuperAdmin() ? [['hock', MessagesSquare, 'Hock Moderation']] : []),
+        ].map(([key, Icon, label]) => (
           <button key={key} className={`admin-tab${tab === key ? ' active' : ''}`} onClick={() => setTab(key)}>
-            {label}
+            <Icon size={14} /> {label}
           </button>
         ))}
       </div>
@@ -227,7 +231,7 @@ export default function AdminDashboard() {
       {/* ── Pending ── */}
       {tab === 'pending' && !loading && (
         <div className="admin-list">
-          {pending.length === 0 && <div className="admin-empty">Nothing pending — all clear! ✓</div>}
+          {pending.length === 0 && <div className="admin-empty">Nothing pending — all clear! <Check size={14} /></div>}
           {pending.length > 0 && (
             <div className="admin-bulk-bar" style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
@@ -242,10 +246,10 @@ export default function AdminDashboard() {
                 <>
                   <span style={{ color: 'var(--muted)' }}>{selectedIds.length} selected</span>
                   <button className="gs-btn gs-btn-success gs-btn-sm" disabled={bulkBusy} onClick={() => bulkApprove(false)}>
-                    ✓ Approve Selected
+                    <Check size={13} /> Approve Selected
                   </button>
                   <button className="gs-btn gs-btn-danger gs-btn-sm" disabled={bulkBusy} onClick={() => bulkApprove(true)}>
-                    ✕ Reject Selected
+                    <X size={13} /> Reject Selected
                   </button>
                 </>
               )}
@@ -279,8 +283,8 @@ export default function AdminDashboard() {
                 <span>By: <b>{s.user?.profile_name || s.user_id}</b></span>
               </div>
               <div className="admin-actions">
-                <button className="gs-btn gs-btn-success gs-btn-sm" onClick={() => approve(s.id)}>✓ Approve</button>
-                <button className="gs-btn gs-btn-danger gs-btn-sm" onClick={() => reject(s.id)}>✕ Reject</button>
+                <button className="gs-btn gs-btn-success gs-btn-sm" onClick={() => approve(s.id)}><Check size={13} /> Approve</button>
+                <button className="gs-btn gs-btn-danger gs-btn-sm" onClick={() => reject(s.id)}><X size={13} /> Reject</button>
               </div>
             </div>
           ))}
@@ -293,7 +297,7 @@ export default function AdminDashboard() {
           mistaken for a feed post) ── */}
       {tab === 'tachlis' && !loading && (
         <div className="admin-list">
-          {tachlisPending.length === 0 && <div className="admin-empty">Nothing pending on the Job Board — all clear! ✓</div>}
+          {tachlisPending.length === 0 && <div className="admin-empty">Nothing pending on the Job Board — all clear! <Check size={14} /></div>}
           {tachlisPending.map((s) => (
             <div key={s.id} className="admin-card" style={{ borderLeft: '4px solid #6366f1' }}>
               <div className="admin-card-top">
@@ -302,13 +306,14 @@ export default function AdminDashboard() {
                     style={{
                       fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.4,
                       color: '#fff', background: '#6366f1', borderRadius: 999, padding: '2px 10px',
+                      display: 'inline-flex', alignItems: 'center', gap: 4,
                     }}
                   >
-                    💼 Job Board
+                    <Briefcase size={12} /> Job Board
                   </span>
                   <TypeBadge type={s.post_type} />
-                  {s.location && <span style={{ fontSize: 13, color: 'var(--muted)' }}>📍 {s.location}</span>}
-                  {s.compensation && <span style={{ fontSize: 13, color: 'var(--muted)' }}>💰 {s.compensation}</span>}
+                  {s.location && <span style={{ fontSize: 13, color: 'var(--muted)' }}><MapPin size={13} /> {s.location}</span>}
+                  {s.compensation && <span style={{ fontSize: 13, color: 'var(--muted)' }}><DollarSign size={13} /> {s.compensation}</span>}
                 </div>
                 <span className="admin-date">{timeAgo(s.pub_date)} <span style={{ fontSize: 11 }} title="Post ID">#{s.id}</span></span>
               </div>
@@ -319,8 +324,8 @@ export default function AdminDashboard() {
                 <span>By: <b>{s.user?.profile_name || s.user_id}</b></span>
               </div>
               <div className="admin-actions">
-                <button className="gs-btn gs-btn-success gs-btn-sm" onClick={() => approveTachlis(s.id)}>✓ Approve</button>
-                <button className="gs-btn gs-btn-danger gs-btn-sm" onClick={() => rejectTachlis(s.id)}>✕ Reject</button>
+                <button className="gs-btn gs-btn-success gs-btn-sm" onClick={() => approveTachlis(s.id)}><Check size={13} /> Approve</button>
+                <button className="gs-btn gs-btn-danger gs-btn-sm" onClick={() => rejectTachlis(s.id)}><X size={13} /> Reject</button>
               </div>
             </div>
           ))}
@@ -377,16 +382,16 @@ export default function AdminDashboard() {
               <div className="admin-card-meta">
                 <span>By: <b>{s.user?.profile_name || s.user_id}</b></span>
                 {s.approver && <span> · Approved by: <b>{s.approver.profile_name}</b></span>}
-                <span> · 👍 {s.likes?.length || 0} · 💬 {s.comments?.length || 0} · 👁 {s.view_count || 0}</span>
+                <span> · <ThumbsUp size={13} /> {s.likes?.length || 0} · <MessageCircle size={13} /> {s.comments?.length || 0} · <Eye size={13} /> {s.view_count || 0}</span>
               </div>
               <div className="admin-actions">
                 {s.approved_to_publish === null && (
-                  <button className="gs-btn gs-btn-success gs-btn-sm" onClick={() => approve(s.id)}>✓ Approve</button>
+                  <button className="gs-btn gs-btn-success gs-btn-sm" onClick={() => approve(s.id)}><Check size={13} /> Approve</button>
                 )}
                 {s.approved_to_publish !== null && isSuperAdmin() && (
                   <button className="gs-btn gs-btn-sm" onClick={() => unapprove(s.id)}>↩ Unapprove</button>
                 )}
-                <button className="gs-btn gs-btn-danger gs-btn-sm" onClick={() => deletePost(s.id)}>🗑 Delete</button>
+                <button className="gs-btn gs-btn-danger gs-btn-sm" onClick={() => deletePost(s.id)}><Trash2 size={13} /> Delete</button>
               </div>
             </div>
           ))}
@@ -421,7 +426,7 @@ export default function AdminDashboard() {
               </div>
               <div className="admin-actions">
                 <button className="gs-btn gs-btn-danger gs-btn-sm" onClick={() => deleteRejected(s.id)}>
-                  🗑 Delete Permanently
+                  <Trash2 size={13} /> Delete Permanently
                 </button>
               </div>
             </div>
@@ -442,9 +447,10 @@ export default function AdminDashboard() {
                       fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.4,
                       color: '#fff', background: c.source === 'hock' ? '#6366f1' : '#0ea5e9',
                       borderRadius: 999, padding: '2px 10px',
+                      display: 'inline-flex', alignItems: 'center', gap: 4,
                     }}
                   >
-                    {c.source === 'hock' ? '🗣 Hock' : '📰 Feed'}
+                    {c.source === 'hock' ? <><MessagesSquare size={11} /> Hock</> : <><Newspaper size={11} /> Feed</>}
                   </span>
                   <span><b>{c.user?.profile_name || c.user_id}</b></span>
                   {c.approved_to_publish === false && <span className="admin-badge rejected">Hidden</span>}
@@ -457,9 +463,9 @@ export default function AdminDashboard() {
                   <button className="gs-btn gs-btn-sm" onClick={() => unapproveComment(c.id, c.source)}>↩ Unapprove</button>
                 )}
                 {isSuperAdmin() && c.approved_to_publish === false && (
-                  <button className="gs-btn gs-btn-success gs-btn-sm" onClick={() => approveComment(c.id, c.source)}>✓ Approve</button>
+                  <button className="gs-btn gs-btn-success gs-btn-sm" onClick={() => approveComment(c.id, c.source)}><Check size={13} /> Approve</button>
                 )}
-                <button className="gs-btn gs-btn-danger gs-btn-sm" onClick={() => deleteComment(c.id, c.source)}>🗑 Delete</button>
+                <button className="gs-btn gs-btn-danger gs-btn-sm" onClick={() => deleteComment(c.id, c.source)}><Trash2 size={13} /> Delete</button>
               </div>
             </div>
           ))}
@@ -472,7 +478,7 @@ export default function AdminDashboard() {
           a business itself needs no approval; this is the only gate. ── */}
       {tab === 'business' && !loading && (
         <div className="admin-list">
-          {businessClaims.length === 0 && <div className="admin-empty">No pending business claims — all clear! ✓</div>}
+          {businessClaims.length === 0 && <div className="admin-empty">No pending business claims — all clear! <Check size={14} /></div>}
           {businessClaims.map((c) => (
             <div key={c.id} className="admin-card" style={{ borderLeft: '4px solid var(--accent)' }}>
               <div className="admin-card-top">
@@ -485,8 +491,8 @@ export default function AdminDashboard() {
                 <span>Claimed by: <b>{c.user?.profile_name || c.user_id}</b></span>
               </div>
               <div className="admin-actions">
-                <button className="gs-btn gs-btn-success gs-btn-sm" onClick={() => approveClaim(c.id)}>✓ Approve</button>
-                <button className="gs-btn gs-btn-danger gs-btn-sm" onClick={() => rejectClaim(c.id)}>✕ Reject</button>
+                <button className="gs-btn gs-btn-success gs-btn-sm" onClick={() => approveClaim(c.id)}><Check size={13} /> Approve</button>
+                <button className="gs-btn gs-btn-danger gs-btn-sm" onClick={() => rejectClaim(c.id)}><X size={13} /> Reject</button>
               </div>
             </div>
           ))}
@@ -510,13 +516,13 @@ export default function AdminDashboard() {
               <p style={{ marginTop: 8, whiteSpace: 'pre-wrap' }}>{p.body}</p>
               <div className="admin-card-meta">
                 <span>By: <b>{p.user?.profile_name || p.user_id}</b></span>
-                <span> · 👍 {p.like_count || 0} · 💬 {p.comment_count || 0}</span>
+                <span> · <ThumbsUp size={13} /> {p.like_count || 0} · <MessageCircle size={13} /> {p.comment_count || 0}</span>
               </div>
               <div className="admin-actions">
                 {p.approved_to_publish ? (
                   <button className="gs-btn gs-btn-sm" onClick={() => unapproveHock(p.id)}>↩ Unapprove</button>
                 ) : (
-                  <button className="gs-btn gs-btn-success gs-btn-sm" onClick={() => approveHock(p.id)}>✓ Approve</button>
+                  <button className="gs-btn gs-btn-success gs-btn-sm" onClick={() => approveHock(p.id)}><Check size={13} /> Approve</button>
                 )}
               </div>
             </div>

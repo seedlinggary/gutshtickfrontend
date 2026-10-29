@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
+import { Sun, Shuffle, Plus } from 'lucide-react';
 import { isLoggedIn } from '../auth';
 import { shakeBoard } from '../actions';
 
@@ -44,7 +45,7 @@ export default function DailyBoardHero() {
     <div className="gs-hero">
       <div className="gs-container">
         <div>
-          <span className="gs-hero-edition">☀️ {todayLabel()} · The Daily Board #{editionNumber()}</span>
+          <span className="gs-hero-edition"><Sun size={13} /> {todayLabel()} · The Daily Board #{editionNumber()}</span>
           <h1 className="gs-hero-title">
             What's <span>good</span> today?
           </h1>
@@ -55,14 +56,14 @@ export default function DailyBoardHero() {
         </div>
         <div className="gs-hero-actions">
           <button type="button" className="gs-hero-shake" onClick={shakeTheBoard} disabled={shaking}>
-            {shaking ? 'shaking…' : '🎲 Shake the board'}
+            {shaking ? 'shaking…' : <><Shuffle size={14} /> Shake the board</>}
           </button>
           <button
             type="button"
             className="gs-hero-pin"
             onClick={() => navigate(isLoggedIn() ? '/CreateShtick' : '/signup?next=%2FCreateShtick')}
           >
-            ＋ Pin something
+            <Plus size={14} /> Pin something
           </button>
         </div>
       </div>

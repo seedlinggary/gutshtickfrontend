@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import QRCode from 'qrcode';
-import { Ticket } from 'lucide-react';
+import { Ticket, Star } from 'lucide-react';
 import apiRequest from '../ApiRequest';
 
 /** Customer-facing digital punch card -- shown on a business's profile when
@@ -35,7 +35,7 @@ export default function LoyaltyCard({ businessId }) {
       <p className="biz-loyalty-reward">{card.reward}</p>
       <div className="biz-loyalty-dots">
         {dots.map((filled, i) => (
-          <span key={i} className={`biz-loyalty-dot${filled ? ' filled' : ''}`}>{filled ? '★' : ''}</span>
+          <span key={i} className={`biz-loyalty-dot${filled ? ' filled' : ''}`}>{filled ? <Star size={13} fill="currentColor" color="currentColor" /> : ''}</span>
         ))}
       </div>
       <p className="biz-loyalty-progress">{card.stamps} / {card.threshold} stamps{card.rewards_redeemed > 0 && ` · ${card.rewards_redeemed} reward${card.rewards_redeemed === 1 ? '' : 's'} earned`}</p>

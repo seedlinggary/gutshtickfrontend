@@ -1,5 +1,6 @@
 import './App.css';
 import React, { lazy, Suspense, useEffect } from 'react';
+import { Wrench, Hourglass } from 'lucide-react';
 
 class GameErrorBoundary extends React.Component {
   constructor(props) { super(props); this.state = { error: null }; }
@@ -8,7 +9,7 @@ class GameErrorBoundary extends React.Component {
     if (this.state.error) {
       return (
         <div className="game-page" style={{ textAlign: 'center', paddingTop: 60 }}>
-          <div style={{ fontSize: 48, marginBottom: 16 }}>🔧</div>
+          <div className="gs-empty-icon"><Wrench size={26} /></div>
           <h2>Game Loading…</h2>
           <p style={{ color: 'var(--muted)' }}>This game is still being set up. Check back soon!</p>
           <button className="gs-btn gs-btn-outline" onClick={() => window.location.href = '/games'} style={{ marginTop: 16 }}>
@@ -125,6 +126,7 @@ import { getCurrentSite } from './siteMode';
 import { SITES } from './sites/registry';
 import SsoBootstrap from './SsoBootstrap';
 import SiteBanner from './SiteBanner';
+import AskGutWidget from './askgut/AskGutWidget';
 import RequireAuth from './RequireAuth';
 import { useFixedAds, FIXED_BANNER_PLACEMENTS } from './ads/AdSlot';
 import { HomeAdSlot } from './ads/HomeAdSlots';
@@ -134,7 +136,7 @@ function GameFallback() {
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
       <div style={{ textAlign: 'center', color: 'var(--muted)' }}>
-        <div style={{ fontSize: 40, marginBottom: 12 }}>⏳</div>
+        <div className="gs-empty-icon"><Hourglass size={26} /></div>
         <p>Loading game…</p>
       </div>
     </div>
@@ -168,6 +170,10 @@ function App() {
         <span className="lang-select-corner-wrap" data-no-translate>
           <LanguageSelect className="lang-select-corner" />
         </span>
+        {/* Cross-site chat assistant, same "mounted once, outside the
+            per-site router content" placement as the language selector
+            right above -- visible on every site, see askgut/AskGutWidget.js. */}
+        <AskGutWidget />
         {/* Fixed to the viewport, not to any page's scroll flow -- mounted once
             here (not per-page) so these 4 banners show up on every route of
             every site, instead of only the main site's homepage. */}

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Check } from 'lucide-react';
 import apiRequest from '../ApiRequest';
 import { isLoggedIn } from '../auth';
 
@@ -44,7 +45,9 @@ export default function FollowButton({ businessId }) {
         onClick={toggle}
         disabled={busy}
       >
-        {following ? '✓ Following' : '+ Follow'}
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+          {following ? <><Check size={13} /> Following</> : '+ Follow'}
+        </span>
         {count != null && count > 0 && <span className="biz-follow-count"> · {count}</span>}
       </button>
       {failed && <span style={{ fontSize: 11, color: 'var(--error, #c0392b)' }}>Couldn't update -- try again</span>}

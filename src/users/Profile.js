@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { Check, Newspaper, ThumbsUp, MessageCircle, MessagesSquare, Briefcase, Heart, ClipboardList, Settings } from 'lucide-react';
 import apiRequest from '../ApiRequest';
 import timeAgo from '../utils/timeAgo';
 import { siteUrl } from '../siteMode';
@@ -65,7 +66,7 @@ function PunchCard() {
       </p>
       <div className="punch-row">
         {slots.map((filled, i) => (
-          <div key={i} className={`punch${filled ? ' filled' : ''}`}>{filled ? '✓' : i + 1}</div>
+          <div key={i} className={`punch${filled ? ' filled' : ''}`}>{filled ? <Check size={14} /> : i + 1}</div>
         ))}
       </div>
     </div>
@@ -98,7 +99,7 @@ function MyActivity() {
     <div className="profile-activity">
       <PunchCard />
       <section style={{ marginBottom: 28 }}>
-        <h3 className="shtick-caption">📰 Your Feed Posts ({shticks.length})</h3>
+        <h3 className="shtick-caption" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Newspaper size={16} /> Your Feed Posts ({shticks.length})</h3>
         {shticks.length === 0 && <p className="admin-empty">No feed posts yet.</p>}
         {shticks.map((s) => (
           <div key={s.id} className="admin-card">
@@ -109,13 +110,13 @@ function MyActivity() {
             <Link to={`/post/${s.id}`} className="admin-caption" style={{ display: 'block', marginTop: 4 }}>
               {s.caption}
             </Link>
-            <div className="admin-card-meta">👍 {s.like_count} · 💬 {s.comment_count}</div>
+            <div className="admin-card-meta" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><ThumbsUp size={13} /> {s.like_count} · <MessageCircle size={13} /> {s.comment_count}</div>
           </div>
         ))}
       </section>
 
       <section style={{ marginBottom: 28 }}>
-        <h3 className="shtick-caption">🗣 Your Hock Posts ({hockPosts.length})</h3>
+        <h3 className="shtick-caption" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><MessagesSquare size={16} /> Your Hock Posts ({hockPosts.length})</h3>
         {hockPosts.length === 0 && <p className="admin-empty">No Hock posts yet.</p>}
         {hockPosts.map((p) => (
           <div key={p.id} className="admin-card" style={{ borderLeft: '4px solid #6366f1' }}>
@@ -128,13 +129,13 @@ function MyActivity() {
             <Link to={`/hock/post/${p.id}`} className="admin-caption" style={{ display: 'block', marginTop: 4 }}>
               {p.title}
             </Link>
-            <div className="admin-card-meta">👍 {p.like_count} · 💬 {p.comment_count}</div>
+            <div className="admin-card-meta" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><ThumbsUp size={13} /> {p.like_count} · <MessageCircle size={13} /> {p.comment_count}</div>
           </div>
         ))}
       </section>
 
       <section style={{ marginBottom: 28 }}>
-        <h3 className="shtick-caption">💼 Your Job Board Posts ({tachlisPosts.length})</h3>
+        <h3 className="shtick-caption" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Briefcase size={16} /> Your Job Board Posts ({tachlisPosts.length})</h3>
         {tachlisPosts.length === 0 && <p className="admin-empty">No Job Board posts yet.</p>}
         {tachlisPosts.map((t) => (
           <div key={t.id} className="admin-card" style={{ borderLeft: '4px solid #6366f1' }}>
@@ -153,12 +154,14 @@ function MyActivity() {
       </section>
 
       <section style={{ marginBottom: 28 }}>
-        <h3 className="shtick-caption">💬 Your Comments ({comments.length})</h3>
+        <h3 className="shtick-caption" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><MessageCircle size={16} /> Your Comments ({comments.length})</h3>
         {comments.length === 0 && <p className="admin-empty">No comments yet.</p>}
         {comments.map((c) => (
           <div key={`${c.source}-${c.id}`} className="admin-card comment-card">
             <div className="admin-card-top">
-              <span>{c.source === 'hock' ? '🗣 Hock' : '📰 Feed'}</span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                {c.source === 'hock' ? <><MessagesSquare size={13} /> Hock</> : <><Newspaper size={13} /> Feed</>}
+              </span>
               <span className="admin-date">{timeAgo(c.pub_date)}</span>
             </div>
             <p style={{ margin: '6px 0' }}>{c.text}</p>
@@ -168,7 +171,7 @@ function MyActivity() {
       </section>
 
       <section>
-        <h3 className="shtick-caption">❤️ Your Likes ({likes.length})</h3>
+        <h3 className="shtick-caption" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Heart size={16} /> Your Likes ({likes.length})</h3>
         {likes.length === 0 && <p className="admin-empty">No likes yet.</p>}
         {likes.map((l, i) => (
           <div key={i} className="admin-card" style={{ padding: '10px 16px' }}>
@@ -533,13 +536,13 @@ const Profile = () => {
             className={`admin-tab${tab === 'activity' ? ' active' : ''}`}
             onClick={() => setTab('activity')}
           >
-            📋 My Activity
+            <ClipboardList size={14} /> My Activity
           </button>
           <button
             className={`admin-tab${tab === 'settings' ? ' active' : ''}`}
             onClick={() => setTab('settings')}
           >
-            ⚙️ Account Settings
+            <Settings size={14} /> Account Settings
           </button>
         </div>
 
