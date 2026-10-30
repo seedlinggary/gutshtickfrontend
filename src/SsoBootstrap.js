@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { apiRequestRaw } from './ApiRequest';
 import { saveAuth } from './auth';
+import { getCurrentSite } from './siteMode';
 
 /** Mounted once at the app root. If the URL carries a one-time cross-site
  * login handoff (#sso=...&email=...), exchanges it for a real session and
@@ -18,7 +19,7 @@ export default function SsoBootstrap() {
     // Strip immediately so a refresh/back-nav never resubmits it.
     window.history.replaceState(null, '', window.location.pathname + window.location.search);
 
-    apiRequestRaw('POST', { sso_token: ssoToken }, '/sso/exchange').then(({ ok, data }) => {
+    apiRequestRaw('POST', { sso_token: ssoToken, site: getCurrentSite()?.id || 'main' }, '/sso/exchange').then(({ ok, data }) => {
       if (ok && data) {
         saveAuth(data, email || data.profile_name || data.public_id);
         window.location.reload();

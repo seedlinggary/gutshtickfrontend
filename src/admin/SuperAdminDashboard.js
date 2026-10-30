@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiRequest from '../ApiRequest';
 import { isSuperAdmin, getPublicId } from '../auth';
-import { siteUrl } from '../siteMode';
+import { siteUrl, listAllSites } from '../siteMode';
 import UploadFile from '../Uploadfile';
 import AdminAiPosts from './AdminAiPosts';
 import AdminScrapers from './AdminScrapers';
@@ -16,6 +16,7 @@ import {
   ScrollText, Bot, LineChart, Store, UserSearch, Newspaper, MessagesSquare, MessageCircle,
   Briefcase, Home, BookOpen, ImageOff, Eye, MousePointerClick, Target, Archive, Pencil,
   Trash2, BarChart3, Undo2, Check, X, Clock, UserCircle2, Play, Pause, Heart, Gamepad2, Plus,
+  LogIn,
 } from 'lucide-react';
 
 const ROLES = ['viewer', 'user', 'admin', 'super_admin'];
@@ -131,6 +132,16 @@ export default function SuperAdminDashboard() {
   const [auditLogLoading, setAuditLogLoading] = useState(false);
   const [auditLogError, setAuditLogError] = useState('');
 
+  const [loginLog, setLoginLog] = useState(null);
+  const [loginLogMeta, setLoginLogMeta] = useState(EMPTY_PAGE_META);
+  const [loginLogLoading, setLoginLogLoading] = useState(false);
+  const [loginLogError, setLoginLogError] = useState('');
+  const [loginLogDays, setLoginLogDays] = useState(30);
+  const [loginLogSite, setLoginLogSite] = useState('');
+  const [loginLogSuccess, setLoginLogSuccess] = useState('');
+  const [loginLogSearchInput, setLoginLogSearchInput] = useState('');
+  const [loginLogSearch, setLoginLogSearch] = useState('');
+
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState(null);
   const [searching, setSearching] = useState(false);
@@ -180,6 +191,20 @@ export default function SuperAdminDashboard() {
       loadAuditLog(1);
     }
   }, [tab]);
+
+  // Debounce the login log email search the same way the global Search tab
+  // debounces its query (350ms) -- see searchQuery below.
+  useEffect(() => {
+    const t = setTimeout(() => setLoginLogSearch(loginLogSearchInput.trim()), 350);
+    return () => clearTimeout(t);
+  }, [loginLogSearchInput]);
+
+  // Reload page 1 whenever the tab becomes active or any filter changes --
+  // same "filters reset to page 1" pattern AdminAnalytics.js uses for its
+  // session list.
+  useEffect(() => {
+    if (tab === 'login_log') loadLoginLog(1);
+  }, [tab, loginLogDays, loginLogSite, loginLogSuccess, loginLogSearch]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const term = searchQuery.trim();
@@ -285,6 +310,25 @@ export default function SuperAdminDashboard() {
       setAuditLogError(typeof e === 'string' ? e : 'Failed to load audit log.');
     } finally {
       setAuditLogLoading(false);
+    }
+  }
+
+  async function loadLoginLog(page = 1) {
+    setLoginLogLoading(true);
+    try {
+      const params = new URLSearchParams({ page: String(page) });
+      if (loginLogDays) params.set('days', String(loginLogDays));
+      if (loginLogSite) params.set('site', loginLogSite);
+      if (loginLogSuccess !== '') params.set('success', loginLogSuccess);
+      if (loginLogSearch) params.set('q', loginLogSearch);
+      const data = await apiRequest('GET', null, `/admin/login-log?${params.toString()}`);
+      setLoginLog(data.items || []);
+      setLoginLogMeta({ page: data.page, total: data.total, per_page: data.per_page, has_more: data.has_more });
+      setLoginLogError('');
+    } catch (e) {
+      setLoginLogError(typeof e === 'string' ? e : 'Failed to load login log.');
+    } finally {
+      setLoginLogLoading(false);
     }
   }
 
@@ -459,6 +503,11 @@ export default function SuperAdminDashboard() {
     }
   }
 
+  // Prepend "All sites" the same way AdminAnalytics.js's own site dropdown
+  // does, over the real registry list (listAllSites()) instead of a
+  // hand-copied array.
+  const loginLogSites = [{ id: '', label: 'All sites' }, ...listAllSites()];
+
   return (
     <div className="admin-page superadmin-page">
       <div className="admin-header">
@@ -479,6 +528,7 @@ export default function SuperAdminDashboard() {
           ['banner', Flag, 'Banner'],
           ['categories', Tag, `Categories (${categories.length})`],
           ['audit_log', ScrollText, 'Audit Log'],
+          ['login_log', LogIn, 'Login Log'],
           ['content_pipeline', Bot, 'Content Pipeline'],
           ['analytics', LineChart, 'Analytics'],
           ['business_analytics', Store, 'Business'],
@@ -1217,6 +1267,72 @@ export default function SuperAdminDashboard() {
             </div>
           ))}
           {!auditLogLoading && auditLog && <Pager meta={auditLogMeta} loading={auditLogLoading} onPage={(p) => loadAuditLog(p)} />}
+        </div>
+      )}
+
+      {/* ── Login Log (every login attempt -- password + cross-site SSO
+          exchange -- across every sub-site; see backend/user/routes/sso.py
+          and the login route) ── */}
+      {tab === 'login_log' && !loading && (
+        <div className="admin-list">
+          {loginLogError && <div className="gs-error-box">{loginLogError}</div>}
+
+          <div className="sa-user-filters" style={{ alignItems: 'center' }}>
+            <select className="gs-select" value={loginLogDays} onChange={(e) => setLoginLogDays(Number(e.target.value))}>
+              <option value={7}>Last 7 days</option>
+              <option value={30}>Last 30 days</option>
+              <option value={90}>Last 90 days</option>
+            </select>
+            <select className="gs-select" value={loginLogSite} onChange={(e) => setLoginLogSite(e.target.value)}>
+              {loginLogSites.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
+            </select>
+            {[
+              { key: '', label: 'All' },
+              { key: '1', label: 'Success' },
+              { key: '0', label: 'Failed' },
+            ].map((o) => (
+              <button key={o.key} className={`difficulty-btn${loginLogSuccess === o.key ? ' active' : ''}`}
+                onClick={() => setLoginLogSuccess(o.key)}>
+                {o.label}
+              </button>
+            ))}
+            <input
+              type="text"
+              className="auth-input games-search-input"
+              style={{ maxWidth: 220 }}
+              placeholder="Search by email…"
+              value={loginLogSearchInput}
+              onChange={(e) => setLoginLogSearchInput(e.target.value)}
+            />
+          </div>
+
+          {loginLogLoading && <div className="gs-loading"><div className="gs-spinner" /></div>}
+          {!loginLogLoading && loginLog && loginLog.length === 0 && (
+            <div className="admin-empty">No login attempts match these filters.</div>
+          )}
+          {!loginLogLoading && loginLog && loginLog.map((l) => {
+            const siteLabel = l.site ? (loginLogSites.find((s) => s.id === l.site)?.label || l.site) : 'Unknown';
+            const methodLabel = l.method === 'password' ? 'Password' : l.method === 'sso_exchange' ? 'Site switch' : (l.method || 'Unknown');
+            return (
+              <div key={l.id} className="admin-card">
+                <div className="admin-card-top">
+                  <span className={`admin-badge ${l.success ? 'approved' : 'pending'}`}>
+                    {l.success ? 'Success' : 'Failed'}
+                  </span>
+                  <span className="admin-date">{new Date(l.created_at).toLocaleString()}</span>
+                </div>
+                <div className="admin-card-meta">
+                  <span>{l.email_attempted || l.user_id || 'Unknown'}</span>
+                  {' · '}
+                  <span>{siteLabel}</span>
+                  {' · '}
+                  <span>{methodLabel}</span>
+                  {l.ip_address && <> · <span>{l.ip_address}</span></>}
+                </div>
+              </div>
+            );
+          })}
+          {!loginLogLoading && loginLog && <Pager meta={loginLogMeta} loading={loginLogLoading} onPage={(p) => loadLoginLog(p)} />}
         </div>
       )}
 

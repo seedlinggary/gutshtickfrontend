@@ -11,8 +11,10 @@ import CoastFireCalculator from './calculators/CoastFireCalculator';
 import IsraelTaxCalculator from './calculators/IsraelTaxCalculator';
 import IsraelInvestmentTaxCalculator from './calculators/IsraelInvestmentTaxCalculator';
 import IsraelPropertyTaxCalculator from './calculators/IsraelPropertyTaxCalculator';
+import CurrencyConverter from './calculators/CurrencyConverter';
 
 const TABS = [
+  { key: 'currency', label: 'Currency Converter', Component: CurrencyConverter },
   { key: 'compound', label: 'Compound Interest', Component: CompoundInterestCalculator },
   { key: 'retirement', label: 'Retirement', Component: RetirementCalculator },
   { key: 'debt', label: 'Debt Payoff', Component: DebtPayoffCalculator },

@@ -1,20 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { LineChart } from 'lucide-react';
 import apiRequest from '../ApiRequest';
+import { listAllSites } from '../siteMode';
 
 const NEW_COLOR = 'var(--info, #3b82f6)';
 const RETURNING_COLOR = 'var(--accent, #f59e0b)';
+const BY_SITE_COLOR = 'var(--accent, #f59e0b)';
 const CHART_HEIGHT = 100;
 
-const SITES = [
-  { key: '', label: 'All sites' },
-  { key: 'main', label: 'Gut Shtick' },
-  { key: 'business', label: 'Gut Community' },
-  { key: 'estates', label: 'Gut Estates' },
-  { key: 'money', label: 'Gut Money' },
-  { key: 'torah', label: 'Gut Torah' },
-  { key: 'news', label: 'Gut News' },
-];
+// Real registry list (listAllSites()) instead of a hand-copied array that
+// would drift from src/sites/registry.js as sites are added.
+const SITES = [{ key: '', label: 'All sites' }, ...listAllSites().map((s) => ({ key: s.id, label: s.label }))];
 
 function formatShortDate(isoDate) {
   // isoDate comes back as 'YYYY-MM-DD' from the backend's daily aggregates.
@@ -153,6 +149,14 @@ export default function AdminAnalytics() {
               <div className="sa-stat-num">{data.avg_page_views ?? 0}</div>
               <div className="sa-stat-label">Avg. Page Views</div>
             </div>
+            <div className="sa-stat-card blue">
+              <div className="sa-stat-num">{data.session_duration?.avg_minutes ?? 0} min</div>
+              <div className="sa-stat-label">Avg. Time on Site</div>
+            </div>
+            <div className="sa-stat-card amber">
+              <div className="sa-stat-num">{data.session_duration?.bounce_rate ?? 0}%</div>
+              <div className="sa-stat-label">Bounce Rate</div>
+            </div>
           </div>
 
           <div className="sa-activity-grid">
@@ -227,6 +231,47 @@ export default function AdminAnalytics() {
                 </>
               )}
             </div>
+
+            {/* ── Which sites -- only present when viewing "All sites" ── */}
+            {data.by_site && data.by_site.length > 0 && (
+              <div className="sa-activity-section">
+                <h4>Which Sites</h4>
+                {(() => {
+                  const maxTotal = data.by_site.reduce((m, s) => Math.max(m, s.total), 0) || 1;
+                  return data.by_site.map((s) => (
+                    <div key={s.site} style={{ marginBottom: 8 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 3 }}>
+                        <span>{s.label || s.site}</span>
+                        <span style={{ color: 'var(--muted)' }}>{s.total}</span>
+                      </div>
+                      <div style={{ height: 8, borderRadius: 4, background: 'var(--border)', overflow: 'hidden' }}>
+                        <div
+                          style={{
+                            height: '100%',
+                            width: `${Math.max(2, (s.total / maxTotal) * 100)}%`,
+                            background: BY_SITE_COLOR,
+                            borderRadius: 4,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  ));
+                })()}
+              </div>
+            )}
+
+            {/* ── Top pages ── */}
+            {data.top_paths && data.top_paths.length > 0 && (
+              <div className="sa-activity-section">
+                <h4>Top Pages</h4>
+                {data.top_paths.map((p, i) => (
+                  <div key={i} className="sa-activity-item">
+                    <span>{i + 1}. {p.path}</span>
+                    <span>{p.count}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}

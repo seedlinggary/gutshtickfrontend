@@ -249,6 +249,11 @@ export default function Investing() {
     }
   };
 
+  // Default to VOO on first load so the page never opens blank -- still
+  // just a normal loadSymbol call, so searching/clicking any other ticker
+  // afterward works exactly the same way.
+  useEffect(() => { loadSymbol('VOO'); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const isWatched = (sym) => (watchlist || []).some((w) => w.symbol === sym);
   const toggleWatch = async (sym) => {
     if (!loggedIn) return;
