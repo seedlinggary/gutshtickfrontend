@@ -3,6 +3,8 @@ import apiRequest from '../ApiRequest';
 import { isLoggedIn, isAdmin } from '../auth';
 import formatDate from '../utils/timeAgo';
 import { MessageCircle } from 'lucide-react';
+import GuestContactFields from '../guest/GuestContactFields';
+import GuestSubmitSuccess from '../guest/GuestSubmitSuccess';
 
 export default function Comments({ shtickId }) {
   const [comments, setComments] = useState([]);
@@ -10,6 +12,10 @@ export default function Comments({ shtickId }) {
   const [loading, setLoading] = useState(true);
   const [posting, setPosting] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const [guestEmail, setGuestEmail] = useState('');
+  const [guestPhone, setGuestPhone] = useState('');
+  const [guestError, setGuestError] = useState('');
+  const [guestResult, setGuestResult] = useState(null);
   const loggedIn = isLoggedIn();
   const boss = isAdmin();
   const myProfileName = localStorage.getItem('profile_name');
@@ -30,6 +36,30 @@ export default function Comments({ shtickId }) {
       setComments((prev) => [...prev, newComment]);
       setText('');
     } catch (_) {}
+    setPosting(false);
+  };
+
+  const handleGuestSubmit = async (e) => {
+    e.preventDefault();
+    if (!text.trim()) return;
+    if (!guestEmail.trim() && !guestPhone.trim()) {
+      setGuestError('Add an email or phone so we can send you a link to manage your comment.');
+      return;
+    }
+    setGuestError('');
+    setPosting(true);
+    try {
+      const created = await apiRequest('POST', {
+        text: text.trim(),
+        shtick_id: shtickId,
+        guest_email: guestEmail.trim() || null,
+        guest_phone: guestPhone.trim() || null,
+      }, '/comment/guest');
+      setGuestResult(created);
+      setText('');
+    } catch (err) {
+      setGuestError(typeof err === 'string' ? err : 'Failed to submit. Please try again.');
+    }
     setPosting(false);
   };
 
@@ -100,10 +130,30 @@ export default function Comments({ shtickId }) {
                 {posting ? '…' : 'Post'}
               </button>
             </form>
+          ) : guestResult ? (
+            <div style={{ marginTop: 8 }}>
+              <GuestSubmitSuccess
+                manageUrl={`${window.location.origin}/guest/comment/${guestResult.guest_manage_token}`}
+                guestEmail={guestEmail.trim()}
+                message="Comment submitted! It's pending review."
+              />
+            </div>
           ) : (
-            <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 8 }}>
-              <a href="/signin">Sign in</a> to leave a comment.
-            </p>
+            <form className="comment-form" onSubmit={handleGuestSubmit} style={{ flexDirection: 'column', alignItems: 'stretch', gap: 8 }}>
+              {guestError && <div className="gs-error-box">{guestError}</div>}
+              <input
+                className="comment-input"
+                type="text"
+                placeholder="Add a comment…"
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                maxLength={500}
+              />
+              <GuestContactFields email={guestEmail} phone={guestPhone} onEmailChange={setGuestEmail} onPhoneChange={setGuestPhone} />
+              <button type="submit" className="gs-btn gs-btn-primary gs-btn-sm" disabled={posting || !text.trim()} style={{ alignSelf: 'flex-start' }}>
+                {posting ? '…' : 'Post without an account'}
+              </button>
+            </form>
           )}
         </div>
       )}

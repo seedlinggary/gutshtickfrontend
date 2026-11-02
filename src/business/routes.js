@@ -17,9 +17,13 @@ const AdminIntegrations = lazy(() => import('./AdminIntegrations'));
 const FindCommunity      = lazy(() => import('./FindCommunity'));
 const CommunityProfile   = lazy(() => import('./CommunityProfile'));
 const CommunityForm      = lazy(() => import('./CommunityForm'));
+const MyCommunities      = lazy(() => import('./MyCommunities'));
 const ActivitiesPage     = lazy(() => import('./ActivitiesPage'));
 const MinyanSearch       = lazy(() => import('./MinyanSearch'));
 const FollowUnsubscribe  = lazy(() => import('./FollowUnsubscribe'));
+const BusinessGuestManage = lazy(() => import('./BusinessGuestManage'));
+const CommunityGuestManage = lazy(() => import('./CommunityGuestManage'));
+const MinyanGuestManage   = lazy(() => import('./MinyanGuestManage'));
 
 /** The business site's routes as data, so App.js's <Routes> can render any
  * registered site's routes the same generic way (see src/sites/registry.js)
@@ -43,7 +47,10 @@ export default [
   { path: '/', element: <BusinessDirectory key="business" /> },
   { path: '/community', element: <BusinessDirectory key="community" mode="community" /> },
   { path: '/deals', element: <DealsFeed /> },
-  { path: '/business/new', element: <RequireAuth check={isLoggedIn}><BusinessForm /></RequireAuth> },
+  // Open to guests too -- BusinessForm reveals its own guest-contact section
+  // instead of redirecting to /signin when nobody's logged in.
+  { path: '/business/new', element: <BusinessForm /> },
+  { path: '/guest/business/:token', element: <BusinessGuestManage /> },
   { path: '/business/:idOrSlug/edit', element: <RequireAuth check={isLoggedIn}><BusinessForm /></RequireAuth> },
   { path: '/business/:idOrSlug/post-deal', element: <RequireAuth check={isLoggedIn}><CreateDealPost /></RequireAuth> },
   { path: '/business/:idOrSlug', element: <BusinessProfile /> },
@@ -53,7 +60,10 @@ export default [
   { path: '/vendor-board', element: <RequireAuth check={isLoggedIn}><ReferralBoard /></RequireAuth> },
   { path: '/admin/integrations', element: <RequireAuth check={isAdmin}><AdminIntegrations /></RequireAuth> },
   { path: '/communities', element: <FindCommunity /> },
-  { path: '/communities/new', element: <RequireAuth check={isLoggedIn}><CommunityForm /></RequireAuth> },
+  // Open to guests too, same reasoning as /business/new above.
+  { path: '/communities/new', element: <CommunityForm /> },
+  { path: '/guest/community/:token', element: <CommunityGuestManage /> },
+  { path: '/communities/mine', element: <RequireAuth check={isLoggedIn}><MyCommunities /></RequireAuth> },
   { path: '/communities/:slug/edit', element: <RequireAuth check={isLoggedIn}><CommunityForm /></RequireAuth> },
   { path: '/communities/:slug', element: <CommunityProfile /> },
   { path: '/activities', element: <ActivitiesPage /> },

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Lock } from 'lucide-react';
 import { isSuperAdmin } from '../auth';
 
@@ -16,6 +17,9 @@ export default function SuperAdminGate({ children }) {
           <h1 className="news-masthead-title">Not open to the public yet</h1>
           <p className="news-masthead-sub">
             Gut News is still being set up and isn't available yet. Check back soon.
+          </p>
+          <p className="news-masthead-sub">
+            Have a story worth knowing about? <Link to="/guest-submit">Submit a news tip</Link> — no account needed, it'll be ready to publish once the site opens.
           </p>
         </div>
       </div>

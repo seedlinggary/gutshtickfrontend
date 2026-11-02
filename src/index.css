@@ -2237,13 +2237,14 @@ iframe {
 .sa-stat-card.teal   { --stat-color: #2f9e8f; }
 .sa-stat-num { font-family: var(--font-serif); font-size: 30px; font-weight: 600; color: var(--primary); line-height: 1; }
 .sa-stat-label { font-size: 12px; font-weight: 600; color: var(--muted); margin-top: 4px; text-transform: uppercase; letter-spacing: .04em; }
+.sa-stat-sublabel { font-size: 11px; color: var(--muted-faint, var(--muted)); margin-top: 2px; font-weight: 400; text-transform: none; letter-spacing: normal; }
 .sa-user-filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
 .sa-user-table { border: 1px solid var(--border); border-radius: var(--radius); overflow-x: auto; overflow-y: hidden; box-shadow: var(--shadow-sm); }
 .sa-user-row {
-  display: grid; grid-template-columns: 160px 1fr 130px 60px 90px 120px;
+  display: grid; grid-template-columns: 160px 1fr 130px 60px 60px 90px 120px;
   gap: 12px; padding: 11px 16px; align-items: center;
   border-bottom: 1px solid var(--border); font-size: 13px;
-  min-width: 700px;
+  min-width: 760px;
 }
 .sa-user-row.header { background: var(--bg); font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--muted); }
 .sa-user-row:last-child { border-bottom: none; }

@@ -16,8 +16,28 @@ import {
   ScrollText, Bot, LineChart, Store, UserSearch, Newspaper, MessagesSquare, MessageCircle,
   Briefcase, Home, BookOpen, ImageOff, Eye, MousePointerClick, Target, Archive, Pencil,
   Trash2, BarChart3, Undo2, Check, X, Clock, UserCircle2, Play, Pause, Heart, Gamepad2, Plus,
-  LogIn,
+  LogIn, Inbox, ShoppingBag, Building2, Mail, Phone,
 } from 'lucide-react';
+
+// Labels/icons for each content type the unified Guest Submissions inbox
+// (GET /admin/guest-submissions) can surface -- see that route's docstring
+// in backend/user/routes/admin.py for the full list this must stay in sync with.
+const GUEST_CONTENT_TYPE_META = {
+  tachlis_post: { label: 'Job Board post', Icon: Briefcase },
+  shtick: { label: 'Shtick post', Icon: Newspaper },
+  estates_listing: { label: 'Estates listing', Icon: Home },
+  business: { label: 'Business listing', Icon: Store },
+  marketplace_listing: { label: 'Marketplace listing', Icon: ShoppingBag },
+  community: { label: 'Community', Icon: Building2 },
+  estates_group_buy: { label: 'Group buy listing', Icon: Building2 },
+  minyan: { label: 'Minyan time', Icon: Clock },
+  news_article: { label: 'News article', Icon: Newspaper },
+  comment: { label: 'Shtick comment', Icon: MessageCircle },
+  hock_comment: { label: 'Hock comment', Icon: MessagesSquare },
+  business_comment: { label: 'Business comment', Icon: MessageCircle },
+  hock_post: { label: 'Hock post', Icon: MessagesSquare },
+  torah_post: { label: 'Torah post', Icon: BookOpen },
+};
 
 const ROLES = ['viewer', 'user', 'admin', 'super_admin'];
 const ROLE_LABELS = { viewer: 'Viewer', user: 'User', admin: 'Admin', super_admin: 'Super Admin' };
@@ -181,6 +201,12 @@ export default function SuperAdminDashboard() {
   const [newCategoryName, setNewCategoryName] = useState('');
   const [categoryMsg, setCategoryMsg] = useState('');
 
+  const [guestSubmissions, setGuestSubmissions] = useState(null);
+  const [guestSubmissionsLoading, setGuestSubmissionsLoading] = useState(false);
+  const [guestSubmissionsError, setGuestSubmissionsError] = useState('');
+  const [guestSubmissionsMsg, setGuestSubmissionsMsg] = useState('');
+  const [guestActionBusyKey, setGuestActionBusyKey] = useState(null);
+
   useEffect(() => {
     if (!isSuperAdmin()) { navigate('/'); return; }
     loadAll();
@@ -191,6 +217,12 @@ export default function SuperAdminDashboard() {
       loadAuditLog(1);
     }
   }, [tab]);
+
+  useEffect(() => {
+    if (tab === 'guest_submissions' && guestSubmissions === null) {
+      loadGuestSubmissions();
+    }
+  }, [tab]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Debounce the login log email search the same way the global Search tab
   // debounces its query (350ms) -- see searchQuery below.
@@ -310,6 +342,45 @@ export default function SuperAdminDashboard() {
       setAuditLogError(typeof e === 'string' ? e : 'Failed to load audit log.');
     } finally {
       setAuditLogLoading(false);
+    }
+  }
+
+  async function loadGuestSubmissions() {
+    setGuestSubmissionsLoading(true);
+    try {
+      const data = await apiRequest('GET', null, '/admin/guest-submissions');
+      setGuestSubmissions(data.results || []);
+      setGuestSubmissionsError('');
+    } catch (e) {
+      setGuestSubmissionsError(typeof e === 'string' ? e : 'Failed to load guest submissions.');
+    } finally {
+      setGuestSubmissionsLoading(false);
+    }
+  }
+
+  // Works for both of the backend's action shapes without branching on
+  // `action_style` -- reject_flag puts approve_url === reject_url with
+  // different bodies ({reject:false}/{reject:true}); separate_endpoints
+  // puts different urls with empty bodies. Either way "approve" is always
+  // POST approve_url/approve_body and "reject" is always POST
+  // reject_url/reject_body. See get_guest_submissions in
+  // backend/user/routes/admin.py.
+  async function actOnGuestSubmission(row, decision) {
+    const key = `${row.content_type}-${row.id}`;
+    setGuestActionBusyKey(key);
+    setGuestSubmissionsError('');
+    try {
+      if (decision === 'approve') {
+        await apiRequest('POST', row.approve_body, row.approve_url);
+      } else {
+        await apiRequest('POST', row.reject_body, row.reject_url);
+      }
+      setGuestSubmissions((prev) => prev.filter((r) => !(r.content_type === row.content_type && r.id === row.id)));
+      setGuestSubmissionsMsg(decision === 'approve' ? 'Approved.' : 'Rejected.');
+    } catch (e) {
+      setGuestSubmissionsError(typeof e === 'string' ? e : `Failed to ${decision}.`);
+    } finally {
+      setGuestActionBusyKey(null);
     }
   }
 
@@ -520,6 +591,7 @@ export default function SuperAdminDashboard() {
       <div className="admin-tabs">
         {[
           ['overview', LayoutDashboard, 'Overview'],
+          ['guest_submissions', Inbox, `Guest Submissions${guestSubmissions ? ` (${guestSubmissions.length})` : ''}`],
           ['search', Search, 'Search'],
           ['users', Users, `Users (${usersMeta.total})`],
           ['approvals', CheckCircle2, `Approval History (${approvalsMeta.total})`],
@@ -539,6 +611,58 @@ export default function SuperAdminDashboard() {
           </button>
         ))}
       </div>
+
+      {/* ── Guest Submissions (unified inbox for every content type's
+          pending no-account submissions -- see GET /admin/guest-submissions) ── */}
+      {tab === 'guest_submissions' && (
+        <div className="admin-list">
+          <p style={{ color: 'var(--muted)', marginTop: 0 }}>
+            Every pending submission from a visitor without an account, across every content type, in one inbox. The guest's email/phone is the only trust signal here — look before approving.
+          </p>
+          {guestSubmissionsMsg && <div className="gs-success-box">{guestSubmissionsMsg}</div>}
+          {guestSubmissionsError && <div className="gs-error-box">{guestSubmissionsError}</div>}
+          {guestSubmissionsLoading && <div className="gs-loading"><div className="gs-spinner" /></div>}
+          {!guestSubmissionsLoading && guestSubmissions && guestSubmissions.length === 0 && (
+            <div className="admin-empty">No pending guest submissions.</div>
+          )}
+          {!guestSubmissionsLoading && guestSubmissions && guestSubmissions.map((row) => {
+            const meta = GUEST_CONTENT_TYPE_META[row.content_type] || { label: row.content_type, Icon: Flag };
+            const key = `${row.content_type}-${row.id}`;
+            const busy = guestActionBusyKey === key;
+            return (
+              <div key={key} className="admin-card">
+                <div className="admin-card-top">
+                  <span className="admin-badge pending" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                    <meta.Icon size={12} /> {meta.label}
+                  </span>
+                  <span className="admin-date">
+                    {row.submitted_at ? formatDate(row.submitted_at) : '—'} <span style={{ fontSize: 11 }}>#{row.id}</span>
+                  </span>
+                </div>
+                <h3 className="admin-caption">{row.title || 'Untitled'}</h3>
+                <div className="admin-card-meta">
+                  {row.guest_email && (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Mail size={13} /> {row.guest_email}</span>
+                  )}
+                  {row.guest_email && row.guest_phone && ' · '}
+                  {row.guest_phone && (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Phone size={13} /> {row.guest_phone}</span>
+                  )}
+                  {!row.guest_email && !row.guest_phone && <span>No contact info given</span>}
+                </div>
+                <div className="admin-actions">
+                  <button className="gs-btn gs-btn-sm" onClick={() => actOnGuestSubmission(row, 'approve')} disabled={busy}>
+                    <Check size={13} /> Approve
+                  </button>
+                  <button className="gs-btn gs-btn-outline gs-btn-sm" style={{ color: 'var(--danger)' }} onClick={() => actOnGuestSubmission(row, 'reject')} disabled={busy}>
+                    <X size={13} /> Reject
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* ── Search (checks id/title/body/category/submitted-by across every
           table: Feed posts+comments, Hock posts+comments, Tachlis posts, Users,
@@ -801,6 +925,7 @@ export default function SuperAdminDashboard() {
             <Gamepad2 size={18} className="sa-stat-icon" />
             <div className="sa-stat-num">{stats.game_sessions}</div>
             <div className="sa-stat-label">Game Sessions</div>
+            <div className="sa-stat-sublabel">excludes admin/super admin play</div>
           </div>
         </div>
       )}
@@ -822,7 +947,7 @@ export default function SuperAdminDashboard() {
           {!usersLoading && (
             <div className="sa-user-table">
               <div className="sa-user-row header">
-                <span>User</span><span>Email</span><span>Role</span><span>Posts</span><span>Joined</span><span>Actions</span>
+                <span>User</span><span>Email</span><span>Role</span><span>Posts</span><span>Games</span><span>Joined</span><span>Actions</span>
               </div>
               {users.map((u) => {
                 const isSelf = u.public_id === myPublicId;
@@ -848,6 +973,7 @@ export default function SuperAdminDashboard() {
                       </select>
                     </span>
                     <span>{u.shtick_count}</span>
+                    <span>{u.game_count}</span>
                     <span>{formatDate(u.pub_date)}</span>
                     <span>
                       <button className="gs-btn gs-btn-outline gs-btn-sm" onClick={() => viewActivity(u)}>

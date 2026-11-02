@@ -14,6 +14,7 @@ const TachlisPostPage = lazy(() => import('./TachlisPostPage'));
 const AreaPage        = lazy(() => import('./AreaPage'));
 const MyPosts         = lazy(() => import('./MyPosts'));
 const Talent          = lazy(() => import('./Talent'));
+const TachlisGuestManage = lazy(() => import('./TachlisGuestManage'));
 
 /** Gut Money's own routes -- same {path, element} shape as business/routes.js
  * and estates/routes.js, registered the same way via src/sites/registry.js.
@@ -31,6 +32,7 @@ export default [
   { path: '/my-tachlis-posts', element: <RequireAuth check={isLoggedIn}><MyPosts /></RequireAuth> },
   { path: '/tachlis/talent', element: <Talent /> },
   { path: '/still-available/confirm/:token', element: <StillAvailableConfirm apiPrefix="/tachlis" /> },
+  { path: '/guest/tachlis/:token', element: <TachlisGuestManage /> },
   { path: '/contact', element: <Contact /> },
   { path: '*', element: <NotFound /> },
 ];

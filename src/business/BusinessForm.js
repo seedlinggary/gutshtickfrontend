@@ -9,6 +9,9 @@ import LocationTypeIcon from './LocationTypeIcon';
 import { CATEGORY_LABELS, FOOD_CATEGORIES, LOCATION_TYPE_META } from './categories';
 import { normalizePhone, isValidPhone } from '../shared/phone';
 import { Check } from 'lucide-react';
+import { isLoggedIn } from '../auth';
+import GuestContactFields from '../guest/GuestContactFields';
+import GuestSubmitSuccess from '../guest/GuestSubmitSuccess';
 
 const NAME_MAX = 150;
 const ABOUT_MAX = 4000;
@@ -164,6 +167,10 @@ export default function BusinessForm() {
   const [loading, setLoading] = useState(editing);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const loggedIn = isLoggedIn();
+  const [guestEmail, setGuestEmail] = useState('');
+  const [guestPhone, setGuestPhone] = useState('');
+  const [guestResult, setGuestResult] = useState(null);
 
   useEffect(() => {
     if (!editing) return;
@@ -220,6 +227,10 @@ export default function BusinessForm() {
     if (!name.trim()) { setError('Name is required.'); return; }
     if (name.length > NAME_MAX) { setError(`Name must be ${NAME_MAX} characters or fewer.`); return; }
     if (about.length > ABOUT_MAX) { setError(`About must be ${ABOUT_MAX} characters or fewer.`); return; }
+    if (!editing && !loggedIn && !guestEmail.trim() && !guestPhone.trim()) {
+      setError('Add an email or phone so we can send you a link to manage this listing.');
+      return;
+    }
     setError('');
     setSaving(true);
 
@@ -227,12 +238,21 @@ export default function BusinessForm() {
 
     try {
       if (!editing) {
-        const created = await apiRequest('POST', {
+        const payload = {
           name: name.trim(), category, about: about.trim(), logo, website: website.trim(),
           attributes: attributesPayload,
           locations: locations.map(locationToPayload),
-        }, '/business/businesses');
-        navigate(`/business/${created.slug}`);
+        };
+        if (!loggedIn) {
+          payload.guest_email = guestEmail.trim() || null;
+          payload.guest_phone = guestPhone.trim() || null;
+        }
+        const created = await apiRequest('POST', payload, loggedIn ? '/business/businesses' : '/business/businesses/guest');
+        if (loggedIn) {
+          navigate(`/business/${created.slug}`);
+        } else {
+          setGuestResult(created);
+        }
         return;
       }
 
@@ -254,6 +274,20 @@ export default function BusinessForm() {
   };
 
   if (loading) return <div className="feed-section"><div className="gs-container"><div className="gs-loading"><div className="gs-spinner" /> Loading…</div></div></div>;
+
+  if (guestResult) {
+    return (
+      <div className="feed-section">
+        <div className="gs-container" style={{ maxWidth: 680 }}>
+          <h1>List Your Business</h1>
+          <GuestSubmitSuccess
+            manageUrl={`${window.location.origin}/guest/business/${guestResult.guest_manage_token}`}
+            guestEmail={guestEmail.trim()}
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="feed-section">
@@ -306,6 +340,17 @@ export default function BusinessForm() {
             <LocationEditor key={loc.tempId} loc={loc} index={i} isFood={isFood} onChange={updateLocation} onRemove={removeLocation} />
           ))}
           <button type="button" className="gs-btn gs-btn-outline" onClick={addLocation} style={{ marginBottom: 16 }}>+ Add another location</button>
+
+          {!editing && !loggedIn && (
+            <div style={{ marginBottom: 16 }}>
+              <GuestContactFields
+                email={guestEmail}
+                phone={guestPhone}
+                onEmailChange={setGuestEmail}
+                onPhoneChange={setGuestPhone}
+              />
+            </div>
+          )}
 
           <div>
             <button type="submit" className="gs-btn gs-btn-primary" disabled={saving}>

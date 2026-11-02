@@ -42,11 +42,21 @@ import Games from './games/Games';
 // anonymous visitor just reading the feed doesn't pay for admin tooling. ──────
 const Profile             = lazy(() => import('./users/Profile'));
 const CreateShtick        = lazy(() => import('./shtick/CreateShtick'));
+const ShtickGuestStatus   = lazy(() => import('./shtick/ShtickGuestStatus'));
 const PostPage            = lazy(() => import('./feed/PostPage'));
 const Hock                = lazy(() => import('./hock/Hock'));
 const HockPostPage        = lazy(() => import('./hock/HockPostPage'));
+const HockGuestManage     = lazy(() => import('./hock/HockGuestManage'));
+const Marketplace                 = lazy(() => import('./marketplace/Marketplace'));
+const MarketplaceListingForm      = lazy(() => import('./marketplace/MarketplaceListingForm'));
+const MarketplaceGuestManage      = lazy(() => import('./marketplace/MarketplaceGuestManage'));
+const MarketplaceListingProfile    = lazy(() => import('./marketplace/MarketplaceListingProfile'));
+const MyMarketplace                = lazy(() => import('./marketplace/MyMarketplace'));
 const TodayOnGut          = lazy(() => import('./TodayOnGut'));
 const AlertConfirm        = lazy(() => import('./alerts/AlertConfirm'));
+const CommentGuestManage      = lazy(() => import('./shtick/CommentGuestManage'));
+const HockCommentGuestManage  = lazy(() => import('./hock/HockCommentGuestManage'));
+const BusinessCommentGuestManage = lazy(() => import('./business/BusinessCommentGuestManage'));
 const AlertUnsubscribe    = lazy(() => import('./alerts/AlertUnsubscribe'));
 const WeeklyDigestUnsubscribe = lazy(() => import('./alerts/WeeklyDigestUnsubscribe'));
 const MyAlerts            = lazy(() => import('./alerts/MyAlerts'));
@@ -199,15 +209,35 @@ function App() {
                   <Route path="/feed/:category_id" element={<Home />} />
                   <Route path="/post/:id" element={<PostPage />} />
 
-                  {/* ── Hock discussion forum (public to browse; posting/commenting gated server-side) ── */}
+                  {/* ── Hock discussion forum (public to browse; a new post is
+                      open to guests too -- Hock.js's inline composer reveals
+                      its own guest-contact section instead of redirecting to
+                      /signin when nobody's logged in) ── */}
                   <Route path="/hock" element={<Hock />} />
                   <Route path="/hock/post/:id" element={<HockPostPage />} />
+                  <Route path="/guest/hock/:token" element={<HockGuestManage />} />
                   <Route path="/today" element={<TodayOnGut />} />
 
-                  {/* ── Auth-gated ── */}
-                  <Route path="/CreateShtick" element={
-                    <RequireAuth check={isLoggedIn}><CreateShtick /></RequireAuth>
+                  {/* ── Community Marketplace (buy/sell/trade/giveaway; public to browse;
+                      /new is open to guests too -- MarketplaceListingForm reveals its own
+                      guest-contact section instead of redirecting to /signin) ── */}
+                  <Route path="/marketplace" element={<Marketplace />} />
+                  <Route path="/marketplace/new" element={<MarketplaceListingForm />} />
+                  <Route path="/marketplace/mine" element={
+                    <RequireAuth check={isLoggedIn}><MyMarketplace /></RequireAuth>
                   } />
+                  <Route path="/marketplace/:idOrSlug/edit" element={
+                    <RequireAuth check={isLoggedIn}><MarketplaceListingForm /></RequireAuth>
+                  } />
+                  <Route path="/marketplace/:idOrSlug" element={<MarketplaceListingProfile />} />
+                  <Route path="/guest/marketplace/:token" element={<MarketplaceGuestManage />} />
+
+                  {/* Open to guests too -- CreateShtick itself reveals a
+                      guest-contact section instead of redirecting to
+                      /signin when nobody's logged in (same "no account
+                      required" pattern as every other site's create form). */}
+                  <Route path="/CreateShtick" element={<CreateShtick />} />
+                  <Route path="/guest/shtick/:token" element={<ShtickGuestStatus />} />
                 </>
               )}
 
@@ -228,6 +258,12 @@ function App() {
                   (previously nested inside the main-site-only branch above, which
                   meant /alerts simply didn't exist in the router on other sites). */}
               <Route path="/alerts/confirm/:token" element={<AlertConfirm />} />
+              {/* Guest (no-account) comment management -- reachable on every
+                  site, same reasoning as /alerts above, since the emailed
+                  link doesn't know which domain the viewer opens it from. */}
+              <Route path="/guest/comment/:token" element={<CommentGuestManage />} />
+              <Route path="/guest/hock-comment/:token" element={<HockCommentGuestManage />} />
+              <Route path="/guest/business-comment/:token" element={<BusinessCommentGuestManage />} />
               <Route path="/alerts/unsubscribe/:token" element={<AlertUnsubscribe />} />
               <Route path="/alerts" element={<RequireAuth check={isLoggedIn}><MyAlerts /></RequireAuth>} />
               {/* Stage 4's weekly digest unsubscribe link -- same "reachable

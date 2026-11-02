@@ -62,7 +62,7 @@ const FeedHome = ({ feed, error, isLoading, fetchLimitsLoaded, fetchData }) => {
         <p>Nothing here yet. Check back soon!</p>
         {isRoot && (
           <div style={{ maxWidth: 360, margin: '20px auto 0' }}>
-            <PinSomethingCard to="/CreateShtick" prompt="Be the first to pin something today." cta="Pin something" />
+            <PinSomethingCard to="/CreateShtick" prompt="Be the first to pin something today." cta="Pin something" guestReady />
           </div>
         )}
       </div>
@@ -88,7 +88,7 @@ const FeedHome = ({ feed, error, isLoading, fetchLimitsLoaded, fetchData }) => {
       {isRoot && pinned && <ShowMessage message={pinned} pinned />}
       {isRoot && (
         <div style={{ marginBottom: 20 }}>
-          <PinSomethingCard to="/CreateShtick" prompt="Got something good? Pin it to the board." cta="Pin something" />
+          <PinSomethingCard to="/CreateShtick" prompt="Got something good? Pin it to the board." cta="Pin something" guestReady />
         </div>
       )}
       {(() => {

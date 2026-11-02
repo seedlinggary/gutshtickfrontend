@@ -13,6 +13,8 @@ import { hoursToday, isOpenNow } from './hours';
 import TypeTags from './TypeTags';
 import { whatsAppLink, googleMapsLink, wazeLink } from './contactLinks';
 import FollowButton from './FollowButton';
+import GuestContactFields from '../guest/GuestContactFields';
+import GuestSubmitSuccess from '../guest/GuestSubmitSuccess';
 import ShareCard from './ShareCard';
 import LeadForm from './LeadForm';
 import AskQuestion from './AskQuestion';
@@ -152,6 +154,10 @@ function ReviewsList({ businessId }) {
 function CommentsSection({ businessId, comments, onAdded }) {
   const [body, setBody] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [guestEmail, setGuestEmail] = useState('');
+  const [guestPhone, setGuestPhone] = useState('');
+  const [guestError, setGuestError] = useState('');
+  const [guestResult, setGuestResult] = useState(null);
   const loggedIn = isLoggedIn();
   const navigate = useNavigate();
 
@@ -170,6 +176,30 @@ function CommentsSection({ businessId, comments, onAdded }) {
     }
   };
 
+  const submitGuest = async (e) => {
+    e.preventDefault();
+    if (!body.trim()) return;
+    if (!guestEmail.trim() && !guestPhone.trim()) {
+      setGuestError('Add an email or phone so we can send you a link to manage your comment.');
+      return;
+    }
+    setGuestError('');
+    setSubmitting(true);
+    try {
+      const created = await apiRequest('POST', {
+        body: body.trim(),
+        guest_email: guestEmail.trim() || null,
+        guest_phone: guestPhone.trim() || null,
+      }, `/business/businesses/${businessId}/comments/guest`);
+      setBody('');
+      setGuestResult(created);
+    } catch (err) {
+      setGuestError(typeof err === 'string' ? err : 'Failed to submit. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <div className="gs-card" style={{ marginTop: 16 }}>
       <div className="gs-card-body">
@@ -179,10 +209,26 @@ function CommentsSection({ businessId, comments, onAdded }) {
             <input className="gs-input" placeholder="Leave a comment…" value={body} onChange={(e) => setBody(e.target.value)} maxLength={1000} />
             <button className="gs-btn gs-btn-primary" disabled={submitting || !body.trim()}>Post</button>
           </form>
+        ) : guestResult ? (
+          <div style={{ marginBottom: 12 }}>
+            <GuestSubmitSuccess
+              manageUrl={`${window.location.origin}/guest/business-comment/${guestResult.guest_manage_token}`}
+              guestEmail={guestEmail.trim()}
+              message="Comment submitted! It's pending review."
+            />
+          </div>
         ) : (
-          <p style={{ color: 'var(--muted)', fontSize: 13 }}>
-            <button className="gs-btn gs-btn-outline gs-btn-sm" onClick={() => navigate(`/signin?next=${encodeURIComponent(window.location.pathname)}`)}>Sign in</button> to leave a comment.
-          </p>
+          <form onSubmit={submitGuest} style={{ marginBottom: 12 }}>
+            {guestError && <div className="gs-error-box" style={{ marginBottom: 8 }}>{guestError}</div>}
+            <input className="gs-input" placeholder="Leave a comment…" value={body} onChange={(e) => setBody(e.target.value)} maxLength={1000} style={{ marginBottom: 8 }} />
+            <GuestContactFields email={guestEmail} phone={guestPhone} onEmailChange={setGuestEmail} onPhoneChange={setGuestPhone} />
+            <button className="gs-btn gs-btn-primary gs-btn-sm" style={{ marginTop: 8 }} disabled={submitting || !body.trim()}>
+              {submitting ? 'Posting…' : 'Comment without an account'}
+            </button>
+            <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 6 }}>
+              Or <button type="button" className="gs-btn gs-btn-outline gs-btn-sm" onClick={() => navigate(`/signin?next=${encodeURIComponent(window.location.pathname)}`)}>sign in</button> instead.
+            </p>
+          </form>
         )}
         {comments.length === 0 && <p style={{ color: 'var(--muted)' }}>No comments yet.</p>}
         {comments.map((c) => (

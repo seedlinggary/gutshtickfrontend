@@ -3,6 +3,9 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { BookOpen } from 'lucide-react';
 import apiRequest from '../ApiRequest';
 import TorahPhotoUpload from './TorahPhotoUpload';
+import { isLoggedIn } from '../auth';
+import GuestContactFields from '../guest/GuestContactFields';
+import GuestSubmitSuccess from '../guest/GuestSubmitSuccess';
 
 const EMPTY = { post_type: 'text', title: '', body_text: '', youtube_url: '', category: 'other' };
 
@@ -18,6 +21,7 @@ const CATEGORIES = [
 export default function PostForm() {
   const { idOrSlug } = useParams();
   const editing = !!idOrSlug;
+  const loggedIn = isLoggedIn();
   const navigate = useNavigate();
   const [postId, setPostId] = useState(null);
   const [form, setForm] = useState(EMPTY);
@@ -25,6 +29,9 @@ export default function PostForm() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(editing);
+  const [guestEmail, setGuestEmail] = useState('');
+  const [guestPhone, setGuestPhone] = useState('');
+  const [guestResult, setGuestResult] = useState(null);
 
   useEffect(() => {
     if (!editing) return;
@@ -56,18 +63,57 @@ export default function PostForm() {
     e.preventDefault();
     setError('');
     if (!form.title.trim()) { setError('Title is required.'); return; }
+    if (!editing && !loggedIn && !guestEmail.trim() && !guestPhone.trim()) {
+      setError('Add an email or phone so we can send you a link to manage your post.');
+      return;
+    }
     setSaving(true);
     const body = { ...form, photos: photos.map((p) => p.filename) };
-    const req = editing
-      ? apiRequest('PATCH', body, `/torah/posts/${postId}`)
-      : apiRequest('POST', body, '/torah/posts');
-    req
-      .then((p) => navigate(`/posts/${p.slug}`))
-      .catch((err) => setError(typeof err === 'string' ? err : 'Could not save this post.'))
-      .finally(() => setSaving(false));
+    if (editing) {
+      apiRequest('PATCH', body, `/torah/posts/${postId}`)
+        .then((p) => navigate(`/posts/${p.slug}`))
+        .catch((err) => setError(typeof err === 'string' ? err : 'Could not save this post.'))
+        .finally(() => setSaving(false));
+    } else if (loggedIn) {
+      apiRequest('POST', body, '/torah/posts')
+        .then((p) => navigate(`/posts/${p.slug}`))
+        .catch((err) => setError(typeof err === 'string' ? err : 'Could not save this post.'))
+        .finally(() => setSaving(false));
+    } else {
+      apiRequest('POST', {
+        ...body,
+        guest_email: guestEmail.trim() || null,
+        guest_phone: guestPhone.trim() || null,
+      }, '/torah/posts/guest')
+        .then((p) => setGuestResult(p))
+        .catch((err) => setError(typeof err === 'string' ? err : 'Could not save this post.'))
+        .finally(() => setSaving(false));
+    }
   };
 
   if (loading) return <div className="feed-section"><div className="gs-container" style={{ maxWidth: 680 }}><p style={{ color: 'var(--muted)' }}>Loading…</p></div></div>;
+
+  // Guests have no way to attach photos (/torah/upload is token-gated), so
+  // the "Photos" post type is hidden rather than shown with a broken upload.
+  const guestMode = !editing && !loggedIn;
+
+  if (guestMode && guestResult) {
+    return (
+      <div className="feed-section">
+        <div className="gs-container" style={{ maxWidth: 680 }}>
+          <Link to="/" className="tor-back-link">← Posts</Link>
+          <div className="tor-masthead">
+            <div className="tor-masthead-kicker"><BookOpen size={13} /> Share Torah</div>
+            <h1 className="tor-masthead-title">Thanks for sharing!</h1>
+          </div>
+          <GuestSubmitSuccess
+            manageUrl={`${window.location.origin}/guest/torah/${guestResult.guest_manage_token}`}
+            guestEmail={guestEmail.trim()}
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="feed-section">
@@ -76,7 +122,11 @@ export default function PostForm() {
         <div className="tor-masthead">
           <div className="tor-masthead-kicker"><BookOpen size={13} /> {editing ? 'Edit post' : 'Share Torah'}</div>
           <h1 className="tor-masthead-title">{editing ? `Edit ${form.title}` : 'Share a dvar Torah'}</h1>
-          <p className="tor-masthead-sub">Text, a YouTube video, photos, or any mix -- whatever fits what you want to share.</p>
+          <p className="tor-masthead-sub">
+            {guestMode
+              ? 'Text or a YouTube video -- whatever fits what you want to share. No account needed.'
+              : 'Text, a YouTube video, photos, or any mix -- whatever fits what you want to share.'}
+          </p>
         </div>
 
         <form onSubmit={submit}>
@@ -87,7 +137,9 @@ export default function PostForm() {
             <div className="tor-radio-row">
               <label className="tor-radio-option"><input type="radio" checked={form.post_type === 'text'} onChange={() => selectType('text')} /> Text</label>
               <label className="tor-radio-option"><input type="radio" checked={form.post_type === 'video'} onChange={() => selectType('video')} /> Video</label>
-              <label className="tor-radio-option"><input type="radio" checked={form.post_type === 'image'} onChange={() => selectType('image')} /> Photos</label>
+              {!guestMode && (
+                <label className="tor-radio-option"><input type="radio" checked={form.post_type === 'image'} onChange={() => selectType('image')} /> Photos</label>
+              )}
             </div>
             <div style={{ marginTop: 14 }}>
               <label className="tor-field-label">Category</label>
@@ -113,10 +165,16 @@ export default function PostForm() {
             <textarea className="gs-input" style={{ minHeight: 140 }} value={form.body_text} onChange={set('body_text')} />
           </div>
 
-          {form.post_type === 'image' && (
+          {!guestMode && form.post_type === 'image' && (
             <div className="tor-form-section">
               <h3>Photos (up to 5)</h3>
               <TorahPhotoUpload photos={photos} onChange={setPhotos} />
+            </div>
+          )}
+
+          {guestMode && (
+            <div className="tor-form-section">
+              <GuestContactFields email={guestEmail} phone={guestPhone} onEmailChange={setGuestEmail} onPhoneChange={setGuestPhone} />
             </div>
           )}
 

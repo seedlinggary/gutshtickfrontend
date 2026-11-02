@@ -7,6 +7,8 @@ import { isLoggedIn } from '../auth';
 import timeAgo from '../utils/timeAgo';
 import { tallyMarks } from '../utils/tally';
 import PinSomethingCard from '../PinSomethingCard';
+import GuestContactFields from '../guest/GuestContactFields';
+import GuestSubmitSuccess from '../guest/GuestSubmitSuccess';
 import { Flame, Clock, Trophy, MessagesSquare, MessageCircle, Check, Plus } from 'lucide-react';
 
 const TITLE_MAX = 200;
@@ -126,9 +128,13 @@ function PostCard({ post, onLikeChange, heat }) {
 }
 
 function CreatePostForm({ onCreated, onCancel }) {
+  const loggedIn = isLoggedIn();
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [image, setImage] = useState(null);
+  const [guestEmail, setGuestEmail] = useState('');
+  const [guestPhone, setGuestPhone] = useState('');
+  const [guestResult, setGuestResult] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -137,20 +143,49 @@ function CreatePostForm({ onCreated, onCancel }) {
     if (!title.trim()) { setError('Give your conversation a title.'); return; }
     if (!body.trim()) { setError('Add some body text.'); return; }
     if (title.length > TITLE_MAX) { setError(`Title must be ${TITLE_MAX} characters or fewer.`); return; }
+    if (!loggedIn && !guestEmail.trim() && !guestPhone.trim()) {
+      setError('Add an email or phone so we can send you a link to manage your post.');
+      return;
+    }
     setError('');
     setLoading(true);
     try {
-      const created = await apiRequest('POST', {
-        title: title.trim(),
-        body: body.trim(),
-        image: image || null,
-      }, '/hock/posts');
-      onCreated(created);
+      if (loggedIn) {
+        const created = await apiRequest('POST', {
+          title: title.trim(),
+          body: body.trim(),
+          image: image || null,
+        }, '/hock/posts');
+        onCreated(created);
+      } else {
+        const created = await apiRequest('POST', {
+          title: title.trim(),
+          body: body.trim(),
+          guest_email: guestEmail.trim() || null,
+          guest_phone: guestPhone.trim() || null,
+        }, '/hock/posts/guest');
+        setGuestResult(created);
+        setLoading(false);
+      }
     } catch (err) {
       setError(typeof err === 'string' ? err : 'Failed to post. Please try again.');
       setLoading(false);
     }
   };
+
+  if (guestResult) {
+    return (
+      <div className="gs-card" style={{ marginBottom: 20 }}>
+        <div className="gs-card-body">
+          <GuestSubmitSuccess
+            manageUrl={`${window.location.origin}/guest/hock/${guestResult.guest_manage_token}`}
+            guestEmail={guestEmail.trim()}
+          />
+          <button type="button" className="gs-btn gs-btn-outline" style={{ marginTop: 12 }} onClick={onCancel}>Close</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="gs-card" style={{ marginBottom: 20 }}>
@@ -178,13 +213,19 @@ function CreatePostForm({ onCreated, onCancel }) {
               onChange={(e) => setBody(e.target.value)}
             />
           </div>
-          <div className="gs-field">
-            <label className="gs-label">Image (optional)</label>
-            <UploadFile setInvestors={(name) => setImage(name)} apiextension="/hock/upload" />
-            {image && (
-              <p style={{ fontSize: 12, color: 'var(--success)', marginTop: 6, display: 'flex', alignItems: 'center', gap: 4 }}><Check size={13} /> Image attached</p>
-            )}
-          </div>
+          {loggedIn ? (
+            <div className="gs-field">
+              <label className="gs-label">Image (optional)</label>
+              <UploadFile setInvestors={(name) => setImage(name)} apiextension="/hock/upload" />
+              {image && (
+                <p style={{ fontSize: 12, color: 'var(--success)', marginTop: 6, display: 'flex', alignItems: 'center', gap: 4 }}><Check size={13} /> Image attached</p>
+              )}
+            </div>
+          ) : (
+            <div className="gs-field">
+              <GuestContactFields email={guestEmail} phone={guestPhone} onEmailChange={setGuestEmail} onPhoneChange={setGuestPhone} />
+            </div>
+          )}
           <div style={{ display: 'flex', gap: 8 }}>
             <button type="submit" className="gs-btn gs-btn-primary" disabled={loading}>
               {loading ? 'Posting…' : 'Post'}
@@ -200,7 +241,6 @@ function CreatePostForm({ onCreated, onCancel }) {
 }
 
 export default function Hock() {
-  const navigate = useNavigate();
   const [sort, setSort] = useState('hot');
   const [posts, setPosts] = useState([]);
   const [page, setPage] = useState(1);
@@ -211,7 +251,6 @@ export default function Hock() {
   const [composing, setComposing] = useState(false);
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-  const loggedIn = isLoggedIn();
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search.trim()), 350);
@@ -245,7 +284,6 @@ export default function Hock() {
   };
 
   const startCompose = () => {
-    if (!loggedIn) { navigate(`/signin?next=${encodeURIComponent('/hock')}`); return; }
     setComposing((c) => !c);
   };
 
@@ -268,7 +306,7 @@ export default function Hock() {
           Gut Shtick's discussion forum — start a conversation, weigh in, and vote.
         </p>
 
-        {composing && loggedIn && (
+        {composing && (
           <CreatePostForm onCreated={handleCreated} onCancel={() => setComposing(false)} />
         )}
 
@@ -312,7 +350,7 @@ export default function Hock() {
 
         {!loading && !error && posts.length > 0 && (
           <div style={{ marginBottom: 20 }}>
-            <PinSomethingCard to="/hock" prompt="Got something to hock? Start a conversation." cta="Start talking" />
+            <PinSomethingCard to="/hock" prompt="Got something to hock? Start a conversation." cta="Start talking" guestReady />
           </div>
         )}
 

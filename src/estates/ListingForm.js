@@ -4,6 +4,9 @@ import { Home, ClipboardPaste } from 'lucide-react';
 import apiRequest from '../ApiRequest';
 import EstatesPhotoUpload from './EstatesPhotoUpload';
 import { normalizePhone, isValidPhone } from '../shared/phone';
+import { isLoggedIn } from '../auth';
+import GuestContactFields from '../guest/GuestContactFields';
+import GuestSubmitSuccess from '../guest/GuestSubmitSuccess';
 
 const EMPTY = {
   listing_type: 'sale', title: '', description: '',
@@ -12,7 +15,7 @@ const EMPTY = {
   lat: '', lng: '',
   bedrooms: '', bathrooms: '', size_value: '', size_unit: 'sqft',
   is_agent: false,
-  contact_name: '', contact_email: '', contact_phone: '', contact_whatsapp: '',
+  contact_name: '', contact_email: '', contact_phone: '', contact_whatsapp: '', contact_link: '',
 };
 
 const LEASE_PERIODS = ['night', 'week', 'month'];
@@ -33,6 +36,14 @@ export default function ListingForm() {
   const [parsing, setParsing] = useState(false);
   const [parseError, setParseError] = useState('');
 
+  const loggedIn = isLoggedIn();
+  // Only the "new listing" path (not editing) is ever reachable while
+  // logged out -- /listings/:idOrSlug/edit stays RequireAuth-gated.
+  const guestMode = !editing && !loggedIn;
+  const [guestEmail, setGuestEmail] = useState('');
+  const [guestPhone, setGuestPhone] = useState('');
+  const [guestResult, setGuestResult] = useState(null);
+
   useEffect(() => {
     if (!editing) return;
     apiRequest('GET', null, `/estates/listings/${idOrSlug}`)
@@ -47,6 +58,7 @@ export default function ListingForm() {
           is_agent: l.is_agent === null || l.is_agent === undefined ? null : !!l.is_agent,
           contact_name: l.contact_name || '', contact_email: l.contact_email || '',
           contact_phone: l.contact_phone || '', contact_whatsapp: l.contact_whatsapp || '',
+          contact_link: l.contact_link || '',
         });
         setPhotos(l.photos || []);
       })
@@ -78,6 +90,7 @@ export default function ListingForm() {
         contact_phone: draft.contact_phone || f.contact_phone,
         contact_whatsapp: draft.contact_whatsapp || f.contact_whatsapp,
         contact_email: draft.contact_email || f.contact_email,
+        contact_link: draft.contact_link || f.contact_link,
       }));
       setPasteOpen(false);
     } catch (e) {
@@ -91,8 +104,12 @@ export default function ListingForm() {
     e.preventDefault();
     setError('');
     if (!form.title.trim()) { setError('Title is required.'); return; }
-    if (!form.contact_email.trim() && !form.contact_phone.trim()) {
-      setError('At least one of contact email or contact phone is required.');
+    if (!form.contact_email.trim() && !form.contact_phone.trim() && !form.contact_link.trim()) {
+      setError('At least one of contact email, contact phone, or a contact link is required.');
+      return;
+    }
+    if (guestMode && !guestEmail.trim() && !guestPhone.trim()) {
+      setError('Add an email or phone so we can send you a link to manage this listing.');
       return;
     }
     setSaving(true);
@@ -114,16 +131,41 @@ export default function ListingForm() {
       contact_whatsapp: normalizePhone(form.contact_whatsapp, form.country),
       photos: photos.map((p) => p.filename),
     };
+    if (guestMode) {
+      body.guest_email = guestEmail.trim() || null;
+      body.guest_phone = guestPhone.trim() || null;
+    }
     const req = editing
       ? apiRequest('PATCH', body, `/estates/listings/${listingId}`)
-      : apiRequest('POST', body, '/estates/listings');
+      : apiRequest('POST', body, guestMode ? '/estates/listings/guest' : '/estates/listings');
     req
-      .then((l) => navigate(`/listings/${l.slug}`))
+      .then((l) => {
+        if (guestMode) { setGuestResult(l); return; }
+        navigate(`/listings/${l.slug}`);
+      })
       .catch((err) => setError(typeof err === 'string' ? err : 'Could not save this listing.'))
       .finally(() => setSaving(false));
   };
 
   if (loading) return <div className="feed-section"><div className="gs-container" style={{ maxWidth: 680 }}><p style={{ color: 'var(--muted)' }}>Loading…</p></div></div>;
+
+  if (guestResult) {
+    return (
+      <div className="feed-section">
+        <div className="gs-container" style={{ maxWidth: 680 }}>
+          <div className="est-masthead">
+            <div className="est-masthead-kicker"><Home size={13} /> List a property</div>
+            <h1 className="est-masthead-title">Thanks for the listing</h1>
+          </div>
+          <GuestSubmitSuccess
+            manageUrl={`${window.location.origin}/guest/estates/${guestResult.guest_manage_token}`}
+            guestEmail={guestEmail.trim()}
+          />
+          <Link to="/" className="gs-btn gs-btn-outline" style={{ marginTop: 16 }}>← Buy &amp; Rent</Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="feed-section">
@@ -256,14 +298,16 @@ export default function ListingForm() {
             </p>
           </div>
 
-          <div className="est-form-section">
-            <h3>Photos (up to 5)</h3>
-            <EstatesPhotoUpload photos={photos} onChange={setPhotos} />
-          </div>
+          {!guestMode && (
+            <div className="est-form-section">
+              <h3>Photos (up to 5)</h3>
+              <EstatesPhotoUpload photos={photos} onChange={setPhotos} />
+            </div>
+          )}
 
           <div className="est-form-section">
             <h3>Contact *</h3>
-            <p style={{ fontSize: 12, color: 'var(--muted)', margin: '0 0 12px' }}>At least one of email or phone is required.</p>
+            <p style={{ fontSize: 12, color: 'var(--muted)', margin: '0 0 12px' }}>At least one of email, phone, or a contact link is required.</p>
             <div className="est-form-grid">
               <div><label className="est-field-label">Your name</label><input className="gs-input" value={form.contact_name} onChange={set('contact_name')} /></div>
               <div><label className="est-field-label">Email</label><input className="gs-input" type="email" value={form.contact_email} onChange={set('contact_email')} /></div>
@@ -286,7 +330,32 @@ export default function ListingForm() {
                 )}
               </div>
             </div>
+            <div style={{ marginTop: 12 }}>
+              <label className="est-field-label">Contact link (optional)</label>
+              <input
+                className="gs-input"
+                type="url"
+                placeholder="https://example.com/this-listing"
+                value={form.contact_link}
+                onChange={set('contact_link')}
+              />
+              <p style={{ fontSize: 12, color: 'var(--muted)', margin: '4px 0 0' }}>
+                For a listing sourced from another site that wants to be contacted through its own page or form
+                instead of directly -- shown as a button on the listing alongside (or instead of) email/phone.
+              </p>
+            </div>
           </div>
+
+          {guestMode && (
+            <div className="est-form-section">
+              <GuestContactFields
+                email={guestEmail}
+                phone={guestPhone}
+                onEmailChange={setGuestEmail}
+                onPhoneChange={setGuestPhone}
+              />
+            </div>
+          )}
 
           <button type="submit" className="gs-btn gs-btn-primary" disabled={saving}>
             {saving ? 'Saving…' : editing ? 'Save changes' : 'Publish listing'}

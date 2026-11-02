@@ -1,0 +1,77 @@
+/* Community Marketplace -- small set of genuinely new rules only. Layout,
+   grid, card, form and detail-page structure all reuse Estates' existing
+   `.est-*`/`.gs-*` classes (and the global `.difficulty-btn` toggle-pill
+   convention) verbatim, per this feature's own build notes -- those classes
+   are defined at the top level of estates-theme.css (not nested under
+   `.estates-theme`), so they're already in the global stylesheet bundle
+   and usable here on the main site without pulling in Estates' theme
+   colors/navbar. This file only covers the handful of bits those classes
+   don't already have a home for. */
+
+.mp-free-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 3px 9px;
+  border-radius: 999px;
+}
+
+.mp-condition-chip {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--muted);
+  background: var(--surface-deep);
+  border-radius: 999px;
+  padding: 2px 9px;
+}
+
+.mp-ships-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.mp-card-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 4px 0;
+}
+
+.mp-breadcrumb {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 0 0 10px;
+}
+
+.mp-filter-bar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 16px 0;
+  align-items: flex-start;
+}
+
+.mp-filter-bar .gs-input {
+  flex: 1 1 160px;
+  min-width: 0;
+}
+
+.mp-chip-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}

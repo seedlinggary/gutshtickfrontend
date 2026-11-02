@@ -86,7 +86,10 @@ export default function TorahNavbar() {
               </>
             ) : (
               <>
-                <li className="nav-item"><button className="nav-link nav-link-pin" onClick={() => go('/signup?next=%2Fposts%2Fnew')}><Plus size={15} /> Share Torah</button></li>
+                {/* PostForm now handles guests directly with its own
+                    contact-info section, so this goes straight there instead
+                    of forcing a signup. */}
+                <li className="nav-item"><button className="nav-link nav-link-pin" onClick={() => go('/posts/new')}><Plus size={15} /> Share Torah</button></li>
                 <li className="nav-item"><button className="nav-link" onClick={() => go('/signin')}>Sign In</button></li>
                 <li className="nav-item"><button className="nav-link" onClick={() => go('/signup')}>Sign Up</button></li>
               </>

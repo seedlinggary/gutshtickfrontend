@@ -89,7 +89,10 @@ export default function MoneyNavbar() {
               </>
             ) : (
               <>
-                <li className="nav-item"><button className="nav-link nav-link-pin" onClick={() => go('/signup?next=%2Ftachlis%3Fnew%3D1')}><Plus size={15} /> Post to Job Board</button></li>
+                {/* Tachlis now handles guests directly with its own
+                    contact-info section, so this goes straight there instead
+                    of forcing a signup. */}
+                <li className="nav-item"><button className="nav-link nav-link-pin" onClick={() => go('/tachlis?new=1')}><Plus size={15} /> Post to Job Board</button></li>
                 <li className="nav-item"><button className="nav-link" onClick={() => go('/signin')}>Sign In</button></li>
                 <li className="nav-item"><button className="nav-link nav-link-pin" onClick={() => go('/signup')}>Sign Up</button></li>
               </>

@@ -16,18 +16,26 @@ const MyGroupBuys      = lazy(() => import('./MyGroupBuys'));
 const Learn            = lazy(() => import('./Learn'));
 const Calculators      = lazy(() => import('./Calculators'));
 const AreaPage         = lazy(() => import('./AreaPage'));
+const EstatesGuestManage = lazy(() => import('./EstatesGuestManage'));
+const GroupBuyGuestManage = lazy(() => import('./GroupBuyGuestManage'));
 
 /** Gut Estates's own routes -- same {path, element} shape as business/routes.js,
  * registered the same way via src/sites/registry.js. `Contact`/`NotFound` are
  * reused as-is from the main site (already theme-agnostic). */
 export default [
   { path: '/', element: <EstatesDirectory /> },
-  { path: '/listings/new', element: <RequireAuth check={isLoggedIn}><ListingForm /></RequireAuth> },
+  // /listings/new and /group-buy/new are open to guests too -- ListingForm
+  // and GroupBuyForm reveal their own guest-contact section instead of
+  // redirecting to /signin when nobody's logged in. Editing an existing
+  // listing stays owner-only.
+  { path: '/listings/new', element: <ListingForm /> },
+  { path: '/guest/estates/:token', element: <EstatesGuestManage /> },
   { path: '/listings/:idOrSlug/edit', element: <RequireAuth check={isLoggedIn}><ListingForm /></RequireAuth> },
   { path: '/listings/:idOrSlug', element: <ListingProfile /> },
   { path: '/my-listings', element: <RequireAuth check={isLoggedIn}><MyListings /></RequireAuth> },
   { path: '/group-buy', element: <GroupBuy /> },
-  { path: '/group-buy/new', element: <RequireAuth check={isLoggedIn}><GroupBuyForm /></RequireAuth> },
+  { path: '/group-buy/new', element: <GroupBuyForm /> },
+  { path: '/guest/group-buy/:token', element: <GroupBuyGuestManage /> },
   { path: '/group-buy/:slug/edit', element: <RequireAuth check={isLoggedIn}><GroupBuyForm /></RequireAuth> },
   { path: '/group-buy/:slug', element: <GroupBuyProfile /> },
   { path: '/my-group-buys', element: <RequireAuth check={isLoggedIn}><MyGroupBuys /></RequireAuth> },

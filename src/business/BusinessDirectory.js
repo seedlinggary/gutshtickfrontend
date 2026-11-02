@@ -514,9 +514,9 @@ export default function BusinessDirectory({ mode = 'business' }) {
 
         <div className="biz-list-cta">
           {isCommunity ? (
-            <PinSomethingCard to="/business/new" prompt="Run a shul or chessed organization? Add it — free." cta="List your organization" />
+            <PinSomethingCard to="/business/new" prompt="Run a shul or chessed organization? Add it — free." cta="List your organization" guestReady />
           ) : (
-            <PinSomethingCard to="/business/new" prompt="Own a business? Add it to the directory — free." cta="List your business" />
+            <PinSomethingCard to="/business/new" prompt="Own a business? Add it to the directory — free." cta="List your business" guestReady />
           )}
         </div>
 

@@ -5,6 +5,9 @@ import apiRequest from '../ApiRequest';
 import useFetch from '../UseFetch';
 import UploadFile from '../Uploadfile';
 import CategoryPicker from './CategoryPicker';
+import { isLoggedIn } from '../auth';
+import GuestContactFields from '../guest/GuestContactFields';
+import GuestSubmitSuccess from '../guest/GuestSubmitSuccess';
 
 const CAPTION_MAX = 120;
 const CREDIT_MAX = 125;
@@ -24,16 +27,26 @@ const CreateShtick = () => {
   const [url, setUrl] = useState('');
   const [picture, setPicture] = useState(null);
 
+  const [guestEmail, setGuestEmail] = useState('');
+  const [guestPhone, setGuestPhone] = useState('');
+  const [guestResult, setGuestResult] = useState(null);
+
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
+  const loggedIn = isLoggedIn();
 
   const cookie = localStorage.getItem('cookie');
   const { data: categories } = useFetch('/generalc', {
     method: 'GET',
     headers: { 'x-access-token': cookie },
   });
+
+  // No guest upload endpoint exists (/shtick/upload is @token_required) --
+  // drop the Image tab entirely for a logged-out visitor rather than let
+  // them pick it and hit a 401 on upload.
+  const contentTabs = loggedIn ? CONTENT_TABS : CONTENT_TABS.filter((t) => t.key !== 'image');
 
   const selectTab = (key) => setActiveTab((prev) => (prev === key ? null : key));
 
@@ -44,6 +57,10 @@ const CreateShtick = () => {
     if (credit.length > CREDIT_MAX) { setError(`Credit must be ${CREDIT_MAX} characters or fewer.`); return; }
     if (categories?.length && categoryIds.length === 0) {
       setError('Please select at least one category.'); return;
+    }
+    if (!loggedIn && !guestEmail.trim() && !guestPhone.trim()) {
+      setError('Add an email or phone so we can send you a link to check on your post.');
+      return;
     }
     setError('');
     setLoading(true);
@@ -56,15 +73,40 @@ const CreateShtick = () => {
         url: activeTab === 'link' ? (url || null) : null,
         picture: activeTab === 'image' ? (picture || null) : null,
       };
-      await apiRequest('POST', payload, '/shtick');
-      setSuccess(true);
-      setTimeout(() => navigate('/'), 1500);
+      if (!loggedIn) {
+        payload.guest_email = guestEmail.trim() || null;
+        payload.guest_phone = guestPhone.trim() || null;
+      }
+      const created = await apiRequest('POST', payload, loggedIn ? '/shtick' : '/shtick/guest');
+      if (loggedIn) {
+        setSuccess(true);
+        setTimeout(() => navigate('/'), 1500);
+      } else {
+        setGuestResult(created);
+      }
     } catch (err) {
       setError(typeof err === 'string' ? err : 'Failed to create post. Please try again.');
     } finally {
       setLoading(false);
     }
   };
+
+  if (guestResult) {
+    return (
+      <div className="create-page">
+        <div className="gs-container">
+          <div className="create-card">
+            <h2 className="create-title">Share Gut Shtick</h2>
+            <GuestSubmitSuccess
+              manageUrl={`${window.location.origin}/guest/shtick/${guestResult.guest_manage_token}`}
+              guestEmail={guestEmail.trim()}
+            />
+            <Link to="/" className="gs-btn gs-btn-outline" style={{ marginTop: 16 }}>← Back home</Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="create-page">
@@ -127,7 +169,7 @@ const CreateShtick = () => {
             <p className="create-optional-heading">Optional — add one of the following</p>
 
             <div className="content-type-tabs">
-              {CONTENT_TABS.map((t) => (
+              {contentTabs.map((t) => (
                 <button
                   type="button"
                   key={t.key}
@@ -188,6 +230,17 @@ const CreateShtick = () => {
                     <Check size={13} /> Image uploaded
                   </p>
                 )}
+              </div>
+            )}
+
+            {!loggedIn && (
+              <div style={{ marginTop: 8, marginBottom: 8 }}>
+                <GuestContactFields
+                  email={guestEmail}
+                  phone={guestPhone}
+                  onEmailChange={setGuestEmail}
+                  onPhoneChange={setGuestPhone}
+                />
               </div>
             )}
 

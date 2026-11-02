@@ -7,6 +7,7 @@ import NotFound from '../NotFound';
 const Feed        = lazy(() => import('./Feed'));
 const PostProfile  = lazy(() => import('./PostProfile'));
 const PostForm     = lazy(() => import('./PostForm'));
+const TorahGuestManage = lazy(() => import('./TorahGuestManage'));
 const MyPosts      = lazy(() => import('./MyPosts'));
 const Zmanim       = lazy(() => import('./Zmanim'));
 const Sources      = lazy(() => import('./Sources'));
@@ -19,7 +20,11 @@ const SheetView    = lazy(() => import('./sheets/SheetView'));
  * sites', registered the same way via src/sites/registry.js. */
 export default [
   { path: '/', element: <Feed /> },
-  { path: '/posts/new', element: <RequireAuth check={isLoggedIn}><PostForm /></RequireAuth> },
+  // Open to guests too -- PostForm reveals its own guest-contact section
+  // instead of redirecting to /signin when nobody's logged in. Editing an
+  // existing post stays owner-only.
+  { path: '/posts/new', element: <PostForm /> },
+  { path: '/guest/torah/:token', element: <TorahGuestManage /> },
   { path: '/posts/:idOrSlug/edit', element: <RequireAuth check={isLoggedIn}><PostForm /></RequireAuth> },
   { path: '/posts/:slug', element: <PostProfile /> },
   { path: '/my-posts', element: <RequireAuth check={isLoggedIn}><MyPosts /></RequireAuth> },

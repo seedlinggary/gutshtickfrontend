@@ -92,7 +92,10 @@ export default function BusinessNavbar() {
               </>
             ) : (
               <>
-                <li className="nav-item"><button className="nav-link nav-link-pin" onClick={() => go('/signup?next=%2Fbusiness%2Fnew')}><Plus size={15} /> List a Business</button></li>
+                {/* BusinessForm now handles guests directly with its own
+                    contact-info section, so this goes straight there instead
+                    of forcing a signup. */}
+                <li className="nav-item"><button className="nav-link nav-link-pin" onClick={() => go('/business/new')}><Plus size={15} /> List a Business</button></li>
                 <li className="nav-item"><button className="nav-link" onClick={() => go('/signin')}>Sign In</button></li>
                 <li className="nav-item"><button className="nav-link" onClick={() => go('/signup')}>Sign Up</button></li>
               </>

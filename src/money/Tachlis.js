@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Pin, MapPin, Home, Tag, DollarSign, CheckCircle2, ClipboardPaste, Briefcase, Search, SlidersHorizontal, Plus, Store } from 'lucide-react';
 import apiRequest from '../ApiRequest';
 import ShareButton from '../ShareButton';
@@ -10,6 +10,8 @@ import { AdCard, useInThreadAds } from '../ads/AdSlot';
 import FreshnessBadge from '../utils/FreshnessBadge';
 import GetAlertsButton from '../alerts/GetAlertsButton';
 import { siteUrl } from '../siteMode';
+import GuestContactFields from '../guest/GuestContactFields';
+import GuestSubmitSuccess from '../guest/GuestSubmitSuccess';
 
 const TITLE_MAX = 150;
 const BODY_MAX = 8000;
@@ -134,7 +136,7 @@ export function PostCard({ post }) {
   );
 }
 
-function CreatePostForm({ onCreated, onCancel }) {
+function CreatePostForm({ onCreated, onCancel, loggedIn }) {
   const [postType, setPostType] = useState('job');
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
@@ -143,9 +145,12 @@ function CreatePostForm({ onCreated, onCancel }) {
   const [compensation, setCompensation] = useState('');
   const [category, setCategory] = useState('');
   const [remote, setRemote] = useState(false);
+  const [guestEmail, setGuestEmail] = useState('');
+  const [guestPhone, setGuestPhone] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [createdPost, setCreatedPost] = useState(null);
 
   const [pasteText, setPasteText] = useState('');
   const [pasteOpen, setPasteOpen] = useState(false);
@@ -179,10 +184,14 @@ function CreatePostForm({ onCreated, onCancel }) {
     if (!body.trim()) { setError('Add some details in the body.'); return; }
     if (!contact.trim()) { setError('Add a way for people to contact you (email, phone, or link).'); return; }
     if (title.length > TITLE_MAX) { setError(`Title must be ${TITLE_MAX} characters or fewer.`); return; }
+    if (!loggedIn && !guestEmail.trim() && !guestPhone.trim()) {
+      setError('Add an email or phone so we can send you a link to manage your post.');
+      return;
+    }
     setError('');
     setLoading(true);
     try {
-      const created = await apiRequest('POST', {
+      const payload = {
         post_type: postType,
         title: title.trim(),
         body: body.trim(),
@@ -191,7 +200,13 @@ function CreatePostForm({ onCreated, onCancel }) {
         compensation: compensation.trim() || null,
         category: category.trim() || null,
         remote: postType === 'job' ? remote : null,
-      }, '/tachlis/posts');
+      };
+      if (!loggedIn) {
+        payload.guest_email = guestEmail.trim() || null;
+        payload.guest_phone = guestPhone.trim() || null;
+      }
+      const created = await apiRequest('POST', payload, loggedIn ? '/tachlis/posts' : '/tachlis/posts/guest');
+      setCreatedPost(created);
       setSubmitted(true);
       if (onCreated) onCreated(created);
     } catch (err) {
@@ -201,6 +216,19 @@ function CreatePostForm({ onCreated, onCancel }) {
   };
 
   if (submitted) {
+    if (!loggedIn && createdPost?.guest_manage_token) {
+      return (
+        <div className="gs-card" style={{ marginBottom: 20 }}>
+          <div className="gs-card-body">
+            <GuestSubmitSuccess
+              manageUrl={`${window.location.origin}/guest/tachlis/${createdPost.guest_manage_token}`}
+              guestEmail={guestEmail.trim()}
+            />
+            <button className="gs-btn gs-btn-outline" style={{ marginTop: 10 }} onClick={onCancel}>Close</button>
+          </div>
+        </div>
+      );
+    }
     return (
       <div className="gs-card" style={{ marginBottom: 20 }}>
         <div className="gs-card-body">
@@ -330,6 +358,14 @@ function CreatePostForm({ onCreated, onCancel }) {
               </label>
             </div>
           )}
+          {!loggedIn && (
+            <GuestContactFields
+              email={guestEmail}
+              phone={guestPhone}
+              onEmailChange={setGuestEmail}
+              onPhoneChange={setGuestPhone}
+            />
+          )}
           <div style={{ display: 'flex', gap: 8 }}>
             <button type="submit" className="gs-btn gs-btn-primary" disabled={loading}>
               {loading ? 'Submitting…' : 'Submit for review'}
@@ -345,7 +381,6 @@ function CreatePostForm({ onCreated, onCancel }) {
 }
 
 export default function Tachlis() {
-  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   // Every filter initializes from the URL (once, on mount) so a copied link
   // restores the same search -- see the sync-back effect below, which is
@@ -453,7 +488,6 @@ export default function Tachlis() {
   };
 
   const startCompose = () => {
-    if (!loggedIn) { navigate(`/signin?next=${encodeURIComponent('/tachlis')}`); return; }
     setComposing((c) => !c);
   };
 
@@ -475,8 +509,8 @@ export default function Tachlis() {
           </div>
         </div>
 
-        {composing && loggedIn && (
-          <CreatePostForm onCreated={handleCreated} onCancel={() => setComposing(false)} />
+        {composing && (
+          <CreatePostForm onCreated={handleCreated} onCancel={() => setComposing(false)} loggedIn={loggedIn} />
         )}
 
         <div className="board-toolbar">
@@ -585,7 +619,7 @@ export default function Tachlis() {
 
         {!loading && !error && posts.length > 0 && (
           <div style={{ marginBottom: 20 }}>
-            <PinSomethingCard to="/tachlis" prompt="Hiring, or looking for work? Post a flyer." cta="Post a flyer" />
+            <PinSomethingCard to="/tachlis" prompt="Hiring, or looking for work? Post a flyer." cta="Post a flyer" guestReady />
           </div>
         )}
 

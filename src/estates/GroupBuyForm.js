@@ -4,6 +4,9 @@ import { Users } from 'lucide-react';
 import apiRequest from '../ApiRequest';
 import EstatesPhotoUpload from './EstatesPhotoUpload';
 import { normalizePhone, isValidPhone } from '../shared/phone';
+import { isLoggedIn } from '../auth';
+import GuestContactFields from '../guest/GuestContactFields';
+import GuestSubmitSuccess from '../guest/GuestSubmitSuccess';
 
 const EMPTY = {
   title: '', description: '', developer_name: '', stage: '',
@@ -22,6 +25,12 @@ export default function GroupBuyForm() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(editing);
+
+  const loggedIn = isLoggedIn();
+  const guestMode = !editing && !loggedIn;
+  const [guestEmail, setGuestEmail] = useState('');
+  const [guestPhone, setGuestPhone] = useState('');
+  const [guestResult, setGuestResult] = useState(null);
 
   useEffect(() => {
     if (!editing) return;
@@ -53,6 +62,10 @@ export default function GroupBuyForm() {
       setError('At least one of contact email or contact phone is required.');
       return;
     }
+    if (guestMode && !guestEmail.trim() && !guestPhone.trim()) {
+      setError('Add an email or phone so we can send you a link to manage this listing.');
+      return;
+    }
     setSaving(true);
     const numOrNull = (v) => (v === '' || v === null ? null : Number(v));
     const intOrNull = (v) => (v === '' || v === null ? null : parseInt(v, 10));
@@ -65,16 +78,41 @@ export default function GroupBuyForm() {
       contact_whatsapp: normalizePhone(form.contact_whatsapp, form.country),
       photos: photos.map((p) => p.filename),
     };
+    if (guestMode) {
+      body.guest_email = guestEmail.trim() || null;
+      body.guest_phone = guestPhone.trim() || null;
+    }
     const req = editing
       ? apiRequest('PATCH', body, `/estates/group-buys/${gbId}`)
-      : apiRequest('POST', body, '/estates/group-buys');
+      : apiRequest('POST', body, guestMode ? '/estates/group-buys/guest' : '/estates/group-buys');
     req
-      .then((gb) => navigate(`/group-buy/${gb.slug}`))
+      .then((gb) => {
+        if (guestMode) { setGuestResult(gb); return; }
+        navigate(`/group-buy/${gb.slug}`);
+      })
       .catch((err) => setError(typeof err === 'string' ? err : 'Could not save this group buy.'))
       .finally(() => setSaving(false));
   };
 
   if (loading) return <div className="feed-section"><div className="gs-container" style={{ maxWidth: 680 }}><p style={{ color: 'var(--muted)' }}>Loading…</p></div></div>;
+
+  if (guestResult) {
+    return (
+      <div className="feed-section">
+        <div className="gs-container" style={{ maxWidth: 680 }}>
+          <div className="est-masthead">
+            <div className="est-masthead-kicker"><Users size={13} /> Start a group buy</div>
+            <h1 className="est-masthead-title">Thanks for the listing</h1>
+          </div>
+          <GuestSubmitSuccess
+            manageUrl={`${window.location.origin}/guest/group-buy/${guestResult.guest_manage_token}`}
+            guestEmail={guestEmail.trim()}
+          />
+          <Link to="/group-buy" className="gs-btn gs-btn-outline" style={{ marginTop: 16 }}>← Group Buy</Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="feed-section">
@@ -157,10 +195,12 @@ export default function GroupBuyForm() {
             </div>
           </div>
 
-          <div className="est-form-section">
-            <h3>Photos (up to 5)</h3>
-            <EstatesPhotoUpload photos={photos} onChange={setPhotos} />
-          </div>
+          {!guestMode && (
+            <div className="est-form-section">
+              <h3>Photos (up to 5)</h3>
+              <EstatesPhotoUpload photos={photos} onChange={setPhotos} />
+            </div>
+          )}
 
           <div className="est-form-section">
             <h3>Contact *</h3>
@@ -188,6 +228,17 @@ export default function GroupBuyForm() {
               </div>
             </div>
           </div>
+
+          {guestMode && (
+            <div className="est-form-section">
+              <GuestContactFields
+                email={guestEmail}
+                phone={guestPhone}
+                onEmailChange={setGuestEmail}
+                onPhoneChange={setGuestPhone}
+              />
+            </div>
+          )}
 
           <button type="submit" className="gs-btn gs-btn-primary" disabled={saving}>
             {saving ? 'Saving…' : editing ? 'Save changes' : 'Publish group buy'}

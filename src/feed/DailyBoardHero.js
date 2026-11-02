@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { Sun, Shuffle, Plus } from 'lucide-react';
-import { isLoggedIn } from '../auth';
 import { shakeBoard } from '../actions';
 
 // Edition number counts up once a day from a fixed anchor -- purely cosmetic
@@ -61,7 +60,7 @@ export default function DailyBoardHero() {
           <button
             type="button"
             className="gs-hero-pin"
-            onClick={() => navigate(isLoggedIn() ? '/CreateShtick' : '/signup?next=%2FCreateShtick')}
+            onClick={() => navigate('/CreateShtick')}
           >
             <Plus size={14} /> Pin something
           </button>

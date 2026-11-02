@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Mail, Phone, MessageCircle, Heart, Pencil, Trash2, RefreshCw,
-  BadgeCheck, MapPin, Home,
+  BadgeCheck, MapPin, Home, ExternalLink,
 } from 'lucide-react';
 import apiRequest from '../ApiRequest';
 import { isLoggedIn } from '../auth';
@@ -191,6 +191,9 @@ export default function ListingProfile() {
             )}
             {listing.contact_whatsapp && (
               <a className="gs-btn gs-btn-outline gs-btn-sm" href={whatsappHref(listing.contact_whatsapp)} target="_blank" rel="noreferrer" onClick={trackContactTap}><MessageCircle size={14} /> WhatsApp</a>
+            )}
+            {listing.contact_link && (
+              <a className="gs-btn gs-btn-outline gs-btn-sm" href={listing.contact_link} target="_blank" rel="noopener noreferrer" onClick={trackContactTap}><ExternalLink size={14} /> View / Contact</a>
             )}
           </div>
         </div>

@@ -5,6 +5,8 @@ import ShareButton from '../ShareButton';
 import { isLoggedIn, isAdmin } from '../auth';
 import timeAgo from '../utils/timeAgo';
 import { AlertCircle, MessageCircle } from 'lucide-react';
+import GuestContactFields from '../guest/GuestContactFields';
+import GuestSubmitSuccess from '../guest/GuestSubmitSuccess';
 
 const MAX_INDENT_DEPTH = 6; // stop indenting past this so deep threads stay readable
 
@@ -209,6 +211,10 @@ export default function HockPostPage() {
   const [likeCount, setLikeCount] = useState(0);
   const [newComment, setNewComment] = useState('');
   const [postingComment, setPostingComment] = useState(false);
+  const [guestEmail, setGuestEmail] = useState('');
+  const [guestPhone, setGuestPhone] = useState('');
+  const [guestCommentError, setGuestCommentError] = useState('');
+  const [guestCommentResult, setGuestCommentResult] = useState(null);
   const [editingPost, setEditingPost] = useState(false);
   const [editTitle, setEditTitle] = useState('');
   const [editBody, setEditBody] = useState('');
@@ -253,6 +259,30 @@ export default function HockPostPage() {
       setComments((prev) => [...prev, created]);
       setNewComment('');
     } catch (_) {}
+    setPostingComment(false);
+  };
+
+  const submitGuestComment = async (e) => {
+    e.preventDefault();
+    if (!newComment.trim()) return;
+    if (!guestEmail.trim() && !guestPhone.trim()) {
+      setGuestCommentError('Add an email or phone so we can send you a link to manage your comment.');
+      return;
+    }
+    setGuestCommentError('');
+    setPostingComment(true);
+    try {
+      const created = await apiRequest('POST', {
+        text: newComment.trim(),
+        hock_post_id: Number(id),
+        guest_email: guestEmail.trim() || null,
+        guest_phone: guestPhone.trim() || null,
+      }, '/hock/comments/guest');
+      setGuestCommentResult(created);
+      setNewComment('');
+    } catch (err) {
+      setGuestCommentError(typeof err === 'string' ? err : 'Failed to submit. Please try again.');
+    }
     setPostingComment(false);
   };
 
@@ -373,10 +403,35 @@ export default function HockPostPage() {
                       {postingComment ? 'Posting…' : 'Comment'}
                     </button>
                   </form>
+                ) : guestCommentResult ? (
+                  <div style={{ marginBottom: 16 }}>
+                    <GuestSubmitSuccess
+                      manageUrl={`${window.location.origin}/guest/hock-comment/${guestCommentResult.guest_manage_token}`}
+                      guestEmail={guestEmail.trim()}
+                      message="Comment submitted! It's pending review."
+                    />
+                  </div>
                 ) : (
-                  <p style={{ fontSize: 13, color: 'var(--muted)' }}>
-                    <Link to="/signin">Sign in</Link> to join the conversation.
-                  </p>
+                  <form onSubmit={submitGuestComment} style={{ marginBottom: 16 }}>
+                    {guestCommentError && <div className="gs-error-box" style={{ marginBottom: 8 }}>{guestCommentError}</div>}
+                    <textarea
+                      className="gs-input gs-textarea"
+                      placeholder="Add to the conversation…"
+                      value={newComment}
+                      rows={3}
+                      onChange={(e) => setNewComment(e.target.value)}
+                    />
+                    <div style={{ marginTop: 8 }}>
+                      <GuestContactFields email={guestEmail} phone={guestPhone} onEmailChange={setGuestEmail} onPhoneChange={setGuestPhone} />
+                    </div>
+                    <button type="submit" className="gs-btn gs-btn-primary gs-btn-sm" style={{ marginTop: 8 }}
+                      disabled={postingComment || !newComment.trim()}>
+                      {postingComment ? 'Posting…' : 'Comment without an account'}
+                    </button>
+                    <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 6 }}>
+                      Prefer an account? <Link to="/signin">Sign in</Link> instead — replies to other comments need one.
+                    </p>
+                  </form>
                 )}
 
                 {comments.length === 0 && (

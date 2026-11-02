@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, Suspense, lazy } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { MapPin, Users, Search, Plus, Clock, Menu, Map } from 'lucide-react';
+import { MapPin, Users, Search, Plus, Clock, Menu, Map, Star } from 'lucide-react';
 import apiRequest from '../ApiRequest';
 import { isLoggedIn } from '../auth';
 import ErrorBoundary from '../ErrorBoundary';
@@ -169,9 +169,12 @@ export default function FindCommunity() {
         </div>
 
         {isLoggedIn() && (
-          <div className="biz-list-cta">
+          <div className="biz-list-cta" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <Link to="/communities/new" className="gs-btn gs-btn-primary" style={{ whiteSpace: 'nowrap' }}>
               <Plus size={15} /> Add a community
+            </Link>
+            <Link to="/communities/mine" className="gs-btn gs-btn-outline" style={{ whiteSpace: 'nowrap' }}>
+              <Star size={15} /> My Communities
             </Link>
           </div>
         )}

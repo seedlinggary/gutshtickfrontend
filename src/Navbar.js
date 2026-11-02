@@ -7,7 +7,7 @@ import { getEmail, getToken, isAdmin, isSuperAdmin, clearAuth } from './auth';
 import NotificationBell from './NotificationBell';
 import NavStreakChip from './NavStreakChip';
 import GlobalSearchBar from './search/GlobalSearchBar';
-import { Newspaper, MessagesSquare, Coffee, Settings, Plus, Bell, Inbox, Heart, Hourglass } from 'lucide-react';
+import { Newspaper, MessagesSquare, Coffee, Settings, Plus, Bell, Inbox, Heart, Hourglass, ShoppingBag } from 'lucide-react';
 
 function useOutsideClose(open, setOpen) {
   const ref = useRef(null);
@@ -119,6 +119,7 @@ function AppNavbar() {
 
             <li className="nav-item"><button className="nav-link" onClick={() => go('/today')}><Newspaper size={15} /> Today</button></li>
             <li className="nav-item"><button className="nav-link" onClick={() => go('/hock')}><MessagesSquare size={15} /> Hock</button></li>
+            <li className="nav-item"><button className="nav-link" onClick={() => go('/marketplace')}><ShoppingBag size={15} /> Marketplace</button></li>
             <li className="nav-item"><button className="nav-link" onClick={() => go('/games')}><Coffee size={15} /> Coffee Break</button></li>
 
             {boss && (
@@ -152,11 +153,11 @@ function AppNavbar() {
               </>
             ) : (
               <>
-                {/* Visible logged-out too -- previously this whole button was hidden
-                    pre-login, so a visitor never saw an invitation to contribute
-                    anywhere on the site. */}
+                {/* Visible logged-out too -- CreateShtick itself now handles a
+                    guest (no-account) poster with its own contact-info section,
+                    so this goes straight there instead of forcing a signup. */}
                 <li className="nav-item">
-                  <button className="nav-link nav-link-pin" onClick={() => go('/signup?next=%2FCreateShtick')}><Plus size={15} /> Pin Something</button>
+                  <button className="nav-link nav-link-pin" onClick={() => go('/CreateShtick')}><Plus size={15} /> Pin Something</button>
                 </li>
                 <li className="nav-item"><button className="nav-link" onClick={() => go('/signin')}>Sign In</button></li>
                 <li className="nav-item"><button className="nav-link" onClick={() => go('/signup')}>Sign Up</button></li>

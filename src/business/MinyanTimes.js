@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Clock, Plus, Trash2, Info } from 'lucide-react';
 import apiRequest from '../ApiRequest';
+import GuestContactFields from '../guest/GuestContactFields';
+import GuestSubmitSuccess from '../guest/GuestSubmitSuccess';
 
 const TEFILAH_LABELS = { shacharit: 'Shacharit', mincha: 'Mincha', maariv: 'Maariv', other: 'Other' };
 const ANCHOR_LABELS = { netz: 'Netz (sunrise)', shkiya: 'Shkiya (sunset)', chatzos: 'Chatzos (midday)', alos: 'Alos (dawn)', tzeis: 'Tzeis (nightfall)' };
@@ -34,6 +36,15 @@ export default function MinyanTimes({ businessId, canManage }) {
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  // No-account suggestion path, for a viewer who doesn't manage this
+  // business -- there's no "logged in but not the owner" variant on the
+  // backend, only the owner-create route and this guest-create one, so any
+  // non-manager always goes through here regardless of their own login
+  // state (see create_guest_minyan in backend/business/routes/minyan.py).
+  const [suggesting, setSuggesting] = useState(false);
+  const [guestEmail, setGuestEmail] = useState('');
+  const [guestPhone, setGuestPhone] = useState('');
+  const [guestResult, setGuestResult] = useState(null);
 
   const load = () => {
     apiRequest('GET', null, `/business/businesses/${businessId}/minyanim`)
@@ -46,6 +57,10 @@ export default function MinyanTimes({ businessId, canManage }) {
   const submit = (e) => {
     e.preventDefault();
     setError('');
+    if (suggesting && !guestEmail.trim() && !guestPhone.trim()) {
+      setError('Add an email or phone so we can send you a link to manage this suggestion.');
+      return;
+    }
     const body = {
       tefilah: form.tefilah, label: form.label || undefined, days: form.days || undefined,
       season: form.season || undefined, notes: form.notes || undefined,
@@ -58,6 +73,15 @@ export default function MinyanTimes({ businessId, canManage }) {
       body.relative_offset_minutes = Number(form.relative_offset_minutes) || 0;
     }
     setSaving(true);
+    if (suggesting) {
+      body.guest_email = guestEmail.trim() || null;
+      body.guest_phone = guestPhone.trim() || null;
+      apiRequest('POST', body, `/business/businesses/${businessId}/minyanim/guest`)
+        .then((created) => { setGuestResult(created); })
+        .catch((err) => setError(typeof err === 'string' ? err : 'Could not save -- check the fields above.'))
+        .finally(() => setSaving(false));
+      return;
+    }
     apiRequest('POST', body, `/business/businesses/${businessId}/minyanim`)
       .then(() => { setForm(EMPTY_FORM); setAdding(false); load(); })
       .catch((err) => setError(typeof err === 'string' ? err : 'Could not save -- check the fields above.'))
@@ -124,7 +148,23 @@ export default function MinyanTimes({ businessId, canManage }) {
         </button>
       )}
 
-      {canManage && adding && (
+      {!canManage && !suggesting && !guestResult && (
+        <button type="button" className="gs-btn gs-btn-outline gs-btn-sm" style={{ marginTop: 10 }} onClick={() => setSuggesting(true)}>
+          <Plus size={14} /> Know a minyan time here? Suggest one — no account needed
+        </button>
+      )}
+
+      {guestResult && (
+        <div style={{ marginTop: 10 }}>
+          <GuestSubmitSuccess
+            manageUrl={`${window.location.origin}/guest/minyan/${guestResult.guest_manage_token}`}
+            guestEmail={guestEmail.trim()}
+            message="Thanks! Your suggestion is pending review."
+          />
+        </div>
+      )}
+
+      {(adding || suggesting) && (
         <form className="biz-minyan-form" onSubmit={submit}>
           {error && <p className="biz-error" style={{ fontSize: 12 }}>{error}</p>}
           <div className="biz-minyan-form-grid">
@@ -190,10 +230,21 @@ export default function MinyanTimes({ businessId, canManage }) {
             </label>
           </div>
 
+          {suggesting && (
+            <div style={{ marginTop: 10 }}>
+              <GuestContactFields
+                email={guestEmail}
+                phone={guestPhone}
+                onEmailChange={setGuestEmail}
+                onPhoneChange={setGuestPhone}
+              />
+            </div>
+          )}
+
           <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
-            <button type="button" className="gs-btn gs-btn-outline gs-btn-sm" onClick={() => { setAdding(false); setError(''); }}>Cancel</button>
+            <button type="button" className="gs-btn gs-btn-outline gs-btn-sm" onClick={() => { setAdding(false); setSuggesting(false); setError(''); }}>Cancel</button>
             <button type="submit" className="gs-btn gs-btn-primary gs-btn-sm" disabled={saving || !form.source_name.trim()}>
-              {saving ? 'Saving…' : 'Save minyan time'}
+              {saving ? 'Saving…' : suggesting ? 'Submit suggestion' : 'Save minyan time'}
             </button>
           </div>
         </form>

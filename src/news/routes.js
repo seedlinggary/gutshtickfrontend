@@ -11,6 +11,8 @@ const PostForm        = lazy(() => import('./PostForm'));
 const MyPosts         = lazy(() => import('./MyPosts'));
 const Learn           = lazy(() => import('./Learn'));
 const Pending         = lazy(() => import('./Pending'));
+const NewsGuestSubmit = lazy(() => import('./NewsGuestSubmit'));
+const NewsGuestManage = lazy(() => import('./NewsGuestManage'));
 
 // Every route wrapped in SuperAdminGate -- the whole site is soft-locked to
 // super_admin only for now (see SuperAdminGate.js for why/how to revert).
@@ -19,6 +21,12 @@ const gate = (el) => <SuperAdminGate>{el}</SuperAdminGate>;
 /** Gut News's own routes -- same {path, element} shape as the other
  * sites', registered the same way via src/sites/registry.js. */
 export default [
+  // Deliberately NOT wrapped in gate() -- the whole site is soft-locked
+  // pre-launch, but the backend's guest-submission routes were left
+  // un-gated on purpose so tips can stockpile ahead of launch (see
+  // NewsGuestSubmit.js's docstring). Keep these two reachable to everyone.
+  { path: '/guest-submit', element: <NewsGuestSubmit /> },
+  { path: '/guest/news/:token', element: <NewsGuestManage /> },
   { path: '/', element: gate(<Feed />) },
   { path: '/articles/new', element: gate(<RequireAuth check={isLoggedIn}><PostForm /></RequireAuth>) },
   { path: '/articles/:idOrSlug/edit', element: gate(<RequireAuth check={isLoggedIn}><PostForm /></RequireAuth>) },

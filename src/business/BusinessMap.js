@@ -81,6 +81,49 @@ function sanitizeMapStyle(map) {
   });
 }
 
+// Visually distinct per-category dot colors, shown on CommunityProfile.js's
+// Map tab legend -- `default` is the original solid navy every other caller
+// (FindCommunity/EstatesDirectory/BusinessDirectory/ActivitiesPage) still
+// gets, since none of them ever set `category` on their points.
+export const CATEGORY_COLORS = {
+  default: '#1c2438',
+  shuls: '#5b8c3e',
+  mikvahs: '#2a8fa6',
+  groceries: '#c1572e',
+  restaurants: '#b0398a',
+  schools: '#3758c9',
+  organizations: '#8a5fd6',
+  attractions: '#1f9e7a',
+  housing: '#d98c1f',
+};
+
+// One combined MapLibre expression: the existing hovered-pin highlight
+// (highest priority, unchanged) falling through to a `match` on the point's
+// `category` property, itself falling back to CATEGORY_COLORS.default --
+// nesting a `match` inside a `case`'s fallback branch is standard, valid
+// MapLibre GL expression composition. `hoveredId` is `null` at initial
+// layer-creation time (see call site) and the real prop value from the
+// [hoveredId] effect below once it runs.
+const CATEGORY_MATCH_EXPR = ['match', ['get', 'category'],
+  ...Object.entries(CATEGORY_COLORS).filter(([key]) => key !== 'default').flatMap(([key, color]) => [key, color]),
+  CATEGORY_COLORS.default,
+];
+function UNCLUSTERED_COLOR_EXPR(hoveredId) {
+  return ['case', ['==', ['get', 'id'], hoveredId ?? -1], '#d4a24c', CATEGORY_MATCH_EXPR];
+}
+
+export const CATEGORY_LABELS = {
+  default: 'Other',
+  shuls: 'Shuls',
+  mikvahs: 'Mikvahs',
+  groceries: 'Groceries',
+  restaurants: 'Restaurants',
+  schools: 'Schools',
+  organizations: 'Organizations',
+  attractions: 'Activities & Attractions',
+  housing: 'Housing',
+};
+
 function toFeatureCollection(businesses) {
   const features = [];
   businesses.forEach((b) => {
@@ -89,7 +132,7 @@ function toFeatureCollection(businesses) {
         features.push({
           type: 'Feature',
           geometry: { type: 'Point', coordinates: [loc.lng, loc.lat] },
-          properties: { id: b.id, name: b.name, slug: b.slug, city: loc.city || '' },
+          properties: { id: b.id, name: b.name, slug: b.slug, city: loc.city || '', category: b.category || 'default' },
         });
       }
     });
@@ -193,7 +236,7 @@ export default function BusinessMap({ businesses, onBoundsSearch, hoveredId, onS
           id: 'gs-unclustered', type: 'circle', source: SOURCE_ID,
           filter: ['!', ['has', 'point_count']],
           paint: {
-            'circle-color': '#1c2438',
+            'circle-color': UNCLUSTERED_COLOR_EXPR(null),
             'circle-radius': 8,
             'circle-stroke-width': 2,
             'circle-stroke-color': '#ffffff',
@@ -339,9 +382,7 @@ export default function BusinessMap({ businesses, onBoundsSearch, hoveredId, onS
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !loadedRef.current || !map.getLayer('gs-unclustered')) return;
-    map.setPaintProperty('gs-unclustered', 'circle-color', [
-      'case', ['==', ['get', 'id'], hoveredId ?? -1], '#d4a24c', '#1c2438',
-    ]);
+    map.setPaintProperty('gs-unclustered', 'circle-color', UNCLUSTERED_COLOR_EXPR(hoveredId));
     map.setPaintProperty('gs-unclustered', 'circle-radius', [
       'case', ['==', ['get', 'id'], hoveredId ?? -1], 10, 8,
     ]);
