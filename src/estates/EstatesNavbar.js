@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Home, Users, BookOpen, User, Plus, Settings, Plug, ShieldCheck, LogOut, ChevronDown, Heart, Calculator, Bell, Inbox,
+  Home, Users, BookOpen, User, Plus, Settings, Plug, ShieldCheck, LogOut, ChevronDown, Heart, Calculator, Bell, Inbox, BarChart3,
 } from 'lucide-react';
 import { getEmail, isAdmin, isSuperAdmin, clearAuth } from '../auth';
 import NotificationBell from '../NotificationBell';
@@ -51,6 +51,7 @@ export default function EstatesNavbar() {
             <li className="nav-item"><button className="nav-link" onClick={() => go('/')}><Home size={15} /> Buy &amp; Rent</button></li>
             <li className="nav-item"><button className="nav-link" onClick={() => go('/group-buy')}><Users size={15} /> Group Buy</button></li>
             <li className="nav-item"><button className="nav-link" onClick={() => go('/calculators')}><Calculator size={15} /> Calculators</button></li>
+            <li className="nav-item"><button className="nav-link" onClick={() => go('/market-analysis')}><BarChart3 size={15} /> Market Analysis</button></li>
             <li className="nav-item"><button className="nav-link" onClick={() => go('/learn')}><BookOpen size={15} /> Learn</button></li>
           </ul>
           <ul className="navbar-nav navbar-nav-end">

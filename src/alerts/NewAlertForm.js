@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Bell } from 'lucide-react';
+import { Bell, Pencil } from 'lucide-react';
 import apiRequest from '../ApiRequest';
 
 const ESTATES_TYPES = [
@@ -42,36 +42,49 @@ function toQueryString(filters) {
     .join('&');
 }
 
+/** The inverse of toQueryString -- rebuilds a plain {key: value} object from
+ * an alert's stored filters string, so editing an existing alert can
+ * pre-fill this same form's fields from it. */
+function fromQueryString(qs) {
+  const out = {};
+  new URLSearchParams(qs || '').forEach((v, k) => { out[k] = v; });
+  return out;
+}
+
 /** "Set up any alert you want" -- lets a signed-in member build a brand new
- * alert from scratch in My Alerts, instead of only ever starting one from
- * a live Estates/Job Board search page (see GetAlertsButton.js, the other
- * way an Alert row gets created). Posts straight to the same POST /alerts
- * endpoint with a hand-built filters querystring, so the backend treats it
- * identically either way -- no new API needed. */
-export default function NewAlertForm({ onCreated, onCancel }) {
-  const [searchType, setSearchType] = useState('estates');
-  const [label, setLabel] = useState('');
-  const [labelTouched, setLabelTouched] = useState(false);
+ * alert from scratch in My Alerts, instead of only ever starting one from a
+ * live Estates/Job Board search page (see GetAlertsButton.js, the other way
+ * an Alert row gets created) -- and also edit an existing one in place, when
+ * passed `alert`. Posts to POST /alerts to create, or PATCH /alerts/<id> to
+ * edit; either way the backend treats the filters identically to a live
+ * search's own, since both are the exact same querystring. */
+export default function NewAlertForm({ alert, onSaved, onCancel }) {
+  const editing = !!alert;
+  const initialFilters = editing ? fromQueryString(alert.filters) : {};
+
+  const [searchType, setSearchType] = useState(editing ? alert.search_type : 'estates');
+  const [label, setLabel] = useState(editing ? (alert.label || '') : '');
+  const [labelTouched, setLabelTouched] = useState(editing);
   const [status, setStatus] = useState('idle'); // idle | saving | error
   const [error, setError] = useState('');
 
   // Estates fields
-  const [listingType, setListingType] = useState('');
-  const [city, setCity] = useState('');
-  const [neighborhood, setNeighborhood] = useState('');
+  const [listingType, setListingType] = useState(initialFilters.listing_type || '');
+  const [city, setCity] = useState(initialFilters.city || '');
+  const [neighborhood, setNeighborhood] = useState(initialFilters.neighborhood || '');
   const [neighborhoods, setNeighborhoods] = useState([]);
-  const [minPrice, setMinPrice] = useState('');
-  const [maxPrice, setMaxPrice] = useState('');
-  const [minBedrooms, setMinBedrooms] = useState('');
+  const [minPrice, setMinPrice] = useState(initialFilters.min_price || '');
+  const [maxPrice, setMaxPrice] = useState(initialFilters.max_price || '');
+  const [minBedrooms, setMinBedrooms] = useState(initialFilters.min_bedrooms || '');
 
   // Tachlis fields
-  const [postType, setPostType] = useState('');
-  const [location, setLocation] = useState('');
+  const [postType, setPostType] = useState(initialFilters.type || '');
+  const [location, setLocation] = useState(initialFilters.location || '');
   const [locations, setLocations] = useState([]);
-  const [category, setCategory] = useState('');
+  const [category, setCategory] = useState(initialFilters.category || '');
   const [categories, setCategories] = useState([]);
-  const [remoteOnly, setRemoteOnly] = useState(false);
-  const [hasPay, setHasPay] = useState(false);
+  const [remoteOnly, setRemoteOnly] = useState(initialFilters.remote === '1');
+  const [hasPay, setHasPay] = useState(initialFilters.has_pay === '1');
 
   useEffect(() => {
     apiRequest('GET', null, '/estates/neighborhoods').then((res) => setNeighborhoods(res.neighborhoods || [])).catch(() => {});
@@ -100,12 +113,21 @@ export default function NewAlertForm({ onCreated, onCancel }) {
     setStatus('saving');
     setError('');
     try {
-      await apiRequest('POST', {
-        search_type: searchType,
-        filters: qs,
-        label: effectiveLabel,
-      }, '/alerts');
-      onCreated();
+      if (editing) {
+        const updated = await apiRequest('PATCH', {
+          search_type: searchType,
+          filters: qs,
+          label: effectiveLabel,
+        }, `/alerts/${alert.id}`);
+        onSaved(updated);
+      } else {
+        const created = await apiRequest('POST', {
+          search_type: searchType,
+          filters: qs,
+          label: effectiveLabel,
+        }, '/alerts');
+        onSaved(created);
+      }
     } catch (err) {
       setStatus('error');
       setError(typeof err === 'string' ? err : 'Could not save this alert.');
@@ -113,96 +135,103 @@ export default function NewAlertForm({ onCreated, onCancel }) {
   };
 
   return (
-    <form onSubmit={submit} className="gs-card" style={{ padding: 16, marginBottom: 14, display: 'flex', flexDirection: 'column', gap: 12 }}>
-      <strong style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Bell size={14} /> New alert</strong>
+    <form onSubmit={submit} className="gs-card" style={{ padding: 18, marginBottom: 14 }}>
+      <strong style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 14 }}>
+        {editing ? <><Pencil size={14} /> Edit alert</> : <><Bell size={14} /> New alert</>}
+      </strong>
 
-      <div style={{ display: 'flex', gap: 16 }}>
-        <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <input type="radio" name="searchType" checked={searchType === 'estates'} onChange={() => setSearchType('estates')} /> Gut Estates
-        </label>
-        <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <input type="radio" name="searchType" checked={searchType === 'tachlis'} onChange={() => setSearchType('tachlis')} /> Job Board
-        </label>
+      <div className="gs-field">
+        <label className="gs-label">Where to search</label>
+        <div className="gs-chip-row">
+          <button type="button" className={`gs-chip${searchType === 'estates' ? ' active' : ''}`} onClick={() => setSearchType('estates')}>
+            Gut Estates
+          </button>
+          <button type="button" className={`gs-chip${searchType === 'tachlis' ? ' active' : ''}`} onClick={() => setSearchType('tachlis')}>
+            Job Board
+          </button>
+        </div>
       </div>
 
       {searchType === 'estates' ? (
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          <label style={{ flex: '1 1 160px' }}>
-            Type
-            <select className="auth-input" style={{ width: '100%', marginTop: 4 }} value={listingType} onChange={(e) => setListingType(e.target.value)}>
+        <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
+          <div className="gs-field" style={{ flex: '1 1 160px' }}>
+            <label className="gs-label">Type</label>
+            <select className="gs-select" value={listingType} onChange={(e) => setListingType(e.target.value)}>
               {ESTATES_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
             </select>
-          </label>
-          <label style={{ flex: '1 1 160px' }}>
-            Neighborhood
-            <select className="auth-input" style={{ width: '100%', marginTop: 4 }} value={neighborhood} onChange={(e) => setNeighborhood(e.target.value)}>
+          </div>
+          <div className="gs-field" style={{ flex: '1 1 160px' }}>
+            <label className="gs-label">Neighborhood</label>
+            <select className="gs-select" value={neighborhood} onChange={(e) => setNeighborhood(e.target.value)}>
               <option value="">Any neighborhood</option>
               {neighborhoods.map((n) => <option key={n} value={n}>{n}</option>)}
             </select>
-          </label>
-          <label style={{ flex: '1 1 160px' }}>
-            City
-            <input className="auth-input" style={{ width: '100%', marginTop: 4 }} value={city} onChange={(e) => setCity(e.target.value)} placeholder="Any city" />
-          </label>
-          <label style={{ flex: '1 1 110px' }}>
-            Min price
-            <input type="number" className="auth-input" style={{ width: '100%', marginTop: 4 }} value={minPrice} onChange={(e) => setMinPrice(e.target.value)} />
-          </label>
-          <label style={{ flex: '1 1 110px' }}>
-            Max price
-            <input type="number" className="auth-input" style={{ width: '100%', marginTop: 4 }} value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} />
-          </label>
-          <label style={{ flex: '1 1 110px' }}>
-            Min bedrooms
-            <input type="number" className="auth-input" style={{ width: '100%', marginTop: 4 }} value={minBedrooms} onChange={(e) => setMinBedrooms(e.target.value)} />
-          </label>
+          </div>
+          <div className="gs-field" style={{ flex: '1 1 160px' }}>
+            <label className="gs-label">City</label>
+            <input className="gs-input" value={city} onChange={(e) => setCity(e.target.value)} placeholder="Any city" />
+          </div>
+          <div className="gs-field" style={{ flex: '1 1 110px' }}>
+            <label className="gs-label">Min price</label>
+            <input type="number" className="gs-input" value={minPrice} onChange={(e) => setMinPrice(e.target.value)} />
+          </div>
+          <div className="gs-field" style={{ flex: '1 1 110px' }}>
+            <label className="gs-label">Max price</label>
+            <input type="number" className="gs-input" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} />
+          </div>
+          <div className="gs-field" style={{ flex: '1 1 110px' }}>
+            <label className="gs-label">Min bedrooms</label>
+            <input type="number" className="gs-input" value={minBedrooms} onChange={(e) => setMinBedrooms(e.target.value)} />
+          </div>
         </div>
       ) : (
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          <label style={{ flex: '1 1 160px' }}>
-            Type
-            <select className="auth-input" style={{ width: '100%', marginTop: 4 }} value={postType} onChange={(e) => setPostType(e.target.value)}>
+        <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+          <div className="gs-field" style={{ flex: '1 1 160px' }}>
+            <label className="gs-label">Type</label>
+            <select className="gs-select" value={postType} onChange={(e) => setPostType(e.target.value)}>
               {TACHLIS_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
             </select>
-          </label>
-          <label style={{ flex: '1 1 160px' }}>
-            Location
-            <select className="auth-input" style={{ width: '100%', marginTop: 4 }} value={location} onChange={(e) => setLocation(e.target.value)}>
+          </div>
+          <div className="gs-field" style={{ flex: '1 1 160px' }}>
+            <label className="gs-label">Location</label>
+            <select className="gs-select" value={location} onChange={(e) => setLocation(e.target.value)}>
               <option value="">Any location</option>
               {locations.map((l) => <option key={l} value={l}>{l}</option>)}
             </select>
-          </label>
-          <label style={{ flex: '1 1 160px' }}>
-            Category
-            <select className="auth-input" style={{ width: '100%', marginTop: 4 }} value={category} onChange={(e) => setCategory(e.target.value)}>
+          </div>
+          <div className="gs-field" style={{ flex: '1 1 160px' }}>
+            <label className="gs-label">Category</label>
+            <select className="gs-select" value={category} onChange={(e) => setCategory(e.target.value)}>
               <option value="">Any category</option>
               {categories.map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
-          </label>
-          <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <input type="checkbox" checked={remoteOnly} onChange={(e) => setRemoteOnly(e.target.checked)} /> Remote only
-          </label>
-          <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <input type="checkbox" checked={hasPay} onChange={(e) => setHasPay(e.target.checked)} /> Must list pay
-          </label>
+          </div>
+          <div className="gs-field" style={{ display: 'flex', gap: 16, alignItems: 'center', paddingTop: 28 }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13.5 }}>
+              <input type="checkbox" checked={remoteOnly} onChange={(e) => setRemoteOnly(e.target.checked)} /> Remote only
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13.5 }}>
+              <input type="checkbox" checked={hasPay} onChange={(e) => setHasPay(e.target.checked)} /> Must list pay
+            </label>
+          </div>
         </div>
       )}
 
-      <label>
-        Name this alert
+      <div className="gs-field">
+        <label className="gs-label">Name this alert</label>
         <input
-          className="auth-input" style={{ width: '100%', marginTop: 4 }}
+          className="gs-input"
           value={effectiveLabel}
           onChange={(e) => { setLabel(e.target.value); setLabelTouched(true); }}
           maxLength={300}
         />
-      </label>
+      </div>
 
-      {status === 'error' && <div className="gs-error-box" style={{ fontSize: 13 }}>{error}</div>}
+      {status === 'error' && <div className="gs-error-box" style={{ fontSize: 13, marginBottom: 12 }}>{error}</div>}
 
       <div style={{ display: 'flex', gap: 8 }}>
         <button type="submit" className="gs-btn gs-btn-primary gs-btn-sm" disabled={status === 'saving'}>
-          {status === 'saving' ? 'Saving…' : 'Create alert'}
+          {status === 'saving' ? 'Saving…' : editing ? 'Save changes' : 'Create alert'}
         </button>
         <button type="button" className="gs-btn gs-btn-outline gs-btn-sm" onClick={onCancel}>Cancel</button>
       </div>

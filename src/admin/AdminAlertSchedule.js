@@ -155,13 +155,13 @@ export default function AdminAlertSchedule() {
       ) : (
         <>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 10 }}>
-            <label>
-              Send at{' '}
-              <select value={hour} onChange={(e) => setHour(Number(e.target.value))}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              Send at
+              <select className="gs-select" style={{ width: 'auto', padding: '7px 30px 7px 10px' }} value={hour} onChange={(e) => setHour(Number(e.target.value))}>
                 {HOURS.map((h) => <option key={h} value={h}>{formatHour(h)}</option>)}
               </select>
             </label>
-            <select value={minute} onChange={(e) => setMinute(Number(e.target.value))}>
+            <select className="gs-select" style={{ width: 'auto', padding: '7px 30px 7px 10px' }} value={minute} onChange={(e) => setMinute(Number(e.target.value))}>
               {MINUTES.map((m) => <option key={m} value={m}>:{String(m).padStart(2, '0')}</option>)}
             </select>
             <span style={{ color: 'var(--muted)', fontSize: 13 }}>Israel time (Asia/Jerusalem)</span>
@@ -195,7 +195,7 @@ export default function AdminAlertSchedule() {
               A weekly roundup email for every opted-in member, same time of day as above, on this day:
             </p>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 10 }}>
-              <select value={weekday} onChange={(e) => setWeekday(Number(e.target.value))}>
+              <select className="gs-select" style={{ width: 'auto', padding: '7px 30px 7px 10px' }} value={weekday} onChange={(e) => setWeekday(Number(e.target.value))}>
                 {WEEKDAYS.map((w) => <option key={w.value} value={w.value}>{w.label}</option>)}
               </select>
               <button type="button" className="gs-btn gs-btn-sm" onClick={save} disabled={saving}>

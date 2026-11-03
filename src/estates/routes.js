@@ -16,6 +16,7 @@ const MyGroupBuys      = lazy(() => import('./MyGroupBuys'));
 const Learn            = lazy(() => import('./Learn'));
 const Calculators      = lazy(() => import('./Calculators'));
 const AreaPage         = lazy(() => import('./AreaPage'));
+const MarketAnalysis   = lazy(() => import('./MarketAnalysis'));
 const EstatesGuestManage = lazy(() => import('./EstatesGuestManage'));
 const GroupBuyGuestManage = lazy(() => import('./GroupBuyGuestManage'));
 
@@ -40,6 +41,7 @@ export default [
   { path: '/group-buy/:slug', element: <GroupBuyProfile /> },
   { path: '/my-group-buys', element: <RequireAuth check={isLoggedIn}><MyGroupBuys /></RequireAuth> },
   { path: '/areas/:areaSlug', element: <AreaPage /> },
+  { path: '/market-analysis', element: <MarketAnalysis /> },
   { path: '/still-available/confirm/:token', element: <StillAvailableConfirm apiPrefix="/estates" /> },
   { path: '/learn', element: <Learn /> },
   { path: '/calculators', element: <Calculators /> },

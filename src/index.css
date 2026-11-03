@@ -1383,6 +1383,27 @@ iframe {
   min-height: 100px;
   line-height: 1.6;
 }
+/* Site-neutral pill toggle -- same look as estates-theme.css's .est-chip,
+   duplicated (not imported) here so cross-site components like the Alerts
+   forms don't have to pull in one site's theme file just for this. */
+.gs-chip-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.gs-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 15px;
+  border-radius: 999px;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--transition);
+}
+.gs-chip:hover { border-color: var(--accent); color: var(--text); }
+.gs-chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
 .gs-form-row-2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
