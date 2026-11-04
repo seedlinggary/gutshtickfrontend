@@ -5,6 +5,7 @@ import { listAllSites } from '../siteMode';
 
 const NEW_COLOR = 'var(--info, #3b82f6)';
 const RETURNING_COLOR = 'var(--accent, #f59e0b)';
+const BOUNCED_COLOR = 'var(--muted-faint, #cbd5e1)';
 const BY_SITE_COLOR = 'var(--accent, #f59e0b)';
 const CHART_HEIGHT = 100;
 
@@ -36,6 +37,10 @@ function Legend() {
       <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
         <span style={{ width: 10, height: 10, borderRadius: 2, background: RETURNING_COLOR, display: 'inline-block' }} />
         Returning
+      </span>
+      <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        <span style={{ width: 10, height: 10, borderRadius: 2, background: BOUNCED_COLOR, display: 'inline-block' }} />
+        Bounced (1 page, never came back)
       </span>
     </div>
   );
@@ -95,7 +100,7 @@ export default function AdminAnalytics() {
   useEffect(() => { setPage(1); }, [site, days, loggedInFilter, repeatOnly]);
 
   const dailyNewReturning = data?.daily_new_vs_returning || [];
-  const maxDaily = dailyNewReturning.reduce((m, d) => Math.max(m, d.new + d.returning), 0) || 1;
+  const maxDaily = dailyNewReturning.reduce((m, d) => Math.max(m, d.new + d.returning + (d.bounced || 0)), 0) || 1;
 
   return (
     <div className="admin-analytics">
@@ -130,7 +135,7 @@ export default function AdminAnalytics() {
           <div className="superadmin-stats-grid" style={{ marginBottom: 24 }}>
             {['7d', '30d', '90d'].map((key) => {
               const v = data.visitors?.[key] || { total: 0, logged_in: 0, anonymous: 0 };
-              const nr = data.new_vs_returning?.[key] || { new: 0, returning: 0 };
+              const nr = data.new_vs_returning?.[key] || { new: 0, returning: 0, bounced: 0 };
               const colors = { '7d': 'blue', '30d': 'green', '90d': 'purple' };
               return (
                 <div key={key} className={`sa-stat-card ${colors[key]}`}>
@@ -140,7 +145,7 @@ export default function AdminAnalytics() {
                     {v.logged_in} logged-in · {v.anonymous} anonymous
                   </div>
                   <div style={{ marginTop: 2, fontSize: 12, opacity: 0.75 }}>
-                    {nr.new} new · {nr.returning} returning
+                    {nr.new} new · {nr.returning} returning · {nr.bounced} never went past 1 page
                   </div>
                 </div>
               );
@@ -152,10 +157,17 @@ export default function AdminAnalytics() {
             <div className="sa-stat-card blue">
               <div className="sa-stat-num">{data.session_duration?.avg_minutes ?? 0} min</div>
               <div className="sa-stat-label">Avg. Time on Site</div>
+              <div style={{ marginTop: 6, fontSize: 12, opacity: 0.75 }}>Across every visit, bounces included as 0</div>
+            </div>
+            <div className="sa-stat-card blue">
+              <div className="sa-stat-num">{data.session_duration?.avg_minutes_engaged ?? 0} min</div>
+              <div className="sa-stat-label">Avg. Time (Engaged Visits)</div>
+              <div style={{ marginTop: 6, fontSize: 12, opacity: 0.75 }}>Only visits that went past one page</div>
             </div>
             <div className="sa-stat-card amber">
               <div className="sa-stat-num">{data.session_duration?.bounce_rate ?? 0}%</div>
               <div className="sa-stat-label">Bounce Rate</div>
+              <div style={{ marginTop: 6, fontSize: 12, opacity: 0.75 }}>% of visit sessions, last 7 days</div>
             </div>
           </div>
 
@@ -176,7 +188,7 @@ export default function AdminAnalytics() {
 
             {/* ── New vs returning, per day (last 30 days) ── */}
             <div className="sa-activity-section">
-              <h4>New vs Returning — Last 30 Days</h4>
+              <h4>New vs Returning vs Bounced — Last 30 Days</h4>
               {dailyNewReturning.length === 0 && <div className="admin-empty">No visitor activity yet.</div>}
               {dailyNewReturning.length > 0 && dailyNewReturning.length < 3 && (
                 <div className="admin-empty" style={{ marginBottom: 8 }}>
@@ -189,37 +201,41 @@ export default function AdminAnalytics() {
                   <Legend />
                   <div
                     style={{
-                      display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-start', gap: 3,
+                      display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-start', gap: 2,
                       height: CHART_HEIGHT, marginTop: 6, marginBottom: 6,
                     }}
                   >
                     {dailyNewReturning.map((d, i) => {
-                      const total = d.new + d.returning;
-                      const totalPx = Math.max(4, (total / maxDaily) * CHART_HEIGHT);
-                      const newPx = total > 0 ? (d.new / total) * totalPx : 0;
-                      const returningPx = Math.max(0, totalPx - newPx - (d.new > 0 && d.returning > 0 ? 2 : 0));
+                      const bounced = d.bounced || 0;
+                      const total = d.new + d.returning + bounced;
+                      const totalPx = total > 0 ? Math.max(3, (total / maxDaily) * CHART_HEIGHT) : 0;
+                      const segments = [
+                        { value: d.new, color: NEW_COLOR },
+                        { value: d.returning, color: RETURNING_COLOR },
+                        { value: bounced, color: BOUNCED_COLOR },
+                      ].filter((s) => s.value > 0);
                       return (
                         <div
                           key={i}
-                          title={`${formatShortDate(d.date)}: ${d.new} new, ${d.returning} returning`}
+                          title={`${formatShortDate(d.date)}: ${total} total — ${d.new} new, ${d.returning} returning, ${bounced} bounced`}
                           style={{
-                            flex: '0 1 32px', minWidth: 3,
+                            flex: '1 1 0', minWidth: 2,
                             display: 'flex', flexDirection: 'column', justifyContent: 'flex-end',
                             height: CHART_HEIGHT,
                           }}
                         >
-                          {d.new > 0 && (
-                            <div style={{ height: newPx, background: NEW_COLOR, borderRadius: '2px 2px 0 0', opacity: 0.9 }} />
-                          )}
-                          {d.new > 0 && d.returning > 0 && <div style={{ height: 2 }} />}
-                          {d.returning > 0 && (
-                            <div
-                              style={{
-                                height: returningPx, background: RETURNING_COLOR, opacity: 0.9,
-                                borderRadius: d.new > 0 ? '0 0 2px 2px' : '2px',
-                              }}
-                            />
-                          )}
+                          {/* One rounded, clipped container per bar -- segments inside
+                              it are plain flush percentage-height fills, so the bar
+                              always reads as a single clean pill regardless of how
+                              many of the 3 categories are actually present that day. */}
+                          <div style={{ height: totalPx, borderRadius: '3px 3px 0 0', overflow: 'hidden' }}>
+                            {segments.map((s, si) => (
+                              <div
+                                key={si}
+                                style={{ height: `${(s.value / total) * 100}%`, background: s.color, opacity: 0.9 }}
+                              />
+                            ))}
+                          </div>
                         </div>
                       );
                     })}
