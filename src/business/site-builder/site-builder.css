@@ -1,0 +1,424 @@
+/* Site builder (page editor) -- scoped with sb- prefix, same convention
+   as biz-/gs-/admin- elsewhere in this codebase. Not theme-specific (no
+   dark-mode branch needed): this only ever renders inside the owner
+   dashboard, which already inherits the current site's own theme tokens
+   (--accent/--border/--muted/--surface), so it just reads those rather
+   than redefining a palette of its own. */
+
+.sb-tab { display: flex; flex-direction: column; gap: 0; }
+
+.sb-module-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px;
+}
+.sb-module-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.sb-new-page-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 14px 0;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  max-width: 420px;
+}
+
+/* ── Page editor shell ───────────────────────────────────────────── */
+.sb-editor { display: flex; flex-direction: column; gap: 14px; }
+.sb-editor-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 2px 12px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+  /* Save/Publish live here -- sticky so they're never scrolled out of
+     reach on a long page full of sections, instead of only visible at
+     the very top of the editor. Same "just below the fixed navbar"
+     formula as business-theme.css's .biz-owner-tools-sidebar -- banner-
+     aware via --site-banner-h, not a flat guessed px value. */
+  position: sticky;
+  top: calc(72px + var(--site-banner-h));
+  z-index: 30;
+  background: var(--surface, #fff);
+}
+.sb-editor-body { display: flex; gap: 18px; align-items: flex-start; }
+/* While the inspector drawer is open, shift the canvas's available width
+   over rather than letting the drawer sit on top of content the owner is
+   actively trying to look at while editing it -- a pure overlay (no
+   margin change) left the right ~320px of whatever was selected hidden
+   behind the panel itself. Desktop-only: on a narrow/mobile screen the
+   drawer is already full-width, so there's no space to shift into. */
+@media (min-width: 861px) {
+  .sb-body-inspector-open { margin-right: 320px; transition: margin-right 0.15s ease; }
+}
+.sb-editor-canvas-wrap {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--surface);
+}
+
+/* ── Chrome preview (navbar/footer, click to edit) ───────────────── */
+.sb-chrome-preview {
+  position: relative;
+  cursor: pointer;
+  border: 1px dashed transparent;
+  border-radius: 6px;
+}
+.sb-chrome-preview:hover { border-color: var(--sb-border, var(--border)); }
+.sb-chrome-preview-selected { border-color: var(--sb-primary, var(--accent)) !important; }
+.sb-chrome-preview-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px;
+}
+.sb-chrome-preview-tag {
+  position: absolute;
+  top: 2px;
+  right: 6px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--sb-muted, var(--muted));
+  opacity: 0;
+  pointer-events: none;
+}
+.sb-chrome-preview:hover .sb-chrome-preview-tag,
+.sb-chrome-preview-selected .sb-chrome-preview-tag { opacity: 0.8; }
+/* The navbar/footer preview isn't real navigation (no subdomain/host to
+   route against from inside the dashboard), so its links are plain
+   spans, not <a>/<Link> -- this just keeps the cursor from implying
+   otherwise. */
+.sb-chrome-preview .sb-navbar-links span { cursor: default; }
+
+/* ── Canvas / sections / blocks ──────────────────────────────────── */
+.sb-canvas { min-height: 300px; }
+
+.sb-section {
+  position: relative;
+  min-height: 160px;
+  padding-left: 16px;
+  padding-right: 16px;
+  border-bottom: 1px dashed var(--border);
+}
+.sb-section-selected { outline: 2px dashed var(--accent); outline-offset: -2px; }
+
+.sb-section-bg-swatch {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  background: none;
+}
+
+.sb-section-toolbar {
+  position: sticky;
+  top: 0;
+  display: flex;
+  gap: 6px;
+  padding: 4px 0 8px;
+  z-index: 3;
+}
+
+.sb-section-body { position: relative; width: 100%; min-height: 120px; }
+
+.sb-section-resize-handle {
+  height: 10px;
+  margin-top: -2px;
+  cursor: ns-resize;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: none;
+}
+.sb-section-resize-handle::after {
+  content: '';
+  width: 60px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--border);
+}
+.sb-section-resize-handle:hover::after { background: var(--accent); }
+@media (pointer: coarse) {
+  .sb-section-resize-handle { height: 22px; }
+}
+
+.sb-block {
+  position: absolute;
+  cursor: move;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  /* Without this, a touch-drag on a phone fights the browser's own
+     scroll/pan gesture on the same element -- preventDefault() in
+     Canvas.js's startDrag isn't reliably enough on its own, since some
+     browsers treat the initial touchstart as passive regardless. This is
+     what actually hands the gesture to our own pointermove handler. */
+  touch-action: none;
+}
+.sb-block:hover { border-color: var(--border); }
+.sb-block-selected { border-color: var(--accent) !important; box-shadow: 0 0 0 1px var(--accent); }
+.sb-block-body { width: 100%; height: 100%; overflow: hidden; }
+
+.sb-block-remove {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  z-index: 4;
+}
+
+.sb-resize-handle {
+  position: absolute;
+  right: -5px;
+  bottom: -5px;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  background: var(--accent);
+  border: 2px solid var(--surface);
+  cursor: nwse-resize;
+  z-index: 4;
+  touch-action: none;
+}
+
+/* (pointer: coarse) targets an actual touchscreen specifically -- not
+   just "narrow viewport" (a resized desktop window is still a fine
+   pointer) -- so a 12px resize handle or a 20px remove button, both
+   genuinely hard to hit with a fingertip, grow enough to actually tap
+   reliably, without changing anything for a mouse/trackpad user on the
+   same small screen. */
+@media (pointer: coarse) {
+  .sb-resize-handle {
+    width: 30px;
+    height: 30px;
+    right: -14px;
+    bottom: -14px;
+    border-width: 3px;
+  }
+  .sb-block-remove {
+    width: 30px;
+    height: 30px;
+    top: -16px;
+    right: -16px;
+  }
+  .sb-icon-btn {
+    padding: 9px 13px;
+    font-size: 13px;
+  }
+}
+
+.sb-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  padding: 5px 9px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--surface);
+  cursor: pointer;
+  color: var(--text);
+}
+.sb-icon-btn:hover { background: var(--bg); }
+
+.sb-add-block-menu { position: relative; display: inline-block; }
+.sb-add-block-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 4px;
+  display: flex;
+  flex-direction: column;
+  min-width: 160px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  z-index: 10;
+  overflow: hidden;
+}
+.sb-add-block-dropdown button {
+  text-align: left;
+  padding: 9px 12px;
+  font-size: 13px;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+.sb-add-block-dropdown button:hover { background: var(--bg); }
+
+.sb-gallery-remove {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border-radius: 50%;
+  justify-content: center;
+}
+
+/* ── Nudge controls (move/resize without dragging) ───────────────────── */
+.sb-nudge-pad {
+  display: grid;
+  grid-template-columns: repeat(3, 32px);
+  grid-template-rows: repeat(3, 32px);
+  gap: 2px;
+}
+.sb-nudge-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  cursor: pointer;
+  color: var(--text);
+}
+.sb-nudge-btn:hover { background: var(--bg); }
+@media (pointer: coarse) {
+  .sb-nudge-pad { grid-template-columns: repeat(3, 42px); grid-template-rows: repeat(3, 42px); }
+  .sb-nudge-btn { width: 42px; height: 42px; }
+}
+
+/* ── Inspector ────────────────────────────────────────────────────── */
+/* A fixed overlay drawer, not a flex sibling that permanently eats width
+   from the canvas -- it used to sit beside the canvas at a fixed 280px,
+   which (combined with the dashboard sidebar) could leave the canvas only
+   a sliver wide and never showing a real, full-width preview of the page.
+   Now the canvas always gets the full editor width, and the inspector
+   only appears, as a clearly separate panel, while a block is selected. */
+/* top: calc(72px + var(--site-banner-h)), not 0 -- the site's own navbar
+   is position:fixed at z-index:1000, well above this panel's z-index, so
+   starting this at the very top of the viewport put its own top portion
+   (the position/size and font-size fields BlockInspector shows right at
+   its header) rendered right underneath the navbar, effectively hidden
+   by it. Same "just below the fixed navbar" formula used everywhere
+   else in this codebase that needs to clear it. */
+.sb-inspector-backdrop {
+  position: fixed;
+  top: calc(72px + var(--site-banner-h));
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.32);
+  z-index: 60;
+}
+.sb-inspector-overlay {
+  position: fixed;
+  top: calc(72px + var(--site-banner-h));
+  right: 0;
+  bottom: 0;
+  width: 320px;
+  max-width: 90vw;
+  overflow-y: auto;
+  background: var(--surface);
+  box-shadow: -12px 0 30px rgba(0, 0, 0, 0.22);
+  z-index: 61;
+  padding: 18px;
+}
+.sb-inspector {
+  border: none;
+  padding: 0;
+  background: none;
+}
+.sb-inspector-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+@media (max-width: 860px) {
+  .sb-inspector-overlay { width: 100%; }
+}
+@media (max-width: 768px) {
+  /* .mobile-tabbar (index.css) is fixed at the bottom, z-index 900, same
+     breakpoint -- without this the overlay's own bottom:0 ran underneath
+     it, same class of bug as the top-nav overlap above. */
+  .sb-inspector-overlay { bottom: 64px; }
+}
+
+/* ── Device preview modal ────────────────────────────────────────────── */
+.sb-preview-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  /* Must beat .gs-navbar's z-index: 1000 (index.css) -- the main site's
+     fixed header -- or it renders on top of this modal's top edge,
+     covering the toolbar/close button since this is mounted inside the
+     owner dashboard, underneath that same navbar. */
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.sb-preview-shell {
+  background: var(--surface, #fff);
+  border-radius: 12px;
+  width: 100%;
+  max-width: 1100px;
+  height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.sb-preview-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.sb-preview-toggle { display: flex; gap: 6px; }
+.sb-preview-mode-active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.sb-preview-viewport {
+  flex: 1;
+  overflow: auto;
+  background: var(--bg);
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+}
+.sb-preview-frame-desktop { width: 100%; }
+/* A real, narrow phone-width frame -- not just a scaled-down div -- so the
+   mobile stacked-flow tree (see PublicSiteRenderer.js) renders at the
+   width it's actually designed for. */
+.sb-preview-frame-mobile {
+  width: 390px;
+  max-width: 100%;
+  border: 10px solid #1a1a1a;
+  border-radius: 28px;
+  overflow: auto;
+  height: 100%;
+}

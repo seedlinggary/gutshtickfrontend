@@ -132,7 +132,8 @@ const TheAscent      = lazy(() => import('./games/TheAscent'));
 
 import SoloGameShell from './games/SoloGameShell';
 import { isLoggedIn, isAdmin, isSuperAdmin } from './auth';
-import { getCurrentSite } from './siteMode';
+import { getCurrentSite, isUnrecognizedHost, businessSiteDescriptor } from './siteMode';
+import useResolvedCustomDomainSite from './business/site-builder/useResolvedCustomDomainSite';
 import { SITES } from './sites/registry';
 import SsoBootstrap from './SsoBootstrap';
 import SiteBanner from './SiteBanner';
@@ -154,7 +155,16 @@ function GameFallback() {
 }
 
 function App() {
-  const site = getCurrentSite();
+  const syncSite = getCurrentSite();
+  // A host none of siteMode.js's synchronous checks recognized might still
+  // be a business owner's own verified custom domain -- that can only be
+  // confirmed with a lookup, so this only ever fires for a genuinely
+  // unrecognized host (every main/sub-site/wildcard-subdomain host above
+  // resolves instantly and never pays for this). See isUnrecognizedHost's
+  // own comment for why those are excluded.
+  const customDomain = useResolvedCustomDomainSite(!syncSite && isUnrecognizedHost());
+  const resolving = !syncSite && customDomain.status === 'checking';
+  const site = syncSite || (customDomain.status === 'found' ? businessSiteDescriptor(customDomain.subdomain) : null);
   const { ads: bannerAds, dismiss: dismissBanner } = useFixedAds(FIXED_BANNER_PLACEMENTS);
   useEffect(() => {
     // Only one site's theme class is ever active at a time -- clear every
@@ -163,6 +173,20 @@ function App() {
     SITES.forEach((s) => document.body.classList.remove(s.themeClass));
     if (site) document.body.classList.add(site.themeClass);
   }, [site]);
+
+  // Briefly shown only while checking whether an unrecognized host is a
+  // verified custom domain -- normally skipped entirely (syncSite is
+  // already set, or the host isn't a candidate at all). Deliberately bare
+  // (no navbar/footer) since we don't yet know which site's chrome, if
+  // any, belongs here.
+  if (resolving) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+        <div className="gs-spinner" />
+      </div>
+    );
+  }
+
   return (
     <Router>
       <div className="App page-wrapper">

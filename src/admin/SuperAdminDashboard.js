@@ -11,13 +11,14 @@ import AdminAnalytics from './AdminAnalytics';
 import AdminBusinessAnalytics from './AdminBusinessAnalytics';
 import AdminAlertSchedule from './AdminAlertSchedule';
 import AdminAllAlerts from './AdminAllAlerts';
+import AdminSiteTemplates from './AdminSiteTemplates';
 import AdminSiteBanner from './AdminSiteBanner';
 import {
   ShieldCheck, LayoutDashboard, Search, Users, CheckCircle2, Megaphone, Bell, Flag, Tag,
   ScrollText, Bot, LineChart, Store, UserSearch, Newspaper, MessagesSquare, MessageCircle,
   Briefcase, Home, BookOpen, ImageOff, Eye, MousePointerClick, Target, Archive, Pencil,
   Trash2, BarChart3, Undo2, Check, X, Clock, UserCircle2, Play, Pause, Heart, Gamepad2, Plus,
-  LogIn, Inbox, ShoppingBag, Building2, Mail, Phone, BellRing,
+  LogIn, Inbox, ShoppingBag, Building2, Mail, Phone, BellRing, LayoutTemplate,
 } from 'lucide-react';
 
 // Labels/icons for each content type the unified Guest Submissions inbox
@@ -599,6 +600,7 @@ export default function SuperAdminDashboard() {
           ['ads', Megaphone, `Ads (${adsMeta.total})`],
           ['alerts', Bell, 'Alerts'],
           ['user_alerts', BellRing, 'All Alerts'],
+          ['site_templates', LayoutTemplate, 'Site Templates'],
           ['banner', Flag, 'Banner'],
           ['categories', Tag, `Categories (${categories.length})`],
           ['audit_log', ScrollText, 'Audit Log'],
@@ -1335,6 +1337,12 @@ export default function SuperAdminDashboard() {
       {!loading && (
         <div style={{ display: tab === 'user_alerts' ? 'block' : 'none' }}>
           <AdminAllAlerts />
+        </div>
+      )}
+
+      {!loading && (
+        <div style={{ display: tab === 'site_templates' ? 'block' : 'none' }}>
+          <AdminSiteTemplates />
         </div>
       )}
 

@@ -1,6 +1,6 @@
 import React, { lazy } from 'react';
 import RequireAuth from '../RequireAuth';
-import { isLoggedIn, isAdmin } from '../auth';
+import { isLoggedIn, isAdmin, isSuperAdmin } from '../auth';
 import Contact from '../Contact';
 import NotFound from '../NotFound';
 
@@ -24,6 +24,7 @@ const FollowUnsubscribe  = lazy(() => import('./FollowUnsubscribe'));
 const BusinessGuestManage = lazy(() => import('./BusinessGuestManage'));
 const CommunityGuestManage = lazy(() => import('./CommunityGuestManage'));
 const MinyanGuestManage   = lazy(() => import('./MinyanGuestManage'));
+const FreeBuilder         = lazy(() => import('./FreeBuilder'));
 
 /** The business site's routes as data, so App.js's <Routes> can render any
  * registered site's routes the same generic way (see src/sites/registry.js)
@@ -50,6 +51,13 @@ export default [
   // Open to guests too -- BusinessForm reveals its own guest-contact section
   // instead of redirecting to /signin when nobody's logged in.
   { path: '/business/new', element: <BusinessForm /> },
+  // TEMPORARY, prod-testing-only restriction: the whole site builder
+  // feature (this included) is super-admin-only right now -- see
+  // BusinessOwnerTools.js's RESTRICTED_TABS comment. Was previously fully
+  // public ("anyone can design a website, log in only to save it" --
+  // see FreeBuilder.js's own login/signup gate at Save & Publish time);
+  // revert this back to a plain, un-gated route once that's ready again.
+  { path: '/build', element: <RequireAuth check={isSuperAdmin}><FreeBuilder /></RequireAuth> },
   { path: '/guest/business/:token', element: <BusinessGuestManage /> },
   { path: '/business/:idOrSlug/edit', element: <RequireAuth check={isLoggedIn}><BusinessForm /></RequireAuth> },
   { path: '/business/:idOrSlug/post-deal', element: <RequireAuth check={isLoggedIn}><CreateDealPost /></RequireAuth> },

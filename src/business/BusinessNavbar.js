@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Store, Tag, User, Ticket, Handshake, Settings, Plug, Plus, HeartHandshake, Users,
-  FerrisWheel, ChevronDown, ShieldCheck, LogOut,
+  FerrisWheel, ChevronDown, ShieldCheck, LogOut, Globe,
 } from 'lucide-react';
 import { getEmail, isAdmin, isSuperAdmin, clearAuth } from '../auth';
 import NotificationBell from '../NotificationBell';
@@ -65,6 +65,9 @@ export default function BusinessNavbar() {
               <>
                 <li className="nav-item navbar-notif"><NotificationBell /></li>
                 <li className="nav-item"><button className="nav-link nav-link-pin" onClick={() => go('/business/new')}><Plus size={15} /> List a Business</button></li>
+                {/* Site builder is super-admin-only while it's being tested on
+                    prod -- see BusinessOwnerTools.js's RESTRICTED_TABS comment. */}
+                {superAdmin && <li className="nav-item"><button className="nav-link" onClick={() => go('/build')}><Globe size={15} /> Build a Website</button></li>}
                 <li className="nav-item dropdown" ref={accountRef}>
                   <button
                     className="nav-link dropdown-toggle"
@@ -77,6 +80,7 @@ export default function BusinessNavbar() {
                   {accountOpen && (
                     <ul className="dropdown-menu dropdown-menu-end">
                       <li><button className="dropdown-item" onClick={() => go('/my-businesses')}><Store size={14} /> My Businesses</button></li>
+                      {superAdmin && <li><button className="dropdown-item" onClick={() => go('/my-businesses')}><Globe size={14} /> My Websites</button></li>}
                       {superAdmin && <li><button className="dropdown-item" onClick={() => go('/my-deals')}><Ticket size={14} /> My Deals</button></li>}
                       <li><button className="dropdown-item" onClick={() => go('/vendor-board')}><Handshake size={14} /> Vendor Board</button></li>
                       {(boss || superAdmin) && <li><div className="dropdown-divider" /></li>}

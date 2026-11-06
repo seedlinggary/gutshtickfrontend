@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Hourglass, CheckCircle2, XCircle, Wrench, Store, Plus } from 'lucide-react';
+import { Hourglass, CheckCircle2, XCircle, Wrench, Store, Plus, Globe, ExternalLink } from 'lucide-react';
 import apiRequest from '../ApiRequest';
+import { isSuperAdmin } from '../auth';
 import BusinessCard from './BusinessCard';
 import BulkManager from './BulkManager';
 
@@ -46,8 +47,20 @@ export default function MyBusinesses() {
             {owned.map((b) => (
               <div key={b.id}>
                 <BusinessCard business={b} />
-                <div style={{ display: 'flex', gap: 10, margin: '-6px 0 14px 4px' }}>
+                <div style={{ display: 'flex', gap: 10, margin: '-6px 0 14px 4px', flexWrap: 'wrap' }}>
                   <Link to={`/business/${b.slug}/tools`} className="gs-btn gs-btn-sm" style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><Wrench size={13} /> Manage tools</Link>
+                  {/* Site builder is super-admin-only while it's being tested on
+                      prod -- see BusinessOwnerTools.js's RESTRICTED_TABS comment. */}
+                  {isSuperAdmin() && (
+                    <Link to={`/business/${b.slug}/tools?tab=site`} className="gs-btn gs-btn-outline gs-btn-sm" style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                      <Globe size={13} /> {b.site ? 'Manage website' : 'Build a website'}
+                    </Link>
+                  )}
+                  {isSuperAdmin() && b.site?.status === 'published' && b.site.url && (
+                    <a href={b.site.url} target="_blank" rel="noopener noreferrer" className="gs-btn gs-btn-outline gs-btn-sm" style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                      <ExternalLink size={13} /> View live site
+                    </a>
+                  )}
                 </div>
               </div>
             ))}

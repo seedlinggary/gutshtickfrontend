@@ -1,0 +1,36 @@
+/* The visitor-facing render of a business's own page. Two parallel trees
+   per section (desktop absolute-positioned, mobile stacked-flow) -- see
+   PublicSiteRenderer.js's own comment for why -- toggled purely by this
+   breakpoint, no JS layout measurement involved. */
+
+.ps-page { width: 100%; }
+
+.ps-section {
+  position: relative;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+.ps-section-desktop {
+  position: relative;
+  width: 100%;
+  min-height: 200px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.ps-block {
+  position: absolute;
+}
+
+.ps-section-mobile { display: none; }
+.ps-block-mobile { display: flex; }
+
+@media (max-width: 720px) {
+  .ps-section-desktop { display: none; }
+  .ps-section-mobile {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+  }
+}

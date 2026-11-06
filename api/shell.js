@@ -11,8 +11,25 @@
 // own req.url, which render.js/static-meta.js never needed to do since they
 // only ever care about explicit :slug/:route params, not the raw path.
 
-const { siteForHost, isKnownHost, canonicalHost } = require('./_sites');
+const { siteForHost, isKnownHost, businessSiteSubdomainFor, resolveCustomDomainSubdomain, canonicalHost } = require('./_sites');
 const { siteForPath } = require('./_routes');
+const { fetchBusinessSiteMeta, injectBusinessSiteMeta } = require('./_businessSiteMeta');
+
+async function serveBusinessSiteShell(req, res, host, path, subdomain) {
+  const origin = `https://${host}`;
+  const shellRes = await fetch(`${origin}/shell.html`);
+  let shellHtml = await shellRes.text();
+
+  // Best-effort -- a slow/failed backend call never blocks the page
+  // itself, it just means this one response renders the plain shell's
+  // default title instead of this page's real one.
+  const meta = await fetchBusinessSiteMeta(subdomain, path);
+  shellHtml = injectBusinessSiteMeta(shellHtml, meta, `${origin}${path}`);
+
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
+  res.status(200).send(shellHtml);
+}
 
 function redirectTo(res, host, path, extraQuery) {
   const qs = extraQuery ? `?${extraQuery}` : '';
@@ -25,6 +42,37 @@ module.exports = async function handler(req, res) {
   const { path: rawPath, ...rest } = req.query || {};
   const path = rawPath || '/';
   const extraQuery = new URLSearchParams(rest).toString();
+
+  // A business-owner storefront subdomain (shmuelsbakery.gutcommunity.com,
+  // say) -- unlike the 5 fixed sub-sites, these are created dynamically and
+  // can never be enumerated via SITE_HOSTS, so this check can't be folded
+  // into isKnownHost(). It also doesn't participate in the universal/
+  // ambiguous path-ownership system below at all (that's about telling the
+  // 5 known sub-sites' routes apart from each other) -- a business site has
+  // exactly one client-side route table, resolved by subdomain, not by
+  // path. Always 200 + the plain shell; the client (src/siteMode.js) does
+  // the real subdomain -> business lookup and renders not-found itself if
+  // the subdomain doesn't resolve to a published site.
+  const businessSiteSubdomain = businessSiteSubdomainFor(host);
+  if (businessSiteSubdomain) {
+    await serveBusinessSiteShell(req, res, host, path, businessSiteSubdomain);
+    return;
+  }
+
+  // Not a wildcard subdomain, and not one of the 5 fixed sub-site domains
+  // either -- could still be a business owner's OWN (verified) custom
+  // domain, which looks identical to "totally unknown host" until this
+  // lookup runs. Checked before the isKnownHost() redirect below, since
+  // that redirect would otherwise send a real, working custom domain to
+  // the main site instead of rendering the business it actually belongs
+  // to.
+  if (!isKnownHost(host)) {
+    const customSubdomain = await resolveCustomDomainSubdomain(host);
+    if (customSubdomain) {
+      await serveBusinessSiteShell(req, res, host, path, customSubdomain);
+      return;
+    }
+  }
 
   // A host that isn't any of the real configured site domains -- a Vercel
   // preview URL, the raw *.vercel.app production alias, a typo'd domain --

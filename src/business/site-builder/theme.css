@@ -1,0 +1,173 @@
+/* Theme-driven component classes for a business's own storefront pages --
+   deliberately separate from the main site's gs-* classes (those are
+   Gut Shtick's own branding; every business site needs to look like ITS
+   OWN business, not a clone of the platform). Every color/font here comes
+   from CSS custom properties set by ThemeWrapper.js (see theme.js's
+   themeToCssVars) on an ancestor element, never hardcoded, so one theme
+   object drives every page a business has. */
+
+/* Every var() below carries a fallback matching DEFAULT_THEME's "warm"
+   palette/"modern" fonts (see theme.js) -- real values land on :root
+   asynchronously (useSiteChrome's fetch), so these fallbacks are what
+   renders for the brief instant before that resolves, not a real theme
+   choice of their own. */
+
+.sb-theme {
+  background: var(--sb-background, #FAF3E8);
+  color: var(--sb-text, #2B2118);
+  font-family: var(--sb-font-body, 'Inter', Arial, sans-serif);
+}
+.sb-theme h1, .sb-theme h2, .sb-theme h3 {
+  font-family: var(--sb-font-heading, 'Poppins', Arial, sans-serif);
+}
+
+.sb-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: var(--sb-button-radius, 10px);
+  background: var(--sb-primary, #C8553D);
+  color: #fff;
+  border: 1px solid var(--sb-primary, #C8553D);
+  cursor: pointer;
+  text-decoration: none;
+  transition: opacity 0.15s;
+}
+.sb-button:hover { opacity: 0.88; }
+.sb-button:disabled { opacity: 0.5; cursor: not-allowed; }
+.sb-button-outline {
+  background: transparent;
+  color: var(--sb-primary, #C8553D);
+}
+.sb-button-sm { padding: 6px 12px; font-size: 12px; }
+
+.sb-input, .sb-textarea, .sb-select {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 14px;
+  font-family: var(--sb-font-body, 'Inter', Arial, sans-serif);
+  color: var(--sb-text, #2B2118);
+  background: var(--sb-surface, #FFFFFF);
+  border: 1px solid var(--sb-border, #E3D5C0);
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+.sb-input:focus, .sb-textarea:focus, .sb-select:focus {
+  outline: 2px solid var(--sb-primary, #C8553D);
+  outline-offset: 1px;
+}
+
+/* Form style variants -- applied via a class on the form/field wrapper */
+.sb-form-underline .sb-input, .sb-form-underline .sb-textarea {
+  border: none;
+  border-bottom: 2px solid var(--sb-border, #E3D5C0);
+  border-radius: 0;
+  background: transparent;
+  padding-left: 2px;
+}
+.sb-form-soft .sb-input, .sb-form-soft .sb-textarea {
+  border-radius: 16px;
+  background: var(--sb-background, #FAF3E8);
+}
+
+/* ── Navbar ───────────────────────────────────────────────────────────── */
+.sb-navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--sb-border, #E3D5C0);
+  background: var(--sb-surface, #FFFFFF);
+  flex-wrap: wrap;
+}
+.sb-navbar-brand {
+  font-family: var(--sb-font-heading, 'Poppins', Arial, sans-serif);
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--sb-text, #2B2118);
+  text-decoration: none;
+}
+.sb-navbar-links {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.sb-navbar-links a {
+  color: var(--sb-text, #2B2118);
+  text-decoration: none;
+  font-size: 14px;
+}
+.sb-navbar-links a:hover { color: var(--sb-primary, #C8553D); }
+.sb-navbar-cart {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--sb-text, #2B2118);
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.sb-navbar-minimal { justify-content: center; }
+.sb-navbar-minimal .sb-navbar-links { display: none; }
+
+/* Sidebar nav style -- a fixed vertical rail instead of a top bar. Only
+   the body offset is conditional (sb-layout-with-sidebar); the sidebar
+   itself collapses back to a normal top bar under the same breakpoint
+   PublicSiteRenderer's own mobile fallback uses, so a business doesn't
+   end up with a half-page-wide rail on a phone. */
+.sb-navbar-side {
+  flex-direction: column;
+  align-items: stretch;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 220px;
+  border-right: 1px solid var(--sb-border, #E3D5C0);
+  border-bottom: none;
+  overflow-y: auto;
+}
+.sb-navbar-side .sb-navbar-links { flex-direction: column; gap: 10px; margin-top: 16px; }
+/* .main-content is App.js's own shared page wrapper, toggled from
+   BusinessSiteNavbar.js -- see that component for why this lives on
+   <body> instead of needing an App.js change. */
+body.sb-layout-with-sidebar .main-content { padding-left: 220px; }
+
+@media (max-width: 720px) {
+  .sb-navbar-side { position: static; width: 100%; flex-direction: row; border-right: none; border-bottom: 1px solid var(--sb-border, #E3D5C0); }
+  .sb-navbar-side .sb-navbar-links { flex-direction: row; margin-top: 0; }
+  body.sb-layout-with-sidebar .main-content { padding-left: 0; }
+}
+
+/* ── Footer ───────────────────────────────────────────────────────────── */
+.sb-footer {
+  padding: 28px 20px;
+  border-top: 1px solid var(--sb-border, #E3D5C0);
+  color: var(--sb-muted, #8A7A68);
+  font-size: 13px;
+}
+.sb-footer-simple { text-align: center; }
+.sb-footer-columns {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.sb-footer-links {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.sb-footer-links a { color: var(--sb-muted, #8A7A68); text-decoration: none; }
+.sb-footer-links a:hover { color: var(--sb-primary, #C8553D); }

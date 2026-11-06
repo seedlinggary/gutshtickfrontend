@@ -1605,6 +1605,12 @@
 .biz-referral-reply-form input { flex: 1; border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; }
 
 /* ── Owner Tools dashboard shell ── */
+/* Overrides .biz-page's 720px cap (fine for a leads/insights list, much
+   too narrow for the Website tab's drag-and-drop canvas -- it used to
+   squeeze the sidebar nav + canvas + inspector into ~250px combined).
+   Two classes beats one on specificity, so this wins regardless of
+   source order. */
+.biz-page.biz-owner-tools { max-width: 1400px; }
 .biz-owner-tools-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
 .biz-owner-tools-view-link { font-size: 13px; }
 
@@ -1620,7 +1626,12 @@
   flex-direction: column;
   gap: 18px;
   position: sticky;
-  top: 84px;
+  /* Was a flat 84px, which drifts out of sync with the real, variable nav
+     height (the site-wide announcement banner, see index.css's
+     --site-banner-h, pushes the fixed top nav down by its own height) --
+     this is the same "just below the fixed navbar" formula .main-content
+     and everything else that clears the navbar already uses. */
+  top: calc(72px + var(--site-banner-h));
 }
 .biz-owner-tools-group-label {
   font-size: 11px;

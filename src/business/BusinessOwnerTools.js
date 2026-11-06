@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import {
   LineChart, TrendingUp, Megaphone, Printer, Rocket, Inbox, HelpCircle,
   Ticket, Gem, Gift, PartyPopper, Wrench, ArrowRight, Pencil, Clock,
-  Check, Circle, Star, Briefcase, Tag, CheckCircle2,
+  Check, Circle, Star, Briefcase, Tag, CheckCircle2, Globe,
 } from 'lucide-react';
 import apiRequest from '../ApiRequest';
 import { isSuperAdmin } from '../auth';
@@ -15,6 +15,7 @@ import AskQuestion from './AskQuestion';
 import MinyanTimes from './MinyanTimes';
 import MarketingKit from './MarketingKit';
 import ToolExplainer from './ToolExplainer';
+import SiteBuilderTab from './site-builder/SiteBuilderTab';
 
 // Default-fill only for the Hiring tab's "category" field (still free text,
 // user-editable) -- mirrors backend/tachlis/routes/tachlis_post.py's own
@@ -40,14 +41,21 @@ const BUSINESS_CATEGORY_TO_JOB_CATEGORY = {
   other: 'Other',
 };
 
-// These six are still being tested end-to-end (real OAuth apps, payment-free
+// These are still being tested end-to-end (real OAuth apps, payment-free
 // reward mechanics, etc.) so they're only visible/reachable for super admins
 // for now -- the backend enforces this too (see e.g. routes/social.py,
 // routes/loyalty_card.py), this is just so a regular owner never sees a
-// control that would 403 if they clicked it.
-const RESTRICTED_TABS = new Set(['social', 'marketing', 'leads', 'redeem', 'loyalty', 'referrals']);
+// control that would 403 if they clicked it. 'site' (the full site builder
+// -- pages, storefront, booking, payments) joined this list while it's
+// being tested on prod; the backend's _can_manage in every site-builder
+// route file (business_site.py, site_pages.py, payments.py, commerce.py,
+// booking.py, crm.py, invoices.py, site_templates.py) is super-admin-only
+// too for the same reason, so this isn't just a hidden button -- the API
+// itself refuses anyone else.
+const RESTRICTED_TABS = new Set(['site', 'social', 'marketing', 'leads', 'redeem', 'loyalty', 'referrals']);
 
 const TAB_META = {
+  site: { label: 'Website', Icon: Globe },
   insights: { label: 'Insights', Icon: LineChart },
   analytics: { label: 'Analytics', Icon: TrendingUp },
   social: { label: 'Social Desk', Icon: Megaphone },
@@ -63,6 +71,7 @@ const TAB_META = {
 };
 
 const ALL_GROUPS = [
+  { key: 'website', label: 'Website', tabs: ['site'] },
   { key: 'performance', label: 'Performance', tabs: ['insights', 'analytics'] },
   { key: 'grow', label: 'Grow', tabs: ['social', 'marketing', 'boost', 'hiring'] },
   { key: 'customers', label: 'Customers', tabs: ['leads', 'questions', 'minyanim', 'redeem'] },
@@ -70,6 +79,7 @@ const ALL_GROUPS = [
 ];
 
 const EXPLAINERS = {
+  site: "Build your own full website -- pages, a storefront, booking, all on your own free subdomain. Drag blocks around to lay out each page exactly how you want it, then publish when you're ready.",
   insights: 'See how your listing compares to other businesses in your category, plus concrete suggestions for what to fix first.',
   analytics: "See how many people are viewing your listing, tapping your WhatsApp number, getting directions, and viewing or redeeming your deals -- so you can tell what's actually working.",
   social: "Connect your Facebook, Instagram, Google Business Profile, X, and LinkedIn accounts once, then write a post here to publish everywhere at once. TikTok and WhatsApp Status don't let outside apps post directly, so for those you'll get a \"Share now\" button that hands your caption and image to your phone -- one more tap and it's posted.",
@@ -527,7 +537,16 @@ export default function BusinessOwnerTools() {
   const { idOrSlug } = useParams();
   const [business, setBusiness] = useState(null);
   const [error, setError] = useState(null);
-  const [tab, setTab] = useState('insights');
+  // Lets a redirect back from an OAuth-style flow (e.g. Stripe Connect,
+  // see site-builder's payments settings) land directly on the right tab
+  // via ?tab=<key> instead of always dropping back to Insights.
+  const [tab, setTab] = useState(() => {
+    try {
+      return new URLSearchParams(window.location.search).get('tab') || 'insights';
+    } catch (_) {
+      return 'insights';
+    }
+  });
 
   useEffect(() => {
     apiRequest('GET', null, `/business/businesses/${idOrSlug}`).then(setBusiness).catch(setError);
@@ -589,6 +608,7 @@ export default function BusinessOwnerTools() {
           <h2 className="biz-owner-tools-content-title"><meta.Icon size={22} /> {meta.label}</h2>
           <ToolExplainer>{EXPLAINERS[activeTab]}</ToolExplainer>
 
+          {canSeeRestricted && activeTab === 'site' && <SiteBuilderTab businessId={business.id} />}
           {activeTab === 'insights' && <InsightsTab businessId={business.id} />}
           {activeTab === 'analytics' && <BusinessAnalytics businessId={business.id} />}
           {activeTab === 'questions' && <QuestionsTab businessId={business.id} />}

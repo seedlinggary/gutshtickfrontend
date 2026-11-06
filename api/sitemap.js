@@ -17,7 +17,7 @@
 // the next maintainer should watch its logged counts. Every other site here
 // is nowhere close.
 
-const { siteForHost } = require('./_sites');
+const { siteForHost, businessSiteSubdomainFor, resolveCustomDomainSubdomain } = require('./_sites');
 
 const API_BASE = process.env.SEO_API_URL || process.env.VITE_API_URL;
 
@@ -44,6 +44,18 @@ function urlEntry(loc, { lastmod, changefreq, priority } = {}) {
     priority ? `    <priority>${priority}</priority>` : '',
     '  </url>',
   ].filter(Boolean).join('\n');
+}
+
+/** A business owner's own storefront has its own small sitemap (just its
+ * published pages), separate from the main Gut Community directory's --
+ * without this, hitting /sitemap.xml on a business subdomain or custom
+ * domain fell through to siteForHost()'s 'main' default and served the
+ * ENTIRE Gut Community sitemap under that business's own host, which is
+ * both wrong and a glaring duplicate-content signal to crawlers. */
+async function businessSiteEntries(origin, subdomain) {
+  const data = await fetchJson(`/business-site/public/${encodeURIComponent(subdomain)}/sitemap-data`);
+  const pages = (data && data.pages) || [];
+  return pages.map((p) => urlEntry(`${origin}${p.is_home ? '/' : `/${p.slug}`}`, { lastmod: p.updated, changefreq: 'weekly', priority: p.is_home ? '0.9' : '0.5' }));
 }
 
 async function businessEntries(origin) {
@@ -162,8 +174,21 @@ const ENTRY_BUILDERS = {
 };
 
 module.exports = async function handler(req, res) {
-  const origin = `https://${req.headers.host}`;
-  const site = siteForHost(req.headers.host);
+  const host = req.headers.host;
+  const origin = `https://${host}`;
+
+  const wildcardSubdomain = businessSiteSubdomainFor(host);
+  const businessSubdomain = wildcardSubdomain || await resolveCustomDomainSubdomain(host);
+  if (businessSubdomain) {
+    const entries = await businessSiteEntries(origin, businessSubdomain);
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${entries.join('\n')}\n</urlset>\n`;
+    res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+    res.setHeader('Cache-Control', 'public, max-age=3600, s-maxage=43200, stale-while-revalidate=86400');
+    res.status(200).send(xml);
+    return;
+  }
+
+  const site = siteForHost(host);
   const build = ENTRY_BUILDERS[site];
   const entries = build ? await build(origin) : [];
 

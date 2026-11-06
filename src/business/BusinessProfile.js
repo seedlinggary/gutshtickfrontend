@@ -391,6 +391,11 @@ export default function BusinessProfile() {
                   <a className="biz-hero-website" href={business.website} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><Globe2 size={13} /> {business.website.replace(/^https?:\/\//, '')}</a>
                 </div>
               )}
+              {business.site_url && (
+                <div style={{ marginTop: 6 }}>
+                  <a className="biz-hero-website" href={business.site_url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><Globe2 size={13} /> Visit our website</a>
+                </div>
+              )}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
               {(business.is_own_business || isSuperAdmin()) && (
