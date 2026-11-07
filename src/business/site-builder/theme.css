@@ -294,6 +294,9 @@ body.sb-layout-with-sidebar .main-content { padding-left: 220px; }
   display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px;
   padding-top: 20px; border-top: 1px solid currentColor; opacity: 0.9; font-size: 12px;
 }
+.sb-footer-bottom-right { display: flex; align-items: center; gap: 16px; }
+.sb-footer-bottom-right a { color: inherit; opacity: 0.85; text-decoration: none; }
+.sb-footer-bottom-right a:hover { opacity: 1; text-decoration: underline; }
 .sb-footer-dark .sb-footer-bottom { border-top-color: rgba(255, 255, 255, 0.12); }
 .sb-footer-simple { text-align: center; }
 .sb-footer-columns {
@@ -366,7 +369,10 @@ body.sb-layout-with-sidebar .main-content { padding-left: 220px; }
 .sb-content-dark .sb-feature-timeline-item,
 .sb-content-dark .sb-service-card,
 .sb-content-dark .sb-testimonial-card,
+.sb-content-dark .sb-feature-panel-item,
 .sb-content-dark .sb-feature-checklist-item { background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 255, 255, 0.14); }
+.sb-content-dark .sb-feature-panel-item h4 { color: #FFFFFF; }
+.sb-content-dark .sb-feature-panel-item p { color: #C3D4E6; }
 .sb-content-dark .sb-feature-checklist-item { color: #FFFFFF; }
 .sb-content-dark .sb-feature-checklist-item svg { color: #FFFFFF; }
 .sb-content-dark .sb-faq-item,
@@ -431,6 +437,16 @@ body.sb-layout-with-sidebar .main-content { padding-left: 220px; }
 .sb-feature-timeline-badge { display: block; font-family: var(--sb-font-heading); font-size: 22px; color: var(--sb-primary); margin-bottom: 8px; }
 .sb-feature-timeline-item h4 { margin: 0 0 8px; font-family: var(--sb-font-body); font-weight: 700; color: var(--sb-text); font-size: 15px; }
 .sb-feature-timeline-item p { margin: 0; color: var(--sb-muted); font-size: 13px; line-height: 1.5; }
+
+/* "panel" -- a simple bordered/tinted box with a heading + a line or two
+   of text, no icon at all -- e.g. a sidebar "Our Rav" / "Where to find
+   us" / "Contact the office" card. */
+.sb-feature-panel-item {
+  background: var(--sb-background); border: 1px solid var(--sb-border, #e5e1d6);
+  border-radius: var(--sb-button-radius, 10px); padding: 18px;
+}
+.sb-feature-panel-item h4 { margin: 0 0 6px; font-family: var(--sb-font-heading); color: var(--sb-heading-color, var(--sb-text)); font-size: 16px; }
+.sb-feature-panel-item p { margin: 0; color: var(--sb-muted); font-size: 14px; line-height: 1.6; white-space: pre-line; }
 
 /* "stat" -- a plain big-number + small uppercase label, no card at all. */
 .sb-feature-grid-stat { grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); }

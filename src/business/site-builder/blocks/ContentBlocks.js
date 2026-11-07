@@ -119,6 +119,14 @@ export function FeatureGridBlock({ content }) {
               </div>
             );
           }
+          if (cardStyle === 'panel') {
+            return (
+              <div key={i} className="sb-feature-panel-item">
+                <h4>{item.title}</h4>
+                <p>{item.description}</p>
+              </div>
+            );
+          }
           return (
             <div key={i} className="sb-feature-card">
               <div className="sb-feature-icon"><FeatureIcon name={item.icon} /></div>

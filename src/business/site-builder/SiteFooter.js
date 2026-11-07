@@ -63,7 +63,10 @@ export default function SiteFooter({ subdomain }) {
         </div>
         <div className="sb-footer-bottom">
           <span>{text}</span>
-          {theme.footerTagline2 && <span>{theme.footerTagline2}</span>}
+          <span className="sb-footer-bottom-right">
+            {theme.footerTagline2 && <span>{theme.footerTagline2}</span>}
+            {theme.footerBottomLink?.label && <FooterLink link={theme.footerBottomLink} />}
+          </span>
         </div>
       </footer>
     );

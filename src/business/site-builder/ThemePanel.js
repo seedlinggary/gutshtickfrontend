@@ -324,6 +324,18 @@ export default function ThemePanel({ businessId, site, onSiteUpdate }) {
           <FooterContactEditor theme={theme} onChange={patchTheme} />
         </>
       )}
+
+      <div className="gs-field" style={{ marginTop: 14 }}>
+        <div className="gs-label">Footer bottom-bar extras (optional)</div>
+        <input className="gs-input" placeholder="A second line of text, e.g. a tagline" style={{ marginBottom: 6 }}
+          defaultValue={theme.footerTagline2 || ''} onBlur={(e) => patchTheme({ footerTagline2: e.target.value })} />
+        <div style={{ display: 'flex', gap: 8 }}>
+          <input className="gs-input" placeholder="A link's text, e.g. Staff Login" style={{ flex: 1 }}
+            defaultValue={theme.footerBottomLink?.label || ''} onBlur={(e) => patchTheme({ footerBottomLink: { ...(theme.footerBottomLink || {}), label: e.target.value } })} />
+          <input className="gs-input" placeholder="Links to, e.g. /staff/login" style={{ flex: 1 }}
+            defaultValue={theme.footerBottomLink?.path || ''} onBlur={(e) => patchTheme({ footerBottomLink: { ...(theme.footerBottomLink || {}), path: e.target.value } })} />
+        </div>
+      </div>
     </div>
   );
 }

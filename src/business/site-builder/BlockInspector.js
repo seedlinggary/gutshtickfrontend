@@ -439,6 +439,7 @@ export default function BlockInspector({ businessId, block, onChange, onClose })
             <option value="checklist">Checklist (check mark + one line, light card)</option>
             <option value="timeline">Timeline (a short badge like a year, instead of an icon)</option>
             <option value="stat">Stat (a big number + small label, no icon or border)</option>
+            <option value="panel">Panel (a simple bordered box: heading + text, no icon)</option>
           </select>
           <DarkBackgroundToggle content={block.content} updateContent={updateContent} />
           <div className="gs-label">Items</div>
@@ -459,7 +460,12 @@ export default function BlockInspector({ businessId, block, onChange, onClose })
                     { key: 'title', label: 'Number', placeholder: '2011' },
                     { key: 'description', label: 'Label', placeholder: 'Managing NYC Properties Since' },
                   ]
-                  : block.content.cardStyle === 'checklist'
+                  : block.content.cardStyle === 'panel'
+                    ? [
+                      { key: 'title', label: 'Heading', placeholder: 'Where to Find Us' },
+                      { key: 'description', label: 'Text', type: 'textarea', placeholder: 'Across from...' },
+                    ]
+                    : block.content.cardStyle === 'checklist'
                     ? [
                       { key: 'icon', label: 'Icon', type: 'select', options: ICON_NAMES },
                       { key: 'title', label: 'Text', placeholder: 'Financial clarity & precision' },
