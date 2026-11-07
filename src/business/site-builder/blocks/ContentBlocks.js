@@ -64,58 +64,128 @@ export function FaqAccordionBlock({ content, editable }) {
   );
 }
 
-/** Repeating icon + title + description cards -- covers both a services
- * grid and a "why choose us" differentiators grid (same shape: an icon,
- * a short title, a sentence or two). Generic on purpose, not nonprofit-
- * or category-specific -- any business has SOME version of "what we do"
- * or "why us." */
+/** Repeating icon + title + description cards -- covers a services grid,
+ * a "why choose us" differentiators grid, a plain stat row, a checklist,
+ * and a timeline, via content.cardStyle. Added recreating a real
+ * business's existing site surfaced that "icon in a bordered box, title,
+ * description" (this block's original and ONLY shape) doesn't actually
+ * cover most of the repeating-card patterns a real site uses -- its own
+ * differentiators are a borderless icon-circle-left/text-right row, its
+ * stats are a plain number+label with no icon or border at all, its
+ * checklist is a check mark + one line of text in a flat light card, and
+ * its timeline swaps the icon for a big year number. Generic on purpose,
+ * not business-specific -- any site can use any of these five shapes. */
 export function FeatureGridBlock({ content }) {
   const items = content.items || [];
+  const cardStyle = content.cardStyle || 'card';
   return (
     <div style={{ height: '100%', overflow: 'auto' }}>
       {content.heading && <h3 className="sb-faq-heading">{content.heading}</h3>}
-      <div className="sb-feature-grid">
-        {items.map((item, i) => (
-          <div key={i} className="sb-feature-card">
-            <div className="sb-feature-icon"><FeatureIcon name={item.icon} /></div>
-            <h4>{item.title}</h4>
-            <p>{item.description}</p>
-          </div>
-        ))}
+      <div className={`sb-feature-grid sb-feature-grid-${cardStyle}`}>
+        {items.map((item, i) => {
+          if (cardStyle === 'row') {
+            return (
+              <div key={i} className="sb-feature-row">
+                <div className="sb-feature-row-icon"><FeatureIcon name={item.icon} size={20} /></div>
+                <div>
+                  <h4>{item.title}</h4>
+                  <p>{item.description}</p>
+                </div>
+              </div>
+            );
+          }
+          if (cardStyle === 'checklist') {
+            return (
+              <div key={i} className="sb-feature-checklist-item">
+                <FeatureIcon name={item.icon || 'CheckCircle2'} size={18} />
+                <span>{item.title}</span>
+              </div>
+            );
+          }
+          if (cardStyle === 'timeline') {
+            return (
+              <div key={i} className="sb-feature-timeline-item">
+                <span className="sb-feature-timeline-badge">{item.badge}</span>
+                <h4>{item.title}</h4>
+                <p>{item.description}</p>
+              </div>
+            );
+          }
+          if (cardStyle === 'stat') {
+            return (
+              <div key={i} className="sb-feature-stat-item">
+                <div className="sb-feature-stat-value">{item.title}</div>
+                <p>{item.description}</p>
+              </div>
+            );
+          }
+          return (
+            <div key={i} className="sb-feature-card">
+              <div className="sb-feature-icon"><FeatureIcon name={item.icon} /></div>
+              <h4>{item.title}</h4>
+              <p>{item.description}</p>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
 }
 
+/** The actual multicolor Google "G" mark, not a text label -- a real
+ * business's own badge used this exact mark (its brand colors, not
+ * theme-driven, same reasoning the star-fill color below isn't either),
+ * and a plain "Google" text label next to 5 stars reads as a generic
+ * knockoff of a very recognizable real logo. */
+function GoogleG() {
+  return (
+    <svg viewBox="0 0 48 48" width="20" height="20" aria-hidden="true">
+      <path fill="#FFC107" d="M43.6 20.5H42V20.4H24v7.2h11.3c-1.6 4.5-5.9 7.8-11.3 7.8-6.9 0-12.5-5.6-12.5-12.5S17.1 10.4 24 10.4c3.2 0 6.1 1.2 8.3 3.2l5.1-5.1C34.2 5.4 29.4 3.4 24 3.4 12.4 3.4 3 12.8 3 24.4s9.4 21 21 21c10.9 0 20.1-8 20.1-21 0-1.3-.2-2.6-.5-3.9z" />
+      <path fill="#FF3D00" d="M6.3 14.7l5.9 4.3C13.8 15 18.5 12 24 12c3.2 0 6.1 1.2 8.3 3.2l5.1-5.1C34.2 6.9 29.4 4.9 24 4.9c-7.6 0-14.2 4.3-17.7 10.6z" />
+      <path fill="#4CAF50" d="M24 44.9c5.3 0 10-1.8 13.7-5l-6.3-5.3c-2 1.4-4.6 2.3-7.4 2.3-5.4 0-9.9-3.4-11.6-8.2l-6.1 4.7c3.4 6.8 10.4 11.5 17.7 11.5z" />
+      <path fill="#1976D2" d="M43.6 20.5H42V20.4H24v7.2h11.3c-.8 2.2-2.2 4.1-4 5.4l6.3 5.3C40.5 36.1 44 30.6 44 24.4c0-1.3-.2-2.6-.4-3.9z" />
+    </svg>
+  );
+}
+
 /** Owner-entered (not live-fetched -- see this block's own comment in
  * BLOCK_TYPES, backend/business/modals/business_site.py) Google rating
- * badge: a 5-star row (partially filled to the decimal rating via a
- * clipped overlay -- plain CSS, no per-half-star image/icon needed),
- * the numeric rating, and the review count, linking out to the owner's
- * Google review page when a URL is set. */
+ * badge: the real G mark, a 5-star row (partially filled to the decimal
+ * rating via a clipped overlay -- plain CSS, no per-half-star image/icon
+ * needed), the numeric rating, and the review count, in a bordered pill
+ * linking out to the owner's Google review page when a URL is set. */
 export function GoogleReviewsBadgeBlock({ content }) {
+  // Matches the real source's own branching exactly (not just its
+  // layout): a business with no Google rating YET -- the common case
+  // before a profile has enough reviews, including the real Altmax's own
+  // current state -- shows a plain "Read our reviews on Google" link,
+  // never a fabricated 0.0-star rating row.
+  const hasRating = content.rating != null && content.reviewCount != null;
   const rating = Math.max(0, Math.min(5, Number(content.rating) || 0));
   const fillPct = (rating / 5) * 100;
-  const reviewCount = content.reviewCount;
 
   const stars = (
     <span className="sb-google-stars">
       <span className="sb-google-stars-row sb-google-stars-outline">
-        {[0, 1, 2, 3, 4].map((i) => <Star key={i} size={16} />)}
+        {[0, 1, 2, 3, 4].map((i) => <Star key={i} size={14} />)}
       </span>
       <span className="sb-google-stars-row sb-google-stars-filled" style={{ width: `${fillPct}%` }}>
-        {[0, 1, 2, 3, 4].map((i) => <Star key={i} size={16} fill="currentColor" />)}
+        {[0, 1, 2, 3, 4].map((i) => <Star key={i} size={14} fill="currentColor" />)}
       </span>
     </span>
   );
 
   const badge = (
     <span className="sb-google-badge">
-      <span className="sb-google-badge-label">Google</span>
-      {stars}
-      <span className="sb-google-badge-text">
-        {rating.toFixed(1)}{reviewCount ? ` · ${reviewCount} review${reviewCount === 1 ? '' : 's'}` : ''}
-      </span>
+      <GoogleG />
+      {hasRating ? (
+        <span className="sb-google-badge-col">
+          <span className="sb-google-badge-rating">{rating.toFixed(1)} {stars}</span>
+          <span className="sb-google-badge-text">{content.reviewCount} Google reviews</span>
+        </span>
+      ) : (
+        <span className="sb-google-badge-rating">Read our reviews on Google</span>
+      )}
     </span>
   );
 

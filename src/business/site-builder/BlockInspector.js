@@ -398,17 +398,43 @@ export default function BlockInspector({ businessId, block, onChange, onClose })
         <div className="gs-field">
           <div className="gs-label">Heading (optional)</div>
           <input className="gs-input" value={block.content.heading || ''} onChange={(e) => updateContent({ heading: e.target.value })} style={{ marginBottom: 12 }} />
+          <div className="gs-label">Card style</div>
+          <select className="gs-select" value={block.content.cardStyle || 'card'} onChange={(e) => updateContent({ cardStyle: e.target.value })} style={{ marginBottom: 12 }}>
+            <option value="card">Bordered card (icon, title, description)</option>
+            <option value="row">Row (round icon left, text right, no border)</option>
+            <option value="checklist">Checklist (check mark + one line, light card)</option>
+            <option value="timeline">Timeline (a short badge like a year, instead of an icon)</option>
+            <option value="stat">Stat (a big number + small label, no icon or border)</option>
+          </select>
           <div className="gs-label">Items</div>
           <ItemListEditor
             items={block.content.items}
             onChange={(items) => updateContent({ items })}
-            blank={{ icon: 'Star', title: '', description: '' }}
+            blank={{ icon: 'Star', title: '', description: '', badge: '' }}
             addLabel="Add item"
-            fields={[
-              { key: 'icon', label: 'Icon', type: 'select', options: ICON_NAMES },
-              { key: 'title', label: 'Title', placeholder: 'Financial Management' },
-              { key: 'description', label: 'Description', type: 'textarea', placeholder: 'A short description...' },
-            ]}
+            fields={
+              block.content.cardStyle === 'timeline'
+                ? [
+                  { key: 'badge', label: 'Badge (e.g. a year)', placeholder: '2011' },
+                  { key: 'title', label: 'Title', placeholder: 'Where it started' },
+                  { key: 'description', label: 'Description', type: 'textarea', placeholder: 'A short description...' },
+                ]
+                : block.content.cardStyle === 'stat'
+                  ? [
+                    { key: 'title', label: 'Number', placeholder: '2011' },
+                    { key: 'description', label: 'Label', placeholder: 'Managing NYC Properties Since' },
+                  ]
+                  : block.content.cardStyle === 'checklist'
+                    ? [
+                      { key: 'icon', label: 'Icon', type: 'select', options: ICON_NAMES },
+                      { key: 'title', label: 'Text', placeholder: 'Financial clarity & precision' },
+                    ]
+                    : [
+                      { key: 'icon', label: 'Icon', type: 'select', options: ICON_NAMES },
+                      { key: 'title', label: 'Title', placeholder: 'Financial Management' },
+                      { key: 'description', label: 'Description', type: 'textarea', placeholder: 'A short description...' },
+                    ]
+            }
           />
         </div>
       )}

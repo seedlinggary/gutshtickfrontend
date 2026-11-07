@@ -339,6 +339,42 @@ body.sb-layout-with-sidebar .main-content { padding-left: 220px; }
 .sb-feature-card h4 { margin: 0 0 6px; font-family: var(--sb-font-heading); color: var(--sb-heading-color, var(--sb-text)); font-size: 16px; }
 .sb-feature-card p { margin: 0; color: var(--sb-muted); font-size: 13px; line-height: 1.5; }
 
+/* "row" -- a borderless icon-circle-left/text-right pair (a "why us"
+   differentiator, not a services card: no box around it at all). */
+.sb-feature-row { display: flex; gap: 16px; }
+.sb-feature-row-icon {
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+  width: 44px; height: 44px; border-radius: 999px;
+  background: color-mix(in srgb, var(--sb-primary) 15%, transparent); color: var(--sb-primary);
+}
+.sb-feature-row h4 { margin: 0 0 4px; font-family: var(--sb-font-body); font-weight: 700; color: var(--sb-heading-color, var(--sb-text)); font-size: 15px; }
+.sb-feature-row p { margin: 0; color: var(--sb-muted); font-size: 13px; line-height: 1.5; }
+
+/* "checklist" -- a check mark + one line, in a flat light card -- no
+   title/description split, no icon box. */
+.sb-feature-grid-checklist { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.sb-feature-checklist-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  background: var(--sb-background); border: 1px solid var(--sb-border, #e5e1d6);
+  border-radius: 8px; padding: 14px; font-size: 13px; font-weight: 600; color: var(--sb-text);
+}
+.sb-feature-checklist-item svg { flex-shrink: 0; margin-top: 1px; color: var(--sb-primary); }
+
+/* "timeline" -- a big year/era badge standing in for the icon, otherwise
+   a bordered card like the default. */
+.sb-feature-timeline-item {
+  background: var(--sb-background); border: 1px solid var(--sb-border, #e5e1d6);
+  border-radius: var(--sb-button-radius, 10px); padding: 20px;
+}
+.sb-feature-timeline-badge { display: block; font-family: var(--sb-font-heading); font-size: 22px; color: var(--sb-primary); margin-bottom: 8px; }
+.sb-feature-timeline-item h4 { margin: 0 0 8px; font-family: var(--sb-font-body); font-weight: 700; color: var(--sb-text); font-size: 15px; }
+.sb-feature-timeline-item p { margin: 0; color: var(--sb-muted); font-size: 13px; line-height: 1.5; }
+
+/* "stat" -- a plain big-number + small uppercase label, no card at all. */
+.sb-feature-grid-stat { grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); }
+.sb-feature-stat-value { font-family: var(--sb-font-heading); font-size: 28px; color: inherit; }
+.sb-feature-stat-item p { margin: 4px 0 0; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.85; }
+
 .sb-service-list { display: flex; flex-direction: column; gap: 20px; }
 .sb-service-card {
   display: grid; grid-template-columns: 72px 1fr; gap: 24px;
@@ -375,15 +411,17 @@ body.sb-layout-with-sidebar .main-content { padding-left: 220px; }
 }
 .sb-testimonial-quote-icon { color: var(--sb-secondary); opacity: 0.6; }
 .sb-testimonial-quote { margin: 8px 0 12px; color: var(--sb-text); font-size: 14px; line-height: 1.6; font-style: italic; }
-.sb-testimonial-author { margin: 0; font-weight: 600; color: var(--sb-text); font-size: 13px; }
+.sb-testimonial-author { margin: 0; font-weight: 700; font-family: var(--sb-font-heading); color: var(--sb-heading-color, var(--sb-text)); font-size: 13px; }
 .sb-testimonial-author span { display: block; font-weight: 400; color: var(--sb-muted); font-size: 12px; }
 
 .sb-google-badge, .sb-google-badge-link {
-  display: inline-flex; align-items: center; gap: 8px;
-  color: var(--sb-text); text-decoration: none;
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 9px 15px; border: 1px solid var(--sb-border, #e5e1d6); border-radius: 8px;
+  color: var(--sb-text); text-decoration: none; transition: border-color 0.15s;
 }
-.sb-google-badge-link:hover .sb-google-badge-text { text-decoration: underline; }
-.sb-google-badge-label { font-weight: 700; font-size: 13px; color: var(--sb-text); }
+.sb-google-badge-link:hover { border-color: var(--sb-primary); }
+.sb-google-badge-col { display: flex; flex-direction: column; line-height: 1.3; }
+.sb-google-badge-rating { display: flex; align-items: center; gap: 5px; font-weight: 700; font-size: 13px; color: var(--sb-text); }
 .sb-google-stars { position: relative; display: inline-flex; }
 .sb-google-stars-row { display: flex; gap: 1px; white-space: nowrap; }
 .sb-google-stars-outline { color: var(--sb-border, #d8d2c4); }
@@ -391,4 +429,4 @@ body.sb-layout-with-sidebar .main-content { padding-left: 220px; }
   position: absolute; top: 0; left: 0; overflow: hidden;
   color: #f5b400; /* Google's own star-rating yellow -- intentionally not a theme token, this badge only reads right in its real brand color regardless of site palette */
 }
-.sb-google-badge-text { font-size: 13px; color: var(--sb-muted); white-space: nowrap; }
+.sb-google-badge-text { font-size: 12px; color: var(--sb-muted); white-space: nowrap; }
