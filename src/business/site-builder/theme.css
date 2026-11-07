@@ -499,6 +499,41 @@ body.sb-layout-with-sidebar .main-content { padding-left: 220px; }
 .sb-feature-timeline-item h4 { margin: 0 0 8px; font-family: var(--sb-font-body); font-weight: 700; color: var(--sb-text); font-size: 15px; }
 .sb-feature-timeline-item p { margin: 0; color: var(--sb-muted); font-size: 13px; line-height: 1.5; }
 
+/* Any card wrapped in CardWrap (ContentBlocks.js) because it has an href
+   -- plain anchor reset so a whole-card link doesn't inherit underline/
+   link-color styling that would clash with the card's own look. */
+.sb-card-link { display: block; text-decoration: none; color: inherit; transition: transform 0.15s, box-shadow 0.15s; }
+.sb-card-link:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08); }
+.sb-card-badge {
+  position: absolute; top: 10px; right: 10px;
+  background: var(--sb-primary); color: #fff; font-size: 11px; font-weight: 700;
+  padding: 3px 9px; border-radius: 999px; letter-spacing: 0.02em;
+}
+.sb-feature-card { position: relative; }
+.sb-feature-card-link { display: inline-block; margin-top: 10px; font-size: 12px; font-weight: 700; color: var(--sb-primary); }
+
+/* "quote" testimonial style -- one full-width pull-quote, no card chrome. */
+.sb-testimonial-pullquote { text-align: center; max-width: 640px; margin: 0 auto; padding: 20px 0; }
+.sb-testimonial-pullquote blockquote {
+  margin: 0; font-family: var(--sb-font-heading); font-style: italic; font-weight: 500;
+  font-size: 24px; line-height: 1.4; color: var(--sb-heading-color, var(--sb-text));
+}
+.sb-testimonial-pullquote figcaption { margin-top: 16px; font-size: 14px; font-weight: 600; color: var(--sb-muted); }
+.sb-testimonial-pullquote figcaption span { font-weight: 400; }
+
+/* Logo / trust-badge strip. */
+.sb-logo-strip { display: flex; align-items: center; justify-content: center; gap: 40px; flex-wrap: wrap; padding: 8px 0; }
+.sb-logo-strip img { max-height: 36px; max-width: 140px; object-fit: contain; opacity: 0.85; }
+.sb-logo-strip-img-gray { filter: grayscale(1); opacity: 0.55; transition: opacity 0.15s, filter 0.15s; }
+.sb-logo-strip-img-gray:hover { filter: none; opacity: 1; }
+.sb-logo-strip-placeholder {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 100px; height: 36px; border: 1px dashed var(--sb-border, #e5e1d6);
+  border-radius: 6px; font-size: 11px; color: var(--sb-muted); padding: 0 10px;
+}
+.sb-content-dark .sb-testimonial-pullquote blockquote { color: #FFFFFF; }
+.sb-content-dark .sb-testimonial-pullquote figcaption { color: #C3D4E6; }
+
 /* "panel" -- a simple bordered/tinted box with a heading + a line or two
    of text, no icon at all -- e.g. a sidebar "Our Rav" / "Where to find
    us" / "Contact the office" card. */

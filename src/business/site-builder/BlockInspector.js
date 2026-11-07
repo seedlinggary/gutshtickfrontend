@@ -186,7 +186,13 @@ function ItemListEditor({ items, onChange, fields, blank, addLabel }) {
           {fields.map((f) => (
             <div key={f.key} style={{ marginBottom: 6 }}>
               {f.label && <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 2 }}>{f.label}</div>}
-              {f.type === 'textarea' ? (
+              {f.type === 'image' ? (
+                <>
+                  {item[f.key] && <img src={item[f.key]} alt="" style={{ maxWidth: '100%', maxHeight: 60, borderRadius: 6, marginBottom: 6, display: 'block' }} />}
+                  <UploadFile apiextension="/business/upload" setInvestors={(filename) =>
+                    apiRequest('GET', null, `/business/upload-url/${filename}`).then(({ url }) => updateItem(i, { [f.key]: url }))} />
+                </>
+              ) : f.type === 'textarea' ? (
                 <textarea className="gs-input" rows={2} value={item[f.key] || ''} placeholder={f.placeholder}
                   onChange={(e) => updateItem(i, { [f.key]: e.target.value })} />
               ) : f.type === 'list' ? (
@@ -493,6 +499,7 @@ export default function BlockInspector({ businessId, block, onChange, onClose })
                     ? [
                       { key: 'title', label: 'Heading', placeholder: 'Where to Find Us' },
                       { key: 'description', label: 'Text', type: 'textarea', placeholder: 'Across from...' },
+                      { key: 'href', label: 'Links to (optional)', placeholder: '/services' },
                     ]
                     : block.content.cardStyle === 'checklist'
                     ? [
@@ -503,6 +510,8 @@ export default function BlockInspector({ businessId, block, onChange, onClose })
                       { key: 'icon', label: 'Icon', type: 'select', options: ICON_NAMES },
                       { key: 'title', label: 'Title', placeholder: 'Financial Management' },
                       { key: 'description', label: 'Description', type: 'textarea', placeholder: 'A short description...' },
+                      { key: 'badge', label: 'Badge (optional, e.g. "New")', placeholder: 'New' },
+                      { key: 'href', label: 'Links to (optional)', placeholder: '/services' },
                     ]
             }
           />
@@ -513,6 +522,11 @@ export default function BlockInspector({ businessId, block, onChange, onClose })
         <div className="gs-field">
           <div className="gs-label">Heading (optional)</div>
           <input className="gs-input" value={block.content.heading || ''} onChange={(e) => updateContent({ heading: e.target.value })} style={{ marginBottom: 12 }} />
+          <div className="gs-label">Style</div>
+          <select className="gs-select" value={block.content.cardStyle || 'card'} onChange={(e) => updateContent({ cardStyle: e.target.value })} style={{ marginBottom: 12 }}>
+            <option value="card">Cards (boxed, with a quote icon)</option>
+            <option value="quote">Pull-quote (one large centered quote, no card)</option>
+          </select>
           <DarkBackgroundToggle content={block.content} updateContent={updateContent} />
           <div className="gs-label">Testimonials</div>
           <ItemListEditor
@@ -549,6 +563,31 @@ export default function BlockInspector({ businessId, block, onChange, onClose })
               { key: 'title', label: 'Title', placeholder: 'Condo & Co-op Management' },
               { key: 'description', label: 'Description', type: 'textarea', placeholder: 'A paragraph describing this service...' },
               { key: 'points', label: 'Supporting points (one per line)', type: 'list', placeholder: 'Dedicated property manager\nMonthly financial statements' },
+              { key: 'href', label: 'Links to (optional)', placeholder: '/services#this-one' },
+            ]}
+          />
+        </div>
+      )}
+
+      {block.type === 'logo_strip' && (
+        <div className="gs-field">
+          <div className="gs-label">Heading (optional)</div>
+          <input className="gs-input" value={block.content.heading || ''} onChange={(e) => updateContent({ heading: e.target.value })} placeholder="As Featured In" style={{ marginBottom: 10 }} />
+          <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, marginBottom: 12 }}>
+            <input type="checkbox" checked={block.content.grayscale !== false} onChange={(e) => updateContent({ grayscale: e.target.checked })} />
+            Grayscale logos (color on hover)
+          </label>
+          <DarkBackgroundToggle content={block.content} updateContent={updateContent} />
+          <div className="gs-label">Logos</div>
+          <ItemListEditor
+            items={block.content.items}
+            onChange={(items) => updateContent({ items })}
+            blank={{ src: null, alt: '', href: '' }}
+            addLabel="Add logo"
+            fields={[
+              { key: 'src', label: 'Image', type: 'image' },
+              { key: 'alt', label: 'Name (shown if no image)', placeholder: 'Acme Co.' },
+              { key: 'href', label: 'Links to (optional)', placeholder: 'https://example.com' },
             ]}
           />
         </div>

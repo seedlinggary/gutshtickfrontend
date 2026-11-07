@@ -75,6 +75,24 @@ export function FaqAccordionBlock({ content, editable }) {
  * checklist is a check mark + one line of text in a flat light card, and
  * its timeline swaps the icon for a big year number. Generic on purpose,
  * not business-specific -- any site can use any of these five shapes. */
+/** Renders as a plain div, or as an <a> wrapping the same content when
+ * the item has an href -- added after comparing against real sites
+ * (Airbnb, Pentagram) where an entire card is one click target, not just
+ * a separate "read more" link buried inside it. One wrapper for every
+ * cardStyle rather than repeating the div/a branch in each. */
+function CardWrap({ href, className, children }) {
+  if (!href) return <div className={className}>{children}</div>;
+  return <a href={href} className={`${className} sb-card-link`}>{children}</a>;
+}
+
+/** A small pill in the card's corner -- "New", "Best Seller", a category
+ * tag -- the same real-site comparison surfaced this as a common need
+ * (status badges on listing cards) with no equivalent here at all. */
+function CardBadge({ text }) {
+  if (!text) return null;
+  return <span className="sb-card-badge">{text}</span>;
+}
+
 export function FeatureGridBlock({ content }) {
   const items = content.items || [];
   const cardStyle = content.cardStyle || 'card';
@@ -85,30 +103,30 @@ export function FeatureGridBlock({ content }) {
         {items.map((item, i) => {
           if (cardStyle === 'row') {
             return (
-              <div key={i} className="sb-feature-row">
+              <CardWrap key={i} href={item.href} className="sb-feature-row">
                 <div className="sb-feature-row-icon"><FeatureIcon name={item.icon} size={20} /></div>
                 <div>
                   <h4>{item.title}</h4>
                   <p>{item.description}</p>
                 </div>
-              </div>
+              </CardWrap>
             );
           }
           if (cardStyle === 'checklist') {
             return (
-              <div key={i} className="sb-feature-checklist-item">
+              <CardWrap key={i} href={item.href} className="sb-feature-checklist-item">
                 <FeatureIcon name={item.icon || 'CheckCircle2'} size={18} />
                 <span>{item.title}</span>
-              </div>
+              </CardWrap>
             );
           }
           if (cardStyle === 'timeline') {
             return (
-              <div key={i} className="sb-feature-timeline-item">
+              <CardWrap key={i} href={item.href} className="sb-feature-timeline-item">
                 <span className="sb-feature-timeline-badge">{item.badge}</span>
                 <h4>{item.title}</h4>
                 <p>{item.description}</p>
-              </div>
+              </CardWrap>
             );
           }
           if (cardStyle === 'stat') {
@@ -121,18 +139,20 @@ export function FeatureGridBlock({ content }) {
           }
           if (cardStyle === 'panel') {
             return (
-              <div key={i} className="sb-feature-panel-item">
+              <CardWrap key={i} href={item.href} className="sb-feature-panel-item">
                 <h4>{item.title}</h4>
                 <p>{item.description}</p>
-              </div>
+              </CardWrap>
             );
           }
           return (
-            <div key={i} className="sb-feature-card">
+            <CardWrap key={i} href={item.href} className="sb-feature-card">
+              {item.badge && <CardBadge text={item.badge} />}
               <div className="sb-feature-icon"><FeatureIcon name={item.icon} /></div>
               <h4>{item.title}</h4>
               <p>{item.description}</p>
-            </div>
+              {item.href && <span className="sb-feature-card-link">Learn more →</span>}
+            </CardWrap>
           );
         })}
       </div>
@@ -219,7 +239,7 @@ export function ServiceListBlock({ content }) {
       {content.heading && <h3 className="sb-faq-heading">{content.heading}</h3>}
       <div className="sb-service-list">
         {items.map((item, i) => (
-          <div key={i} className="sb-service-card">
+          <CardWrap key={i} href={item.href} className="sb-service-card">
             <div className="sb-service-icon-col">
               <div className="sb-service-icon"><FeatureIcon name={item.icon} size={26} /></div>
               {content.numbered !== false && <span className="sb-service-index">{String(i + 1).padStart(2, '0')}</span>}
@@ -235,16 +255,35 @@ export function ServiceListBlock({ content }) {
                 </ul>
               )}
             </div>
-          </div>
+          </CardWrap>
         ))}
       </div>
     </div>
   );
 }
 
-/** Repeating quote + author + role cards. */
+/** Repeating quote + author + role cards -- or, with cardStyle 'quote',
+ * one full-width pull-quote with no card chrome at all (large centered
+ * italic type, just the quote and a name underneath). A real design
+ * agency's own site used exactly this for a single standout quote,
+ * distinct enough from a wall of boxed testimonial cards to be its own
+ * style rather than a one-item grid of the default card. */
 export function TestimonialGridBlock({ content }) {
   const items = content.items || [];
+  const cardStyle = content.cardStyle || 'card';
+  if (cardStyle === 'quote') {
+    return (
+      <div className={content.dark ? 'sb-content-dark' : ''} style={{ height: '100%', overflow: 'auto' }}>
+        {content.heading && <h3 className="sb-faq-heading">{content.heading}</h3>}
+        {items.map((item, i) => (
+          <figure key={i} className="sb-testimonial-pullquote">
+            <blockquote>“{item.quote}”</blockquote>
+            <figcaption>{item.author}{item.role ? <span> · {item.role}</span> : null}</figcaption>
+          </figure>
+        ))}
+      </div>
+    );
+  }
   return (
     <div className={content.dark ? 'sb-content-dark' : ''} style={{ height: '100%', overflow: 'auto' }}>
       {content.heading && <h3 className="sb-faq-heading">{content.heading}</h3>}
@@ -290,6 +329,38 @@ export function CalloutBlock({ content }) {
       <div>
         {content.heading && <p style={{ margin: 0, fontWeight: 700, color: scheme.heading, fontSize: content.headingSize || 15 }}>{content.heading}</p>}
         {content.text && <p style={{ margin: '4px 0 0', color: scheme.text, fontSize: content.textSize || 13, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{content.text}</p>}
+      </div>
+    </div>
+  );
+}
+
+/** A row of logos -- client logos, press mentions, certifications, award
+ * badges -- each optionally linking out. Real sites across every category
+ * researched (a SaaS marketing site's client-logo strip, a nonprofit's
+ * Charity Navigator/BBB trust badges) use this exact pattern, and there
+ * was no block that fit it: feature_grid's cards all have a title under
+ * the icon, which is wrong here -- this is just the logos, nothing else. */
+export function LogoStripBlock({ content, editable }) {
+  const items = content.items || [];
+  const grayscale = content.grayscale !== false;
+  if (items.length === 0) {
+    return (
+      <div className={content.dark ? 'sb-content-dark' : ''} style={{ height: '100%', overflow: 'auto' }}>
+        {content.heading && <h3 className="sb-faq-heading">{content.heading}</h3>}
+        {editable && <p style={{ fontSize: 12, color: 'var(--sb-muted)' }}>No logos yet -- add some in the inspector.</p>}
+      </div>
+    );
+  }
+  return (
+    <div className={content.dark ? 'sb-content-dark' : ''} style={{ height: '100%', overflow: 'auto' }}>
+      {content.heading && <h3 className="sb-faq-heading" style={{ textAlign: 'center' }}>{content.heading}</h3>}
+      <div className="sb-logo-strip">
+        {items.map((item, i) => {
+          const img = item.src
+            ? <img src={item.src} alt={item.alt || ''} className={grayscale ? 'sb-logo-strip-img-gray' : ''} />
+            : <span className="sb-logo-strip-placeholder">{item.alt || 'Logo'}</span>;
+          return item.href ? <a key={i} href={item.href} target="_blank" rel="noopener noreferrer">{img}</a> : <div key={i}>{img}</div>;
+        })}
       </div>
     </div>
   );

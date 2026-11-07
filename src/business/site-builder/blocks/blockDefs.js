@@ -86,6 +86,12 @@ export const BLOCK_DEFS = {
       colorScheme: 'red', headingSize: 15, textSize: 13,
     },
   },
+  // Client logos, press mentions, certification/award badges -- any row
+  // of logos a business wants to show off, each optionally linking out.
+  logo_strip: {
+    label: 'Logo strip', category: 'Content', defaultSize: { w: 92, h: 14 },
+    defaultContent: { heading: '', grayscale: true, items: [{ src: null, alt: 'Logo', href: '' }] },
+  },
 };
 
 export const CATEGORY_ORDER = ['Basic', 'Content', 'Forms', 'Commerce', 'Nonprofit'];
