@@ -293,9 +293,8 @@ export function DynamicFormBlock({ content, editable, subdomain, theme }) {
   const effectiveStyle = content.formStyle || (theme || DEFAULT_THEME).formStyle || 'boxed';
   const formClass = effectiveStyle !== 'boxed' ? `sb-form-${effectiveStyle}` : '';
 
-  return (
-    <form onSubmit={submit} className={`sb-theme ${formClass}`} style={{ display: 'flex', flexDirection: 'column', gap: 10, height: '100%', overflow: 'auto', padding: 4 }}>
-      <h3 style={{ margin: 0, fontFamily: 'var(--sb-font-heading)' }}>{form.title}</h3>
+  const fieldsMarkup = (
+    <>
       {visibleFields.map((field) => (
         <div key={field.id} className="gs-field" style={{ marginBottom: 0 }}>
           <div className="gs-label" style={{ fontFamily: 'var(--sb-font-body)' }}>{fieldLabel(field, answers)}{field.required && ' *'}</div>
@@ -304,7 +303,40 @@ export function DynamicFormBlock({ content, editable, subdomain, theme }) {
         </div>
       ))}
       {error && <p style={{ color: 'var(--danger, #b42318)', fontSize: 12, margin: 0 }}>{error}</p>}
-      <button type="submit" className="sb-button" disabled={busy} style={{ alignSelf: 'flex-start' }}>{busy ? 'Submitting…' : 'Submit'}</button>
+      <button type="submit" className="sb-button" disabled={busy} style={{ alignSelf: content.fullWidthButton ? 'stretch' : 'flex-start' }}>
+        {busy ? 'Submitting…' : (content.submitText || 'Submit')}
+      </button>
+      {content.helperText && <p className="sb-form-helper">{content.helperText}</p>}
+    </>
+  );
+
+  // "Card header" -- a colored header strip (eyebrow + the form's own
+  // title + a subtitle) above the fields, inside a bordered/shadowed
+  // card -- the real business this was modeled on embeds its proposal
+  // form exactly this way (ProposalBox.jsx: a dark header strip with
+  // "Free, No-Obligation" / "Request a Proposal" / a one-line subtitle,
+  // THEN the white field area), which a plain `<h3>{title}</h3>` had no
+  // way to reproduce. Opt-in (content.cardHeader) so every other embedded
+  // form keeps its plain look unless the owner asks for this one.
+  if (content.cardHeader) {
+    return (
+      <div className="sb-theme sb-form-card" style={{ height: '100%', overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
+        <div className="sb-form-card-header">
+          {content.headerEyebrow && <p className="sb-form-card-eyebrow">{content.headerEyebrow}</p>}
+          <h3>{form.title}</h3>
+          {content.headerSubtitle && <p className="sb-form-card-subtitle">{content.headerSubtitle}</p>}
+        </div>
+        <form onSubmit={submit} className={`sb-form-card-body ${formClass}`} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {fieldsMarkup}
+        </form>
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={submit} className={`sb-theme ${formClass}`} style={{ display: 'flex', flexDirection: 'column', gap: 10, height: '100%', overflow: 'auto', padding: 4 }}>
+      <h3 style={{ margin: 0, fontFamily: 'var(--sb-font-heading)' }}>{form.title}</h3>
+      {fieldsMarkup}
     </form>
   );
 }

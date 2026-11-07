@@ -379,6 +379,22 @@ export default function BlockInspector({ businessId, block, onChange, onClose })
         <div className="gs-field">
           <div className="gs-label">Form</div>
           <FormPicker businessId={businessId} value={block.content.formSlug} onChange={(formSlug) => updateContent({ formSlug })} />
+          <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, margin: '12px 0' }}>
+            <input type="checkbox" checked={!!block.content.cardHeader} onChange={(e) => updateContent({ cardHeader: e.target.checked })} />
+            Card with a colored header strip (eyebrow + title + subtitle) above the fields
+          </label>
+          {block.content.cardHeader && (
+            <>
+              <div className="gs-label">Header eyebrow (optional)</div>
+              <input className="gs-input" value={block.content.headerEyebrow || ''} onChange={(e) => updateContent({ headerEyebrow: e.target.value })} placeholder="Free, No-Obligation" style={{ marginBottom: 10 }} />
+              <div className="gs-label">Header subtitle (optional)</div>
+              <input className="gs-input" value={block.content.headerSubtitle || ''} onChange={(e) => updateContent({ headerSubtitle: e.target.value })} placeholder="Tell us about your building — we'll reach out within 24 hours." style={{ marginBottom: 10 }} />
+            </>
+          )}
+          <div className="gs-label">Submit button text (optional)</div>
+          <input className="gs-input" value={block.content.submitText || ''} onChange={(e) => updateContent({ submitText: e.target.value })} placeholder="Submit" style={{ marginBottom: 10 }} />
+          <div className="gs-label">Helper text below the button (optional)</div>
+          <input className="gs-input" value={block.content.helperText || ''} onChange={(e) => updateContent({ helperText: e.target.value })} placeholder="We'll prepare a custom proposal and reach out within 24 hours." />
         </div>
       )}
 

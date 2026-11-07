@@ -72,6 +72,23 @@
   outline-offset: 1px;
 }
 
+/* "Card header" dynamic form -- a colored header strip (eyebrow + the
+   form's own title + subtitle) above a white field area, inside a
+   bordered/shadowed card. See DynamicFormBlock's own comment for why
+   this exists -- a real business's actual proposal-request form is
+   embedded exactly this way, not as a plain heading-above-fields box. */
+.sb-form-card {
+  border-radius: 16px; overflow: hidden;
+  background: var(--sb-surface); border: 1px solid var(--sb-border, #e5e1d6);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+.sb-form-card-header { background: var(--sb-primary); padding: 20px 20px 18px; color: #fff; }
+.sb-form-card-eyebrow { margin: 0 0 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.15em; color: rgba(255, 255, 255, 0.85); }
+.sb-form-card-header h3 { margin: 0; font-family: var(--sb-font-heading); color: #fff; font-size: 21px; }
+.sb-form-card-subtitle { margin: 6px 0 0; font-size: 13px; line-height: 1.5; color: rgba(255, 255, 255, 0.85); }
+.sb-form-card-body { padding: 18px 20px 20px; }
+.sb-form-helper { margin: 2px 0 0; font-size: 12px; text-align: center; color: var(--sb-muted); }
+
 /* Form style variants -- applied via a class on the form/field wrapper */
 .sb-form-underline .sb-input, .sb-form-underline .sb-textarea {
   border: none;
@@ -253,12 +270,18 @@ body.sb-layout-with-sidebar .main-content { padding-left: 220px; }
   color: var(--sb-muted, #8A7A68);
   font-size: 13px;
 }
+/* flex+wrap, not CSS grid auto-fit -- a grid track's auto-fit sizing can
+   collapse to a single column inside some parent layout contexts (this
+   footer's columns rendered stacked instead of side by side), while a
+   flex item with an explicit flex-basis reliably sits next to its
+   siblings and only wraps when the row genuinely runs out of width. */
 .sb-footer-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: 32px;
   padding-bottom: 28px;
 }
+.sb-footer-col { flex: 1 1 180px; min-width: 180px; }
 .sb-footer-brand { font-family: var(--sb-font-heading); font-weight: 700; font-size: 17px; margin-bottom: 10px; color: inherit; }
 .sb-footer-col h4 { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin: 0 0 12px; color: inherit; }
 .sb-footer-col p { margin: 0; font-size: 13px; line-height: 1.6; max-width: 26ch; }
