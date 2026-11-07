@@ -1,7 +1,36 @@
 import React, { useEffect, useState } from 'react';
-import { Palette, Plus, Trash2, RotateCcw } from 'lucide-react';
+import { Palette, Plus, Trash2, RotateCcw, ChevronDown } from 'lucide-react';
 import apiRequest from '../../ApiRequest';
 import { THEME_PALETTES, FONT_PAIRINGS } from './theme';
+
+/** This panel grew one section at a time (colors, fonts, buttons, forms,
+ * nav, footer, nav extras, footer extras...) until it became one long
+ * flat scroll a non-technical owner has to wade through to find anything
+ * -- the opposite of "easy to use." Groups it into named, collapsible
+ * sections instead: the two almost everyone touches (Colors, Fonts) open
+ * by default, the rest (which have grown the most options) collapsed
+ * until asked for, so the panel's FIRST impression stays short even
+ * though nothing it could already do was removed. */
+function Section({ title, defaultOpen = false, children }) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div style={{ borderBottom: '1px solid var(--border, #e5e1d6)' }}>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%',
+          background: 'none', border: 'none', cursor: 'pointer', padding: '12px 0',
+          font: 'inherit', fontWeight: 600, fontSize: 14, color: 'var(--text)',
+        }}
+      >
+        {title}
+        <ChevronDown size={16} style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s', opacity: 0.6 }} />
+      </button>
+      {open && <div style={{ paddingBottom: 16 }}>{children}</div>}
+    </div>
+  );
+}
 
 const CUSTOM_COLOR_KEYS = [
   { key: 'primary', label: 'Primary (buttons, links)' },
@@ -215,28 +244,18 @@ export default function ThemePanel({ businessId, site, onSiteUpdate }) {
       <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 0 }}><Palette size={18} /> Look &amp; feel</h3>
       {error && <p style={{ color: 'var(--danger, #b42318)', fontSize: 13 }}>{error}</p>}
 
-      <div className="gs-field">
-        <div className="gs-label">Color scheme</div>
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          {Object.entries(THEME_PALETTES).map(([key, palette]) => (
-            <Swatch key={key} palette={palette} active={theme.palette === key} onClick={() => patchTheme({ palette: key })} />
-          ))}
-        </div>
-        <CustomColorEditor theme={theme} onChange={patchTheme} />
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 14 }}>
+      <Section title="Colors" defaultOpen>
         <div className="gs-field">
-          <div className="gs-label">Font pairing</div>
-          {!theme.customFontPairing && (
-            <select className="gs-select" disabled={saving} value={theme.fontPairing || 'modern'} onChange={(e) => patchTheme({ fontPairing: e.target.value })}>
-              {Object.entries(FONT_PAIRINGS).map(([key]) => <option key={key} value={key}>{catalog.fontPairings[key]?.label || key}</option>)}
-            </select>
-          )}
-          <CustomFontEditor theme={theme} onChange={patchTheme} />
+          <div className="gs-label">Color scheme</div>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            {Object.entries(THEME_PALETTES).map(([key, palette]) => (
+              <Swatch key={key} palette={palette} active={theme.palette === key} onClick={() => patchTheme({ palette: key })} />
+            ))}
+          </div>
+          <CustomColorEditor theme={theme} onChange={patchTheme} />
         </div>
-        <div className="gs-field">
-          <div className="gs-label">Heading color</div>
+        <div className="gs-field" style={{ marginTop: 14 }}>
+          <div className="gs-label">Heading color (defaults to the text color above)</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <input type="color" disabled={saving} value={theme.headingColor || (THEME_PALETTES[theme.palette] || THEME_PALETTES.warm).text}
               onChange={(e) => patchTheme({ headingColor: e.target.value })}
@@ -246,20 +265,40 @@ export default function ThemePanel({ businessId, site, onSiteUpdate }) {
             )}
           </div>
         </div>
+      </Section>
+
+      <Section title="Fonts" defaultOpen>
         <div className="gs-field">
-          <div className="gs-label">Buttons</div>
-          <select className="gs-select" disabled={saving} value={theme.buttonStyle || 'rounded'} onChange={(e) => patchTheme({ buttonStyle: e.target.value })}>
-            {Object.entries(catalog.buttonStyles).map(([key, cfg]) => <option key={key} value={key}>{cfg.label}</option>)}
-          </select>
+          <div className="gs-label">Font pairing</div>
+          {!theme.customFontPairing && (
+            <select className="gs-select" disabled={saving} value={theme.fontPairing || 'modern'} onChange={(e) => patchTheme({ fontPairing: e.target.value })}>
+              {Object.entries(FONT_PAIRINGS).map(([key]) => <option key={key} value={key}>{catalog.fontPairings[key]?.label || key}</option>)}
+            </select>
+          )}
+          <CustomFontEditor theme={theme} onChange={patchTheme} />
         </div>
-        <div className="gs-field">
-          <div className="gs-label">Forms</div>
-          <select className="gs-select" disabled={saving} value={theme.formStyle || 'boxed'} onChange={(e) => patchTheme({ formStyle: e.target.value })}>
-            {Object.entries(catalog.formStyles).map(([key, cfg]) => <option key={key} value={key}>{cfg.label}</option>)}
-          </select>
+      </Section>
+
+      <Section title="Buttons & forms">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 14 }}>
+          <div className="gs-field">
+            <div className="gs-label">Buttons</div>
+            <select className="gs-select" disabled={saving} value={theme.buttonStyle || 'rounded'} onChange={(e) => patchTheme({ buttonStyle: e.target.value })}>
+              {Object.entries(catalog.buttonStyles).map(([key, cfg]) => <option key={key} value={key}>{cfg.label}</option>)}
+            </select>
+          </div>
+          <div className="gs-field">
+            <div className="gs-label">Forms</div>
+            <select className="gs-select" disabled={saving} value={theme.formStyle || 'boxed'} onChange={(e) => patchTheme({ formStyle: e.target.value })}>
+              {Object.entries(catalog.formStyles).map(([key, cfg]) => <option key={key} value={key}>{cfg.label}</option>)}
+            </select>
+          </div>
         </div>
+      </Section>
+
+      <Section title="Navigation">
         <div className="gs-field">
-          <div className="gs-label">Navigation</div>
+          <div className="gs-label">Style</div>
           <select className="gs-select" disabled={saving} value={theme.navStyle || 'top'} onChange={(e) => patchTheme({ navStyle: e.target.value })}>
             {Object.entries(catalog.navStyles).map(([key, cfg]) => <option key={key} value={key}>{cfg.label}</option>)}
           </select>
@@ -268,8 +307,35 @@ export default function ThemePanel({ businessId, site, onSiteUpdate }) {
             Uppercase nav links
           </label>
         </div>
+
+        <div style={{ marginTop: 14 }}>
+          <LinkListEditor label="Navbar links (shown on every page)" links={site.nav_links || []} onChange={(links) => patchChrome({ nav_links: links })} />
+        </div>
+
+        <div className="gs-field" style={{ marginTop: 14 }}>
+          <div className="gs-label">Top announcement bar (optional) — a thin strip above the navbar, e.g. a service area or phone number</div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <input className="gs-input" placeholder="Text, e.g. Servicing Condos & Co-ops Across NYC" style={{ flex: 2 }}
+              defaultValue={theme.navAnnouncement?.text || ''} onBlur={(e) => patchTheme({ navAnnouncement: { ...(theme.navAnnouncement || {}), text: e.target.value } })} />
+            <input className="gs-input" placeholder="Phone (optional)" style={{ flex: 1 }}
+              defaultValue={theme.navAnnouncement?.phone || ''} onBlur={(e) => patchTheme({ navAnnouncement: { ...(theme.navAnnouncement || {}), phone: e.target.value } })} />
+          </div>
+        </div>
+
+        <div className="gs-field" style={{ marginTop: 14 }}>
+          <div className="gs-label">Navbar call-to-action button (optional)</div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <input className="gs-input" placeholder="Button text, e.g. Request a Proposal" style={{ flex: 1 }}
+              defaultValue={theme.navCta?.label || ''} onBlur={(e) => patchTheme({ navCta: { ...(theme.navCta || {}), label: e.target.value } })} />
+            <input className="gs-input" placeholder="Links to, e.g. /contact" style={{ flex: 1 }}
+              defaultValue={theme.navCta?.path || ''} onBlur={(e) => patchTheme({ navCta: { ...(theme.navCta || {}), path: e.target.value } })} />
+          </div>
+        </div>
+      </Section>
+
+      <Section title="Footer">
         <div className="gs-field">
-          <div className="gs-label">Footer</div>
+          <div className="gs-label">Style</div>
           <select className="gs-select" disabled={saving} value={theme.footerStyle || 'simple'} onChange={(e) => patchTheme({ footerStyle: e.target.value })}>
             {Object.entries(catalog.footerStyles).map(([key, cfg]) => <option key={key} value={key}>{cfg.label}</option>)}
           </select>
@@ -292,64 +358,40 @@ export default function ThemePanel({ businessId, site, onSiteUpdate }) {
             </div>
           )}
         </div>
-      </div>
 
-      <hr style={{ margin: '18px 0', border: 0, borderTop: '1px solid var(--border, #e5e1d6)' }} />
-
-      <LinkListEditor label="Navbar links (shown on every page)" links={site.nav_links || []} onChange={(links) => patchChrome({ nav_links: links })} />
-
-      <div className="gs-field" style={{ marginTop: 14 }}>
-        <div className="gs-label">Top announcement bar (optional) — a thin strip above the navbar, e.g. a service area or phone number</div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <input className="gs-input" placeholder="Text, e.g. Servicing Condos & Co-ops Across NYC" style={{ flex: 2 }}
-            defaultValue={theme.navAnnouncement?.text || ''} onBlur={(e) => patchTheme({ navAnnouncement: { ...(theme.navAnnouncement || {}), text: e.target.value } })} />
-          <input className="gs-input" placeholder="Phone (optional)" style={{ flex: 1 }}
-            defaultValue={theme.navAnnouncement?.phone || ''} onBlur={(e) => patchTheme({ navAnnouncement: { ...(theme.navAnnouncement || {}), phone: e.target.value } })} />
+        <div className="gs-field" style={{ marginTop: 14 }}>
+          <div className="gs-label">Footer text</div>
+          <input className="gs-input" defaultValue={site.footer_text || ''} placeholder={`© ${new Date().getFullYear()} your business`}
+            onBlur={(e) => patchChrome({ footer_text: e.target.value })} />
         </div>
-      </div>
 
-      <div className="gs-field" style={{ marginTop: 14 }}>
-        <div className="gs-label">Navbar call-to-action button (optional)</div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <input className="gs-input" placeholder="Button text, e.g. Request a Proposal" style={{ flex: 1 }}
-            defaultValue={theme.navCta?.label || ''} onBlur={(e) => patchTheme({ navCta: { ...(theme.navCta || {}), label: e.target.value } })} />
-          <input className="gs-input" placeholder="Links to, e.g. /contact" style={{ flex: 1 }}
-            defaultValue={theme.navCta?.path || ''} onBlur={(e) => patchTheme({ navCta: { ...(theme.navCta || {}), path: e.target.value } })} />
+        <div style={{ marginTop: 14 }}>
+          <LinkListEditor label="Footer links" links={site.footer_links || []} onChange={(links) => patchChrome({ footer_links: links })} />
         </div>
-      </div>
 
-      <div className="gs-field" style={{ marginTop: 14 }}>
-        <div className="gs-label">Footer text</div>
-        <input className="gs-input" defaultValue={site.footer_text || ''} placeholder={`© ${new Date().getFullYear()} your business`}
-          onBlur={(e) => patchChrome({ footer_text: e.target.value })} />
-      </div>
+        {theme.footerStyle === 'columns' && (
+          <>
+            <div className="gs-field" style={{ marginTop: 14 }}>
+              <div className="gs-label">Footer tagline (optional) — a line under your business name in the first column</div>
+              <input className="gs-input" defaultValue={theme.footerTagline || ''} onBlur={(e) => patchTheme({ footerTagline: e.target.value })} />
+            </div>
+            <FooterColumnsEditor theme={theme} onChange={patchTheme} />
+            <FooterContactEditor theme={theme} onChange={patchTheme} />
+          </>
+        )}
 
-      <div style={{ marginTop: 14 }}>
-        <LinkListEditor label="Footer links" links={site.footer_links || []} onChange={(links) => patchChrome({ footer_links: links })} />
-      </div>
-
-      {theme.footerStyle === 'columns' && (
-        <>
-          <div className="gs-field" style={{ marginTop: 14 }}>
-            <div className="gs-label">Footer tagline (optional) — a line under your business name in the first column</div>
-            <input className="gs-input" defaultValue={theme.footerTagline || ''} onBlur={(e) => patchTheme({ footerTagline: e.target.value })} />
+        <div className="gs-field" style={{ marginTop: 14 }}>
+          <div className="gs-label">Footer bottom-bar extras (optional)</div>
+          <input className="gs-input" placeholder="A second line of text, e.g. a tagline" style={{ marginBottom: 6 }}
+            defaultValue={theme.footerTagline2 || ''} onBlur={(e) => patchTheme({ footerTagline2: e.target.value })} />
+          <div style={{ display: 'flex', gap: 8 }}>
+            <input className="gs-input" placeholder="A link's text, e.g. Staff Login" style={{ flex: 1 }}
+              defaultValue={theme.footerBottomLink?.label || ''} onBlur={(e) => patchTheme({ footerBottomLink: { ...(theme.footerBottomLink || {}), label: e.target.value } })} />
+            <input className="gs-input" placeholder="Links to, e.g. /staff/login" style={{ flex: 1 }}
+              defaultValue={theme.footerBottomLink?.path || ''} onBlur={(e) => patchTheme({ footerBottomLink: { ...(theme.footerBottomLink || {}), path: e.target.value } })} />
           </div>
-          <FooterColumnsEditor theme={theme} onChange={patchTheme} />
-          <FooterContactEditor theme={theme} onChange={patchTheme} />
-        </>
-      )}
-
-      <div className="gs-field" style={{ marginTop: 14 }}>
-        <div className="gs-label">Footer bottom-bar extras (optional)</div>
-        <input className="gs-input" placeholder="A second line of text, e.g. a tagline" style={{ marginBottom: 6 }}
-          defaultValue={theme.footerTagline2 || ''} onBlur={(e) => patchTheme({ footerTagline2: e.target.value })} />
-        <div style={{ display: 'flex', gap: 8 }}>
-          <input className="gs-input" placeholder="A link's text, e.g. Staff Login" style={{ flex: 1 }}
-            defaultValue={theme.footerBottomLink?.label || ''} onBlur={(e) => patchTheme({ footerBottomLink: { ...(theme.footerBottomLink || {}), label: e.target.value } })} />
-          <input className="gs-input" placeholder="Links to, e.g. /staff/login" style={{ flex: 1 }}
-            defaultValue={theme.footerBottomLink?.path || ''} onBlur={(e) => patchTheme({ footerBottomLink: { ...(theme.footerBottomLink || {}), path: e.target.value } })} />
         </div>
-      </div>
+      </Section>
     </div>
   );
 }

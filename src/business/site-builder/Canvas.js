@@ -168,6 +168,19 @@ export default function Canvas({ sections, onChange, selected, onSelect, subdoma
     onChange(sections.map((s) => (s.id !== sectionId ? s : { ...s, background })));
   };
 
+  // Section padding (top/bottom whitespace) was stored in the schema and
+  // rendered (PublicSiteRenderer.js, this file's own style below) from
+  // day one, but nothing ever let the owner actually change it from the
+  // fixed 32/32 every new section starts with -- "spacing" was the one
+  // generic lever this builder genuinely didn't expose anywhere. Presets
+  // instead of a raw pixel input, matching this toolbar's own "easy to
+  // use over granular" choice everywhere else (height is +/- a step, not
+  // a number field; background is swatches, not a color-math form).
+  const updateSectionPadding = (sectionId, value) => {
+    const [top, bottom] = value.split(',').map(Number);
+    onChange(sections.map((s) => (s.id !== sectionId ? s : { ...s, padding: { top, bottom } })));
+  };
+
   const moveSection = (index, direction) => {
     const target = index + direction;
     if (target < 0 || target >= sections.length) return;
@@ -283,6 +296,13 @@ export default function Canvas({ sections, onChange, selected, onSelect, subdoma
               <ArrowUpDown size={14} /> +
             </button>
             <SectionBackgroundMenu background={section.background} onChange={(bg) => updateSectionBackground(section.id, bg)} />
+            <select className="sb-icon-btn" title="Top/bottom spacing" value={`${section.padding?.top ?? 32},${section.padding?.bottom ?? 32}`}
+              onChange={(e) => updateSectionPadding(section.id, e.target.value)} style={{ padding: '4px 6px' }}>
+              <option value="12,12">Tight spacing</option>
+              <option value="32,32">Normal spacing</option>
+              <option value="56,56">Spacious</option>
+              <option value="88,88">Extra spacious</option>
+            </select>
             <button type="button" className="sb-icon-btn" title="Duplicate this section" onClick={() => duplicateSection(index)}>
               <Copy size={13} />
             </button>
