@@ -387,7 +387,14 @@ function App() {
           </Suspense>
           </GameErrorBoundary>
         </main>
-        <Footer />
+        {/* A business-owner storefront ('business-site') renders its OWN
+            theme-driven SiteFooter.js inside each page body already (see
+            BusinessSitePublic.js/BusinessSitePageBySlug.js) -- Footer.js
+            below only knows the 5 REGISTERED sub-sites (its own BRAND/
+            SITE_NAV maps), so for this one it would silently fall back to
+            generic Gut Shtick branding, showing underneath (or instead of)
+            the business's real themed footer. */}
+        {site?.id !== 'business-site' && <Footer />}
       </div>
     </Router>
   );

@@ -19,7 +19,8 @@
 // hostnames or it would fire for the wrong site. Every other route here is
 // unique to its own site's route table, so those are safe unconditionally.
 
-const { siteForHost } = require('./_sites');
+const { siteForHost, resolveBusinessSiteForHost } = require('./_sites');
+const { serveBusinessSiteShell } = require('./_businessSiteMeta');
 
 // Matches the id each PAGES entry's siteName maps to below, and the
 // filenames generated into good-shtick/public/og/ -- see
@@ -237,7 +238,26 @@ function injectMeta(html, meta, url, origin) {
 
 module.exports = async function handler(req, res) {
   const { route } = req.query;
-  const origin = `https://${req.headers.host}`;
+  const host = req.headers.host;
+  const origin = `https://${host}`;
+
+  // /about and /contact are the only two rewrites in vercel.json that
+  // apply unconditionally, to every host, since every one of the 5 real
+  // sites shares both paths (see this file's own top comment). A
+  // business-owner storefront (dynamically resolved by subdomain, so it
+  // can never be one of vercel.json's host-gated rules) shares that same
+  // unconditional rewrite by default -- without this check, siteForHost()
+  // below has no way to recognize the host at all and silently falls back
+  // to 'main', serving Gut Shtick's own /about copy under e.g.
+  // shmuelsbakery.gutcommunity.com/about instead of that business's real
+  // page. Checked first, same as shell.js's own catch-all does for every
+  // other path.
+  const businessSiteSubdomain = await resolveBusinessSiteForHost(host);
+  if (businessSiteSubdomain) {
+    const path = route === 'contact' ? '/contact' : '/about';
+    await serveBusinessSiteShell(req, res, host, path, businessSiteSubdomain);
+    return;
+  }
 
   let meta = PAGES[route];
   if (!meta && UNIVERSAL_PAGES[route]) {

@@ -13,23 +13,7 @@
 
 const { siteForHost, isKnownHost, businessSiteSubdomainFor, resolveCustomDomainSubdomain, canonicalHost } = require('./_sites');
 const { siteForPath } = require('./_routes');
-const { fetchBusinessSiteMeta, injectBusinessSiteMeta } = require('./_businessSiteMeta');
-
-async function serveBusinessSiteShell(req, res, host, path, subdomain) {
-  const origin = `https://${host}`;
-  const shellRes = await fetch(`${origin}/shell.html`);
-  let shellHtml = await shellRes.text();
-
-  // Best-effort -- a slow/failed backend call never blocks the page
-  // itself, it just means this one response renders the plain shell's
-  // default title instead of this page's real one.
-  const meta = await fetchBusinessSiteMeta(subdomain, path);
-  shellHtml = injectBusinessSiteMeta(shellHtml, meta, `${origin}${path}`);
-
-  res.setHeader('Content-Type', 'text/html; charset=utf-8');
-  res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
-  res.status(200).send(shellHtml);
-}
+const { serveBusinessSiteShell } = require('./_businessSiteMeta');
 
 function redirectTo(res, host, path, extraQuery) {
   const qs = extraQuery ? `?${extraQuery}` : '';

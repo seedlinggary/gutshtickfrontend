@@ -125,7 +125,19 @@ function canonicalHost(site) {
   return (SITE_HOSTS[site] && SITE_HOSTS[site][0]) || null;
 }
 
+/** Combines businessSiteSubdomainFor (wildcard subdomain, sync) and
+ * resolveCustomDomainSubdomain (verified foreign domain, async) into the
+ * one check every business-site-aware route handler needs: "does this
+ * host belong to a business site at all, and if so, which subdomain."
+ * Checked in that order since the wildcard case never needs a network
+ * round trip. */
+async function resolveBusinessSiteForHost(host) {
+  const wildcardSubdomain = businessSiteSubdomainFor(host);
+  if (wildcardSubdomain) return wildcardSubdomain;
+  return resolveCustomDomainSubdomain(host);
+}
+
 module.exports = {
   parseHostnames, siteForHost, isKnownHost, isBusinessSiteHost, businessSiteSubdomainFor,
-  resolveCustomDomainSubdomain, canonicalHost, SITE_HOSTS,
+  resolveCustomDomainSubdomain, resolveBusinessSiteForHost, canonicalHost, SITE_HOSTS,
 };

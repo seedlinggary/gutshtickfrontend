@@ -73,4 +73,28 @@ function injectBusinessSiteMeta(html, meta, canonicalUrl) {
     .replace('</head>', `${headExtra}</head>`);
 }
 
-module.exports = { fetchBusinessSiteMeta, injectBusinessSiteMeta };
+/** Serves the SPA shell for a confirmed business-site host (wildcard
+ * subdomain or verified custom domain) with that page's own real meta
+ * injected -- the one correct way to respond to ANY path on such a host,
+ * used by both shell.js's catch-all and static-meta.js's /about and
+ * /contact rewrites (those used to serve generic Gut Shtick meta for a
+ * business-site host, via the same unconditional rewrite every real site
+ * shares, since they had no way to recognize a dynamically-resolved
+ * subdomain was even a business site at all). */
+async function serveBusinessSiteShell(req, res, host, path, subdomain) {
+  const origin = `https://${host}`;
+  const shellRes = await fetch(`${origin}/shell.html`);
+  let shellHtml = await shellRes.text();
+
+  // Best-effort -- a slow/failed backend call never blocks the page
+  // itself, it just means this one response renders the plain shell's
+  // default title instead of this page's real one.
+  const meta = await fetchBusinessSiteMeta(subdomain, path);
+  shellHtml = injectBusinessSiteMeta(shellHtml, meta, `${origin}${path}`);
+
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
+  res.status(200).send(shellHtml);
+}
+
+module.exports = { fetchBusinessSiteMeta, injectBusinessSiteMeta, serveBusinessSiteShell };
