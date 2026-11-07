@@ -75,6 +75,11 @@ export function themeToCssVars(theme) {
     // no way to express (only buttons/links picked up --sb-primary).
     '--sb-heading-color': t.headingColor || palette.text,
     '--sb-button-radius': BUTTON_RADIUS[t.buttonStyle] || BUTTON_RADIUS.rounded,
+    // Only set when the owner picked an explicit dark-footer color --
+    // otherwise theme.css's own fallback (#02132A/#B7E1FB) applies, same
+    // as before this existed.
+    ...(t.footerDarkBg ? { '--sb-footer-dark-bg': t.footerDarkBg } : {}),
+    ...(t.footerDarkText ? { '--sb-footer-dark-text': t.footerDarkText } : {}),
     background: palette.background,
     color: palette.text,
     fontFamily: fonts.body,

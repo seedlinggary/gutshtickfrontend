@@ -331,11 +331,17 @@ body.sb-layout-with-sidebar .main-content { padding-left: 220px; }
    not a computed inversion of whatever colors the owner picked for the
    rest of the page. */
 .sb-footer-dark {
-  background: #02132A;
-  color: #B7E1FB;
+  /* --sb-footer-dark-bg/-text let an owner set the EXACT dark color
+     their own real site's footer uses (added after recreating two real
+     businesses' sites back to back -- the first's footer happened to be
+     navy, so that got hardcoded as THE dark-footer look; the second's is
+     a completely different brand color, proving a single fixed color was
+     never actually "the" dark-footer look, just the first site's own). */
+  background: var(--sb-footer-dark-bg, #02132A);
+  color: var(--sb-footer-dark-text, #B7E1FB);
   border-top: none;
 }
-.sb-footer-dark .sb-footer-links a { color: #B7E1FB; }
+.sb-footer-dark .sb-footer-links a { color: var(--sb-footer-dark-text, #B7E1FB); }
 .sb-footer-dark .sb-footer-links a:hover { color: #FFFFFF; }
 .sb-footer-dark .sb-footer-brand,
 .sb-footer-dark .sb-footer-col h4 { color: #FFFFFF; }

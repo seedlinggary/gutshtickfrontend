@@ -277,6 +277,20 @@ export default function ThemePanel({ businessId, site, onSiteUpdate }) {
             <input type="checkbox" disabled={saving} checked={!!theme.footerDark} onChange={(e) => patchTheme({ footerDark: e.target.checked })} />
             Dark footer (independent of the site's main colors — common for a visual "anchor" at the bottom of the page)
           </label>
+          {theme.footerDark && (
+            <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--muted)' }}>
+                <input type="color" disabled={saving} value={theme.footerDarkBg || '#02132A'} onChange={(e) => patchTheme({ footerDarkBg: e.target.value })}
+                  style={{ width: 28, height: 24, padding: 0, border: '1px solid var(--border)', borderRadius: 6 }} />
+                Background
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--muted)' }}>
+                <input type="color" disabled={saving} value={theme.footerDarkText || '#B7E1FB'} onChange={(e) => patchTheme({ footerDarkText: e.target.value })}
+                  style={{ width: 28, height: 24, padding: 0, border: '1px solid var(--border)', borderRadius: 6 }} />
+                Text
+              </label>
+            </div>
+          )}
         </div>
       </div>
 
