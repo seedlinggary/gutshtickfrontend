@@ -89,8 +89,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  padding: 16px 20px;
+  gap: 24px;
+  padding: 18px max(20px, calc((100% - 1100px) / 2 + 20px));
   border-bottom: 1px solid var(--sb-border, #E3D5C0);
   background: var(--sb-surface, #FFFFFF);
   flex-wrap: wrap;
@@ -98,13 +98,13 @@
 .sb-navbar-brand {
   font-family: var(--sb-font-heading, 'Poppins', Arial, sans-serif);
   font-weight: 700;
-  font-size: 18px;
+  font-size: 19px;
   color: var(--sb-text, #2B2118);
   text-decoration: none;
 }
 .sb-navbar-links {
   display: flex;
-  gap: 18px;
+  gap: 28px;
   flex-wrap: wrap;
   list-style: none;
   margin: 0;
@@ -114,6 +114,7 @@
   color: var(--sb-text, #2B2118);
   text-decoration: none;
   font-size: 14px;
+  font-weight: 600;
 }
 .sb-navbar-links a:hover { color: var(--sb-primary, #C8553D); }
 .sb-navbar-cart {
@@ -254,6 +255,20 @@ body.sb-layout-with-sidebar .main-content { padding-left: 220px; }
 }
 .sb-footer-stacked .sb-footer-links { justify-content: center; }
 
+/* Deliberately NOT theme-token-driven (like the Google badge's own fixed
+   brand yellow, see its comment below) -- the whole point of this option
+   is a dark "anchor" footer that reads as intentional regardless of the
+   site's main palette, the way a real business's actual site often does,
+   not a computed inversion of whatever colors the owner picked for the
+   rest of the page. */
+.sb-footer-dark {
+  background: #0F1B2E;
+  color: #AFC6DE;
+  border-top: none;
+}
+.sb-footer-dark .sb-footer-links a { color: #AFC6DE; }
+.sb-footer-dark .sb-footer-links a:hover { color: #FFFFFF; }
+
 /* ── Generic structured-content blocks (FAQ / feature grid / testimonials) ── */
 .sb-faq-heading { margin: 0 0 14px; font-family: var(--sb-font-heading); color: var(--sb-text); }
 .sb-faq-item { border-bottom: 1px solid var(--sb-border, #e5e1d6); }
@@ -280,6 +295,33 @@ body.sb-layout-with-sidebar .main-content { padding-left: 220px; }
 }
 .sb-feature-card h4 { margin: 0 0 6px; font-family: var(--sb-font-heading); color: var(--sb-text); font-size: 16px; }
 .sb-feature-card p { margin: 0; color: var(--sb-muted); font-size: 13px; line-height: 1.5; }
+
+.sb-service-list { display: flex; flex-direction: column; gap: 20px; }
+.sb-service-card {
+  display: grid; grid-template-columns: 72px 1fr; gap: 24px;
+  background: var(--sb-surface); border: 1px solid var(--sb-border, #e5e1d6);
+  border-radius: var(--sb-button-radius, 10px); padding: 24px;
+}
+.sb-service-icon-col { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.sb-service-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 56px; height: 56px; border-radius: 12px; flex-shrink: 0;
+  background: var(--sb-primary); color: var(--sb-surface);
+}
+.sb-service-index { font-family: var(--sb-font-heading); font-size: 24px; color: var(--sb-border, #cfd3d6); font-weight: 700; }
+.sb-service-card h4 { margin: 0 0 8px; font-family: var(--sb-font-heading); color: var(--sb-text); font-size: 20px; }
+.sb-service-card p { margin: 0; color: var(--sb-muted); font-size: 14px; line-height: 1.6; }
+.sb-service-points {
+  margin: 14px 0 0; padding: 0; list-style: none;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 6px 24px;
+}
+.sb-service-points li { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: var(--sb-text); line-height: 1.5; }
+.sb-service-points li svg { flex-shrink: 0; margin-top: 2px; color: var(--sb-primary); }
+@media (max-width: 640px) {
+  .sb-service-card { grid-template-columns: 1fr; }
+  .sb-service-icon-col { flex-direction: row; }
+  .sb-service-points { grid-template-columns: 1fr; }
+}
 
 .sb-testimonial-grid {
   display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px;

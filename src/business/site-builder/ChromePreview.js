@@ -68,7 +68,7 @@ export function FooterPreview({ theme, footerText, footerLinks, businessName, se
       onClick={(e) => { e.stopPropagation(); onSelect(); }}
       title="Click to edit your footer"
     >
-      <footer className={`sb-footer sb-footer-${t.footerStyle}`}>
+      <footer className={`sb-footer sb-footer-${t.footerStyle}${t.footerDark ? ' sb-footer-dark' : ''}`}>
         <span>{text}</span>
         {(t.footerStyle === 'columns' || t.footerStyle === 'stacked') && (footerLinks || []).length > 0 && (
           <ul className="sb-footer-links">

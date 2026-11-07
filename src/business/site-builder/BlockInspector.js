@@ -172,6 +172,9 @@ function ItemListEditor({ items, onChange, fields, blank, addLabel }) {
               {f.type === 'textarea' ? (
                 <textarea className="gs-input" rows={2} value={item[f.key] || ''} placeholder={f.placeholder}
                   onChange={(e) => updateItem(i, { [f.key]: e.target.value })} />
+              ) : f.type === 'list' ? (
+                <textarea className="gs-input" rows={3} value={(item[f.key] || []).join('\n')} placeholder={f.placeholder}
+                  onChange={(e) => updateItem(i, { [f.key]: e.target.value.split('\n') })} />
               ) : f.type === 'select' ? (
                 <select className="gs-select" value={item[f.key] || ''} onChange={(e) => updateItem(i, { [f.key]: e.target.value })}>
                   {f.options.map((o) => <option key={o} value={o}>{o}</option>)}
@@ -416,6 +419,30 @@ export default function BlockInspector({ businessId, block, onChange, onClose })
               { key: 'quote', label: 'Quote', type: 'textarea', placeholder: 'What they said...' },
               { key: 'author', label: 'Name', placeholder: 'Jane Smith' },
               { key: 'role', label: 'Title / company (optional)', placeholder: 'Board President, 123 Main St' },
+            ]}
+          />
+        </div>
+      )}
+
+      {block.type === 'service_list' && (
+        <div className="gs-field">
+          <div className="gs-label">Heading (optional)</div>
+          <input className="gs-input" value={block.content.heading || ''} onChange={(e) => updateContent({ heading: e.target.value })} style={{ marginBottom: 12 }} />
+          <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, marginBottom: 12 }}>
+            <input type="checkbox" checked={block.content.numbered !== false} onChange={(e) => updateContent({ numbered: e.target.checked })} />
+            Show numbered index (01, 02, …)
+          </label>
+          <div className="gs-label">Services</div>
+          <ItemListEditor
+            items={block.content.items}
+            onChange={(items) => updateContent({ items })}
+            blank={{ icon: 'Star', title: '', description: '', points: [] }}
+            addLabel="Add service"
+            fields={[
+              { key: 'icon', label: 'Icon', type: 'select', options: ICON_NAMES },
+              { key: 'title', label: 'Title', placeholder: 'Condo & Co-op Management' },
+              { key: 'description', label: 'Description', type: 'textarea', placeholder: 'A paragraph describing this service...' },
+              { key: 'points', label: 'Supporting points (one per line)', type: 'list', placeholder: 'Dedicated property manager\nMonthly financial statements' },
             ]}
           />
         </div>

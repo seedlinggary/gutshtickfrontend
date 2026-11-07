@@ -167,6 +167,10 @@ export default function ThemePanel({ businessId, site, onSiteUpdate }) {
           <select className="gs-select" disabled={saving} value={theme.footerStyle || 'simple'} onChange={(e) => patchTheme({ footerStyle: e.target.value })}>
             {Object.entries(catalog.footerStyles).map(([key, cfg]) => <option key={key} value={key}>{cfg.label}</option>)}
           </select>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, marginTop: 8, color: 'var(--muted)' }}>
+            <input type="checkbox" disabled={saving} checked={!!theme.footerDark} onChange={(e) => patchTheme({ footerDark: e.target.checked })} />
+            Dark footer (independent of the site's main colors — common for a visual "anchor" at the bottom of the page)
+          </label>
         </div>
       </div>
 

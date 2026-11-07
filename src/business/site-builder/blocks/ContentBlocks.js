@@ -123,6 +123,47 @@ export function GoogleReviewsBadgeBlock({ content }) {
   return <a href={content.url} target="_blank" rel="noopener noreferrer" className="sb-google-badge-link">{badge}</a>;
 }
 
+/** A numbered, full-width card per item -- icon + large index number on
+ * the left, title + description + a 2-column checklist of supporting
+ * points on the right. Built recreating a real business's existing
+ * Services page, which structured each service this way (icon, 01/02...
+ * index, description, then 4 bullet points in 2 columns) -- feature_grid
+ * only supports a single description string per item, with no sub-list
+ * and no numbering, so that page's real content (each service's actual
+ * bullet points) had to be flattened into one run-on sentence to fit it.
+ * This is the dedicated block for when a list of things genuinely has
+ * both a paragraph AND supporting bullet points per item -- a services
+ * page, a process breakdown, a plans/tiers list. */
+export function ServiceListBlock({ content }) {
+  const items = content.items || [];
+  return (
+    <div style={{ height: '100%', overflow: 'auto' }}>
+      {content.heading && <h3 className="sb-faq-heading">{content.heading}</h3>}
+      <div className="sb-service-list">
+        {items.map((item, i) => (
+          <div key={i} className="sb-service-card">
+            <div className="sb-service-icon-col">
+              <div className="sb-service-icon"><FeatureIcon name={item.icon} size={26} /></div>
+              {content.numbered !== false && <span className="sb-service-index">{String(i + 1).padStart(2, '0')}</span>}
+            </div>
+            <div>
+              <h4>{item.title}</h4>
+              <p>{item.description}</p>
+              {(item.points || []).filter(Boolean).length > 0 && (
+                <ul className="sb-service-points">
+                  {item.points.filter(Boolean).map((point, pi) => (
+                    <li key={pi}><CheckCircle2 size={14} />{point}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /** Repeating quote + author + role cards. */
 export function TestimonialGridBlock({ content }) {
   const items = content.items || [];

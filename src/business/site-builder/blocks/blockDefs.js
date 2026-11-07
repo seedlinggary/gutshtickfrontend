@@ -64,6 +64,17 @@ export const BLOCK_DEFS = {
     label: 'Google reviews badge', category: 'Content', defaultSize: { w: 28, h: 10 },
     defaultContent: { rating: 5, reviewCount: null, url: '' },
   },
+  // Like feature_grid, but a single full-width column of numbered cards
+  // with a paragraph AND a 2-column bullet list per item -- for when a
+  // list of things (services, plans, steps) needs more than one short
+  // description line each.
+  service_list: {
+    label: 'Numbered service list', category: 'Content', defaultSize: { w: 92, h: 60 },
+    defaultContent: {
+      heading: '', numbered: true,
+      items: [{ icon: 'Star', title: 'Service title', description: 'A paragraph describing this service in more depth.', points: ['Supporting point one', 'Supporting point two'] }],
+    },
+  },
 };
 
 export const CATEGORY_ORDER = ['Basic', 'Content', 'Forms', 'Commerce', 'Nonprofit'];

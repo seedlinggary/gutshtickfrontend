@@ -8,7 +8,7 @@
 
 export const DEFAULT_THEME = {
   palette: 'warm', customColors: null, fontPairing: 'modern',
-  buttonStyle: 'rounded', formStyle: 'boxed', navStyle: 'top', footerStyle: 'simple',
+  buttonStyle: 'rounded', formStyle: 'boxed', navStyle: 'top', footerStyle: 'simple', footerDark: false,
 };
 
 export const THEME_PALETTES = {

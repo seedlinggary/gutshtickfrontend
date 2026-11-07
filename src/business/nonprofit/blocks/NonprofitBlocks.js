@@ -3,6 +3,7 @@ import { HandCoins, Repeat, CalendarDays, Minus, Plus, Check, Users } from 'luci
 import apiRequest from '../../../ApiRequest';
 import TurnstileWidget from '../../site-builder/TurnstileWidget';
 import { fieldIsVisible, fieldLabel, FieldInput } from '../dynamicFormFields';
+import { DEFAULT_THEME } from '../../site-builder/theme';
 
 /** Embeddable versions of the nonprofit module's public flows (donate/
  * membership/holiday-seats/dynamic-form) -- the SAME backend endpoints
@@ -236,7 +237,7 @@ export function FamilyLoginButtonBlock({ content, editable }) {
   return <a href="/family-portal" style={style}>{btn}</a>;
 }
 
-export function DynamicFormBlock({ content, editable, subdomain }) {
+export function DynamicFormBlock({ content, editable, subdomain, theme }) {
   const [form, setForm] = useState(editable ? null : undefined);
   const [answers, setAnswers] = useState({});
   const [sent, setSent] = useState(false);
@@ -282,12 +283,22 @@ export function DynamicFormBlock({ content, editable, subdomain }) {
     );
   }
 
+  // Same "formStyle override, else the site-wide Forms picker" convention
+  // as ContactFormBlock -- this used to render with none of that (no
+  // `theme` prop at all), so a dynamic form embedded in a page silently
+  // ignored both the owner's chosen form look AND always used the
+  // plain .gs-label app-chrome class for its labels/heading instead of a
+  // theme-font-aware one, the one visible place a built page's font
+  // picker didn't actually apply.
+  const effectiveStyle = content.formStyle || (theme || DEFAULT_THEME).formStyle || 'boxed';
+  const formClass = effectiveStyle !== 'boxed' ? `sb-form-${effectiveStyle}` : '';
+
   return (
-    <form onSubmit={submit} className="sb-theme" style={{ display: 'flex', flexDirection: 'column', gap: 10, height: '100%', overflow: 'auto', padding: 4 }}>
-      <h3 style={{ margin: 0 }}>{form.title}</h3>
+    <form onSubmit={submit} className={`sb-theme ${formClass}`} style={{ display: 'flex', flexDirection: 'column', gap: 10, height: '100%', overflow: 'auto', padding: 4 }}>
+      <h3 style={{ margin: 0, fontFamily: 'var(--sb-font-heading)' }}>{form.title}</h3>
       {visibleFields.map((field) => (
-        <div key={field.id} className="gs-field">
-          <div className="gs-label">{fieldLabel(field, answers)}{field.required && ' *'}</div>
+        <div key={field.id} className="gs-field" style={{ marginBottom: 0 }}>
+          <div className="gs-label" style={{ fontFamily: 'var(--sb-font-body)' }}>{fieldLabel(field, answers)}{field.required && ' *'}</div>
           {field.help_text && <p style={{ fontSize: 11, color: 'var(--sb-muted, #8a7a68)', margin: '0 0 4px' }}>{field.help_text}</p>}
           <FieldInput field={field} value={answers[String(field.id)]} onChange={(v) => setAnswers((a) => ({ ...a, [String(field.id)]: v }))} />
         </div>

@@ -81,7 +81,7 @@ function PreviewFooter({ theme, footerText, footerLinks, businessName }) {
   if (theme.footerStyle === 'none') return null;
   const text = footerText || `© ${new Date().getFullYear()} ${businessName || 'your business'}`;
   return (
-    <footer className={`sb-footer sb-footer-${theme.footerStyle}`}>
+    <footer className={`sb-footer sb-footer-${theme.footerStyle}${theme.footerDark ? ' sb-footer-dark' : ''}`}>
       {theme.footerStyle === 'columns' || theme.footerStyle === 'stacked' ? (
         <>
           <span>{text}</span>

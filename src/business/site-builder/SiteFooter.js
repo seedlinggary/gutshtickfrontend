@@ -33,7 +33,7 @@ export default function SiteFooter({ subdomain }) {
   );
 
   return (
-    <footer className={`sb-footer sb-footer-${theme.footerStyle}`}>
+    <footer className={`sb-footer sb-footer-${theme.footerStyle}${theme.footerDark ? ' sb-footer-dark' : ''}`}>
       {theme.footerStyle === 'columns' || theme.footerStyle === 'stacked' ? (
         <>
           <span>{text}</span>
