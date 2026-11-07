@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingCart, ChevronDown } from 'lucide-react';
+import { ShoppingCart, ChevronDown, Phone } from 'lucide-react';
 import { getCurrentBusinessSiteSubdomain } from '../../siteMode';
 import { cartItemCount, subscribeCart } from './cart';
 import useSiteChrome from './useSiteChrome';
@@ -77,7 +77,7 @@ export default function BusinessSiteNavbar() {
   }, [chrome, theme.navStyle]);
   const navLinks = chrome?.nav_links || [];
   const isSplit = theme.navStyle === 'split';
-  const navClass = `sb-navbar sb-navbar-${theme.navStyle}${theme.navStyle === 'side' ? ' sb-navbar-side' : ''}`;
+  const navClass = `sb-navbar sb-navbar-${theme.navStyle}${theme.navStyle === 'side' ? ' sb-navbar-side' : ''}${theme.navUppercase ? ' sb-navbar-uppercase' : ''}`;
   const toggle = (i) => setOpenDropdown((cur) => (cur === i ? null : i));
 
   const brand = <Link to="/" className="sb-navbar-brand">{chrome?.name || 'Loading…'}</Link>;
@@ -86,34 +86,62 @@ export default function BusinessSiteNavbar() {
       <ShoppingCart size={16} /> {count}
     </Link>
   );
+  // A dark contact strip above the main bar, and a standalone CTA button
+  // beside the links -- a real business's actual header had both, and
+  // neither had anywhere to live before (nav_links is just plain {label,
+  // path} entries rendered identically; a phone number or a "stand out"
+  // CTA button needs different styling, not one more link in that list).
+  const announcement = theme.navAnnouncement?.text && (
+    <div className="sb-navbar-announcement">
+      <span>{theme.navAnnouncement.text}</span>
+      {theme.navAnnouncement.phone && (
+        <a href={`tel:${theme.navAnnouncement.phone.replace(/[^0-9+]/g, '')}`}>
+          <Phone size={12} /> {theme.navAnnouncement.phone}
+        </a>
+      )}
+    </div>
+  );
+  const navCta = theme.navCta?.label && (
+    theme.navCta.path?.startsWith('http')
+      ? <a href={theme.navCta.path} target="_blank" rel="noreferrer" className="sb-navbar-cta sb-button">{theme.navCta.label}</a>
+      : <Link to={theme.navCta.path || '/'} className="sb-navbar-cta sb-button">{theme.navCta.label}</Link>
+  );
 
   if (isSplit && theme.navStyle !== 'minimal') {
     const mid = Math.ceil(navLinks.length / 2);
     const left = navLinks.slice(0, mid);
     const right = navLinks.slice(mid);
     return (
-      <nav className={navClass}>
-        <ul className="sb-navbar-links sb-navbar-links-left">
-          {left.map((link, i) => <NavItem key={i} link={link} isOpen={openDropdown === i} onToggle={() => toggle(i)} />)}
-        </ul>
-        {brand}
-        <ul className="sb-navbar-links sb-navbar-links-right">
-          {right.map((link, i) => <NavItem key={mid + i} link={link} isOpen={openDropdown === mid + i} onToggle={() => toggle(mid + i)} />)}
-        </ul>
-        {cart}
-      </nav>
+      <>
+        {announcement}
+        <nav className={navClass}>
+          <ul className="sb-navbar-links sb-navbar-links-left">
+            {left.map((link, i) => <NavItem key={i} link={link} isOpen={openDropdown === i} onToggle={() => toggle(i)} />)}
+          </ul>
+          {brand}
+          <ul className="sb-navbar-links sb-navbar-links-right">
+            {right.map((link, i) => <NavItem key={mid + i} link={link} isOpen={openDropdown === mid + i} onToggle={() => toggle(mid + i)} />)}
+          </ul>
+          {cart}
+          {navCta}
+        </nav>
+      </>
     );
   }
 
   return (
-    <nav className={navClass}>
-      {brand}
-      {theme.navStyle !== 'minimal' && (
-        <ul className="sb-navbar-links">
-          {navLinks.map((link, i) => <NavItem key={i} link={link} isOpen={openDropdown === i} onToggle={() => toggle(i)} />)}
-        </ul>
-      )}
-      {cart}
-    </nav>
+    <>
+      {announcement}
+      <nav className={navClass}>
+        {brand}
+        {theme.navStyle !== 'minimal' && (
+          <ul className="sb-navbar-links">
+            {navLinks.map((link, i) => <NavItem key={i} link={link} isOpen={openDropdown === i} onToggle={() => toggle(i)} />)}
+          </ul>
+        )}
+        {cart}
+        {navCta}
+      </nav>
+    </>
   );
 }

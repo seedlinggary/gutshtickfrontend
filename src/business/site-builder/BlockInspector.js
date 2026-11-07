@@ -242,6 +242,14 @@ export default function BlockInspector({ businessId, block, onChange, onClose })
               <button type="button" className="sb-icon-btn" onClick={() => updateContent({ color: null })}>Use site default</button>
             </div>
           </div>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, marginBottom: 8 }}>
+            <input type="checkbox" checked={!!block.content.heading} onChange={(e) => updateContent({ heading: e.target.checked })} />
+            Style as a heading (heading font + heading color from Look &amp; feel, unless overridden above)
+          </label>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, marginBottom: 12 }}>
+            <input type="checkbox" checked={!!block.content.eyebrow} onChange={(e) => updateContent({ eyebrow: e.target.checked })} />
+            Style as an eyebrow label (uppercase, bold, letter-spaced)
+          </label>
         </>
       )}
 

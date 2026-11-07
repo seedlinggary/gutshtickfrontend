@@ -10,8 +10,30 @@ import { DEFAULT_THEME, BUTTON_RADIUS } from '../theme';
 import { BLOCK_DEFS, isModuleSatisfied, moduleLabelFor } from './blockDefs';
 
 function TextBody({ content }) {
+  // Every text block used to render in the body font no matter its size or
+  // role -- a hero's own headline included -- since this never set
+  // font-family at all (it just inherited .sb-theme's body font). content.
+  // heading (set from the inspector's "Style as a heading" toggle) opts a
+  // block into the heading font + heading color instead, both still
+  // overridable by this block's own explicit color.
+  const isHeading = !!content.heading;
+  // A small uppercase/bold/letter-spaced label above a heading ("ABOUT
+  // ALTMAX", "OUR SERVICES") is its own common pattern, distinct from a
+  // heading -- real sites almost always style these as all-caps with
+  // wide letter-spacing, which a plain text block had no way to do.
+  const isEyebrow = !!content.eyebrow;
   return (
-    <p style={{ margin: 0, fontSize: content.fontSize || 18, textAlign: content.align || 'left', color: content.color || 'inherit', whiteSpace: 'pre-wrap' }}>
+    <p style={{
+      margin: 0,
+      fontSize: content.fontSize || 18,
+      textAlign: content.align || 'left',
+      color: content.color || (isHeading ? 'var(--sb-heading-color)' : 'inherit'),
+      fontFamily: isHeading ? 'var(--sb-font-heading)' : 'var(--sb-font-body)',
+      fontWeight: isHeading ? 700 : (isEyebrow ? 700 : undefined),
+      textTransform: isEyebrow ? 'uppercase' : undefined,
+      letterSpacing: isEyebrow ? '0.15em' : undefined,
+      whiteSpace: 'pre-wrap',
+    }}>
       {content.text || ''}
     </p>
   );

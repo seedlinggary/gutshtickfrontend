@@ -7,7 +7,7 @@
 // theme object into real CSS.
 
 export const DEFAULT_THEME = {
-  palette: 'warm', customColors: null, fontPairing: 'modern',
+  palette: 'warm', customColors: null, fontPairing: 'modern', customFontPairing: null, headingColor: null,
   buttonStyle: 'rounded', formStyle: 'boxed', navStyle: 'top', footerStyle: 'simple', footerDark: false,
 };
 
@@ -52,7 +52,12 @@ export const FOOTER_STYLES = { simple: { label: 'Simple' }, columns: { label: 'C
 export function themeToCssVars(theme) {
   const t = { ...DEFAULT_THEME, ...(theme || {}) };
   const palette = { ...THEME_PALETTES[t.palette] || THEME_PALETTES.warm, ...(t.customColors || {}) };
-  const fonts = FONT_PAIRINGS[t.fontPairing] || FONT_PAIRINGS.modern;
+  // A custom font pairing (any two Google Font family names, not just one
+  // of the 8 presets) overrides fontPairing entirely -- added recreating a
+  // real business's existing site, whose actual fonts (PT Serif / Inter)
+  // matched none of the presets, so the closest preset was picked and
+  // ended up visibly wrong everywhere text renders.
+  const fonts = t.customFontPairing || FONT_PAIRINGS[t.fontPairing] || FONT_PAIRINGS.modern;
   return {
     '--sb-primary': palette.primary,
     '--sb-secondary': palette.secondary,
@@ -63,6 +68,12 @@ export function themeToCssVars(theme) {
     '--sb-border': palette.border,
     '--sb-font-heading': fonts.heading,
     '--sb-font-body': fonts.body,
+    // Headings default to the body text color (unchanged behavior) unless
+    // the owner sets an explicit headingColor -- also added recreating
+    // that same real site, whose every h1-h4 is colored in its brand blue
+    // rather than its ordinary body text color, which the theme system had
+    // no way to express (only buttons/links picked up --sb-primary).
+    '--sb-heading-color': t.headingColor || palette.text,
     '--sb-button-radius': BUTTON_RADIUS[t.buttonStyle] || BUTTON_RADIUS.rounded,
     background: palette.background,
     color: palette.text,
@@ -88,16 +99,21 @@ export function applySiteTheme(theme) {
   });
   document.body.style.background = vars.background;
   document.body.style.color = vars.color;
-  loadGoogleFont((theme && theme.fontPairing) || DEFAULT_THEME.fontPairing);
+  loadGoogleFont(theme && theme.customFontPairing ? theme.customFontPairing : (theme && theme.fontPairing) || DEFAULT_THEME.fontPairing);
 }
 
 let loadedFontKey = null;
 /** Injects the Google Fonts <link> for a font pairing -- idempotent,
  * replaces any previously-loaded pairing's link rather than stacking
- * them, since only one site's fonts are ever active in a given tab. */
-export function loadGoogleFont(fontPairingKey) {
-  const fonts = FONT_PAIRINGS[fontPairingKey] || FONT_PAIRINGS.modern;
-  if (loadedFontKey === fontPairingKey) return;
+ * them, since only one site's fonts are ever active in a given tab.
+ * Takes either a preset key (string) or a custom pairing object
+ * ({heading, body, google}) -- the google field is the same
+ * fonts.googleapis.com family query-string fragment either way. */
+export function loadGoogleFont(fontPairingKeyOrCustom) {
+  const isCustom = fontPairingKeyOrCustom && typeof fontPairingKeyOrCustom === 'object';
+  const fonts = isCustom ? fontPairingKeyOrCustom : (FONT_PAIRINGS[fontPairingKeyOrCustom] || FONT_PAIRINGS.modern);
+  const cacheKey = isCustom ? `custom:${fonts.google}` : fontPairingKeyOrCustom;
+  if (!fonts.google || loadedFontKey === cacheKey) return;
   const existing = document.getElementById('sb-google-font-link');
   if (existing) existing.remove();
   const link = document.createElement('link');
@@ -105,5 +121,5 @@ export function loadGoogleFont(fontPairingKey) {
   link.rel = 'stylesheet';
   link.href = `https://fonts.googleapis.com/css2?family=${fonts.google}&display=swap`;
   document.head.appendChild(link);
-  loadedFontKey = fontPairingKey;
+  loadedFontKey = cacheKey;
 }
