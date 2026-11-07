@@ -1,6 +1,7 @@
 import React from 'react';
 import BlockRenderer from './blocks/BlockRenderer';
 import { DEFAULT_SECTION_HEIGHT } from './sectionDefaults';
+import { sectionBackgroundStyle } from './sectionBackground';
 import './public-site.css';
 
 /**
@@ -34,8 +35,7 @@ export default function PublicSiteRenderer({ sections, subdomain, businessId, th
             key={section.id}
             className="ps-section"
             style={{
-              background: section.background?.type === 'color' ? section.background.value : undefined,
-              backgroundImage: section.background?.type === 'image' ? `url(${section.background.value})` : undefined,
+              ...sectionBackgroundStyle(section.background),
               paddingTop: section.padding?.top ?? 32,
               paddingBottom: section.padding?.bottom ?? 32,
             }}

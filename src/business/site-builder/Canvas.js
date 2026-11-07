@@ -4,6 +4,7 @@ import BlockRenderer from './blocks/BlockRenderer';
 import { BLOCK_DEFS, CATEGORY_ORDER, newBlockId, isModuleSatisfied, moduleLabelFor } from './blocks/blockDefs';
 import { SECTION_PRESETS } from './sectionPresets';
 import { DEFAULT_SECTION_HEIGHT, SECTION_HEIGHT_STEP, MIN_SECTION_HEIGHT, MAX_SECTION_HEIGHT } from './sectionDefaults';
+import { sectionBackgroundStyle, GRADIENT_ANGLES } from './sectionBackground';
 
 const MIN_SIZE = 4; // percent, floor for either dimension
 
@@ -163,8 +164,8 @@ export default function Canvas({ sections, onChange, selected, onSelect, subdoma
     })));
   };
 
-  const updateSectionBackground = (sectionId, color) => {
-    onChange(sections.map((s) => (s.id !== sectionId ? s : { ...s, background: { type: 'color', value: color } })));
+  const updateSectionBackground = (sectionId, background) => {
+    onChange(sections.map((s) => (s.id !== sectionId ? s : { ...s, background })));
   };
 
   const moveSection = (index, direction) => {
@@ -260,8 +261,7 @@ export default function Canvas({ sections, onChange, selected, onSelect, subdoma
           key={section.id}
           className={`sb-section${selected && selected.sectionId === section.id && !selected.blockId ? ' sb-section-selected' : ''}`}
           style={{
-            background: section.background?.type === 'color' ? section.background.value : undefined,
-            backgroundImage: section.background?.type === 'image' ? `url(${section.background.value})` : undefined,
+            ...sectionBackgroundStyle(section.background),
             paddingTop: section.padding?.top ?? 32,
             paddingBottom: section.padding?.bottom ?? 32,
           }}
@@ -282,18 +282,7 @@ export default function Canvas({ sections, onChange, selected, onSelect, subdoma
             <button type="button" className="sb-icon-btn" title="Taller section" onClick={() => resizeSection(section.id, SECTION_HEIGHT_STEP)}>
               <ArrowUpDown size={14} /> +
             </button>
-            <input
-              type="color"
-              title="Section background color"
-              className="sb-section-bg-swatch"
-              value={section.background?.type === 'color' && section.background.value !== 'transparent' ? section.background.value : '#ffffff'}
-              onChange={(e) => updateSectionBackground(section.id, e.target.value)}
-            />
-            {section.background?.type === 'color' && section.background.value !== 'transparent' && (
-              <button type="button" className="sb-icon-btn" title="Clear background color" onClick={() => updateSectionBackground(section.id, 'transparent')}>
-                <X size={12} />
-              </button>
-            )}
+            <SectionBackgroundMenu background={section.background} onChange={(bg) => updateSectionBackground(section.id, bg)} />
             <button type="button" className="sb-icon-btn" title="Duplicate this section" onClick={() => duplicateSection(index)}>
               <Copy size={13} />
             </button>
@@ -384,6 +373,65 @@ function InsertPresetMenu({ onInsert }) {
               <span>{preset.description}</span>
             </button>
           ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Solid color (the original behavior) or a multi-stop linear gradient --
+ * a section background option that didn't exist at all before, needed
+ * recreating a real business's actual hero section, which used a dark-
+ * navy-to-lighter-navy fade rather than a flat color. Stored as
+ * {type:'gradient', value:{stops:[...], angle}} -- see sectionBackground.js
+ * for how this turns into real CSS, shared with the public renderer so the
+ * canvas preview never drifts from what a visitor actually sees. */
+function SectionBackgroundMenu({ background, onChange }) {
+  const [open, setOpen] = useState(false);
+  const isGradient = background?.type === 'gradient';
+  const stops = isGradient ? (background.value?.stops || ['#000000', '#ffffff']) : ['#000000', '#ffffff'];
+  const angle = isGradient ? (background.value?.angle ?? 180) : 180;
+
+  const setGradient = (nextStops, nextAngle) => onChange({ type: 'gradient', value: { stops: nextStops, angle: nextAngle } });
+
+  return (
+    <div className="sb-section-bg-menu">
+      <button type="button" className="sb-icon-btn" title="Section background" onClick={() => setOpen((o) => !o)}
+        style={{ background: isGradient ? `linear-gradient(90deg, ${stops.join(', ')})` : undefined }}>
+        Background
+      </button>
+      {open && (
+        <div className="sb-section-bg-dropdown" onClick={(e) => e.stopPropagation()}>
+          <div className="sb-section-bg-tabs">
+            <button type="button" className={!isGradient ? 'active' : ''} onClick={() => onChange({ type: 'color', value: background?.type === 'color' ? background.value : '#ffffff' })}>Solid</button>
+            <button type="button" className={isGradient ? 'active' : ''} onClick={() => setGradient(stops, angle)}>Gradient</button>
+          </div>
+          {!isGradient ? (
+            <>
+              <input type="color" value={background?.type === 'color' && background.value !== 'transparent' ? background.value : '#ffffff'}
+                onChange={(e) => onChange({ type: 'color', value: e.target.value })} />
+              <button type="button" className="sb-icon-btn" onClick={() => onChange({ type: 'color', value: 'transparent' })}>
+                <X size={12} /> Clear
+              </button>
+            </>
+          ) : (
+            <>
+              {stops.map((s, i) => (
+                <div key={i} className="sb-section-bg-stop">
+                  <input type="color" value={s} onChange={(e) => setGradient(stops.map((v, idx) => (idx === i ? e.target.value : v)), angle)} />
+                  {stops.length > 2 && (
+                    <button type="button" className="sb-icon-btn" onClick={() => setGradient(stops.filter((_, idx) => idx !== i), angle)}><X size={11} /></button>
+                  )}
+                </div>
+              ))}
+              {stops.length < 4 && (
+                <button type="button" className="sb-icon-btn" onClick={() => setGradient([...stops, '#888888'], angle)}><Plus size={11} /> Color</button>
+              )}
+              <select className="gs-select" value={angle} onChange={(e) => setGradient(stops, Number(e.target.value))}>
+                {GRADIENT_ANGLES.map((a) => <option key={a.value} value={a.value}>{a.label}</option>)}
+              </select>
+            </>
+          )}
         </div>
       )}
     </div>
