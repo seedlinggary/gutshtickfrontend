@@ -42,9 +42,16 @@ export default function ContactFormBlock({ content, editable, subdomain, theme }
     );
   }
 
+  // Same "on a dark background" opt-in as the content blocks in
+  // ContentBlocks.js (DarkBackgroundToggle) -- this form's own heading
+  // text has no way to see its section's background color, so a form
+  // embedded directly in a dark hero (not inside its own white card)
+  // needs this explicitly set to stay legible.
+  const headingColor = content.dark ? '#FFFFFF' : undefined;
+
   return (
     <form onSubmit={submit} className={formClass} style={{ display: 'flex', flexDirection: 'column', gap: 10, height: '100%', overflow: 'auto' }}>
-      {content.heading && <h3 style={{ margin: 0 }}>{content.heading}</h3>}
+      {content.heading && <h3 style={{ margin: 0, color: headingColor }}>{content.heading}</h3>}
       <input className="sb-input" placeholder="Your name" required disabled={editable}
         value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
       <input className="sb-input" type="email" placeholder="Your email" required disabled={editable}

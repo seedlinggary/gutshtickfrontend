@@ -20,9 +20,9 @@ export const ICON_COMPONENTS = {
 };
 export const ICON_NAMES = Object.keys(ICON_COMPONENTS);
 
-function FeatureIcon({ name, size = 22 }) {
+function FeatureIcon({ name, size = 22, style }) {
   const Cmp = ICON_COMPONENTS[name] || Star;
-  return <Cmp size={size} />;
+  return <Cmp size={size} style={style} />;
 }
 
 /** Collapsible question/answer list -- the one structured-content shape
@@ -38,7 +38,7 @@ export function FaqAccordionBlock({ content, editable }) {
   const [openIndex, setOpenIndex] = useState(editable ? null : -1);
 
   return (
-    <div className="sb-faq" style={{ height: '100%', overflow: 'auto' }}>
+    <div className={`sb-faq${content.dark ? ' sb-content-dark' : ''}`} style={{ height: '100%', overflow: 'auto' }}>
       {content.heading && <h3 className="sb-faq-heading">{content.heading}</h3>}
       {items.length === 0 && editable && (
         <p style={{ color: 'var(--sb-muted)', fontSize: 13 }}>No questions yet -- add some in the inspector.</p>
@@ -79,7 +79,7 @@ export function FeatureGridBlock({ content }) {
   const items = content.items || [];
   const cardStyle = content.cardStyle || 'card';
   return (
-    <div style={{ height: '100%', overflow: 'auto' }}>
+    <div className={content.dark ? 'sb-content-dark' : ''} style={{ height: '100%', overflow: 'auto' }}>
       {content.heading && <h3 className="sb-faq-heading">{content.heading}</h3>}
       <div className={`sb-feature-grid sb-feature-grid-${cardStyle}`}>
         {items.map((item, i) => {
@@ -207,7 +207,7 @@ export function GoogleReviewsBadgeBlock({ content }) {
 export function ServiceListBlock({ content }) {
   const items = content.items || [];
   return (
-    <div style={{ height: '100%', overflow: 'auto' }}>
+    <div className={content.dark ? 'sb-content-dark' : ''} style={{ height: '100%', overflow: 'auto' }}>
       {content.heading && <h3 className="sb-faq-heading">{content.heading}</h3>}
       <div className="sb-service-list">
         {items.map((item, i) => (
@@ -238,7 +238,7 @@ export function ServiceListBlock({ content }) {
 export function TestimonialGridBlock({ content }) {
   const items = content.items || [];
   return (
-    <div style={{ height: '100%', overflow: 'auto' }}>
+    <div className={content.dark ? 'sb-content-dark' : ''} style={{ height: '100%', overflow: 'auto' }}>
       {content.heading && <h3 className="sb-faq-heading">{content.heading}</h3>}
       <div className="sb-testimonial-grid">
         {items.map((item, i) => (
@@ -248,6 +248,40 @@ export function TestimonialGridBlock({ content }) {
             <p className="sb-testimonial-author">{item.author}{item.role ? <span>{item.role}</span> : null}</p>
           </div>
         ))}
+      </div>
+    </div>
+  );
+}
+
+const CALLOUT_SCHEMES = {
+  red: { bg: '#FEF2F2', border: '#FECACA', icon: '#DC2626', heading: '#991B1B', text: '#B91C1C' },
+  amber: { bg: '#FFFBEB', border: '#FDE68A', icon: '#D97706', heading: '#92400E', text: '#B45309' },
+  blue: { bg: '#EFF6FF', border: '#BFDBFE', icon: '#2563EB', heading: '#1E3A8A', text: '#1D4ED8' },
+  green: { bg: '#F0FDF4', border: '#BBF7D0', icon: '#16A34A', heading: '#14532D', text: '#15803D' },
+  gray: { bg: '#F8FAFC', border: '#E2E8F0', icon: '#475569', heading: '#1E293B', text: '#334155' },
+};
+
+/** A tinted, bordered notice -- modeled on a real business's actual FAQ
+ * page, which has exactly this for its "Building emergency? Call ###"
+ * notice: its own icon, background/border tint, and bold colored heading,
+ * all independent of the site's normal theme (an emergency notice should
+ * look like one regardless of the rest of the page's palette) -- a plain
+ * text block has no background, border, or icon at all, so this is the
+ * dedicated block for "a highlighted notice" generally, not just that one
+ * real instance. */
+export function CalloutBlock({ content }) {
+  const scheme = CALLOUT_SCHEMES[content.colorScheme] || CALLOUT_SCHEMES.red;
+  return (
+    <div
+      style={{
+        height: '100%', overflow: 'auto', display: 'flex', gap: 14, alignItems: 'flex-start',
+        background: scheme.bg, border: `1px solid ${scheme.border}`, borderRadius: 10, padding: 16, boxSizing: 'border-box',
+      }}
+    >
+      {content.icon && <FeatureIcon name={content.icon} size={22} style={{ color: scheme.icon, flexShrink: 0, marginTop: 2 }} />}
+      <div>
+        {content.heading && <p style={{ margin: 0, fontWeight: 700, color: scheme.heading, fontSize: content.headingSize || 15 }}>{content.heading}</p>}
+        {content.text && <p style={{ margin: '4px 0 0', color: scheme.text, fontSize: content.textSize || 13, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{content.text}</p>}
       </div>
     </div>
   );

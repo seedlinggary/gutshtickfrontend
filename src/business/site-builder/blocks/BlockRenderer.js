@@ -5,7 +5,7 @@ import { ProductGridBody, ProductDetailBody } from './ProductBlocks';
 import BookingWidgetBlock from './BookingWidgetBlock';
 import AnalyticsWidgetBlock from './AnalyticsWidgetBlock';
 import { DonationFormBlock, MembershipFormBlock, HolidaySeatsFormBlock, DynamicFormBlock, FamilyLoginButtonBlock } from '../../nonprofit/blocks/NonprofitBlocks';
-import { FaqAccordionBlock, FeatureGridBlock, TestimonialGridBlock, GoogleReviewsBadgeBlock, ServiceListBlock } from './ContentBlocks';
+import { FaqAccordionBlock, FeatureGridBlock, TestimonialGridBlock, GoogleReviewsBadgeBlock, ServiceListBlock, CalloutBlock } from './ContentBlocks';
 import { DEFAULT_THEME, BUTTON_RADIUS } from '../theme';
 import { BLOCK_DEFS, isModuleSatisfied, moduleLabelFor } from './blockDefs';
 
@@ -179,6 +179,7 @@ export default function BlockRenderer({ block, editable, subdomain, businessId, 
     case 'testimonial_grid': return <TestimonialGridBlock content={content} editable={editable} />;
     case 'google_reviews_badge': return <GoogleReviewsBadgeBlock content={content} editable={editable} />;
     case 'service_list': return <ServiceListBlock content={content} editable={editable} />;
+    case 'callout': return <CalloutBlock content={content} editable={editable} />;
     default: return <ComingSoonBody type={block.type} />;
   }
 }

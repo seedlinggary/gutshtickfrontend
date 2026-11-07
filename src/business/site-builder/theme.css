@@ -305,12 +305,51 @@ body.sb-layout-with-sidebar .main-content { padding-left: 220px; }
    not a computed inversion of whatever colors the owner picked for the
    rest of the page. */
 .sb-footer-dark {
-  background: #0F1B2E;
-  color: #AFC6DE;
+  background: #02132A;
+  color: #B7E1FB;
   border-top: none;
 }
-.sb-footer-dark .sb-footer-links a { color: #AFC6DE; }
+.sb-footer-dark .sb-footer-links a { color: #B7E1FB; }
 .sb-footer-dark .sb-footer-links a:hover { color: #FFFFFF; }
+.sb-footer-dark .sb-footer-brand,
+.sb-footer-dark .sb-footer-col h4 { color: #FFFFFF; }
+.sb-footer-dark .sb-footer-col a:hover { color: #FFFFFF; }
+
+/* When one of these content blocks (content.dark=true) sits on a dark
+   section background -- every color below is a theme token tuned for a
+   LIGHT page background (dark text, dark muted gray); placed directly on
+   a dark hero/CTA section instead of inside its own white card, that text
+   is barely legible against the dark background behind it. This is the
+   same problem the real site's own GoogleRatingBadge solves with a
+   `variant="dark"` prop -- same convention here, just opt-in per block
+   since nothing here can see its own section's background color. */
+.sb-content-dark { color: #E8EEF5; }
+.sb-content-dark .sb-faq-heading,
+.sb-content-dark .sb-feature-card h4,
+.sb-content-dark .sb-feature-row h4,
+.sb-content-dark .sb-feature-timeline-item h4,
+.sb-content-dark .sb-service-card h4,
+.sb-content-dark .sb-testimonial-author { color: #FFFFFF; }
+.sb-content-dark .sb-faq-question { color: #FFFFFF; }
+.sb-content-dark .sb-faq-answer,
+.sb-content-dark .sb-feature-card p,
+.sb-content-dark .sb-feature-row p,
+.sb-content-dark .sb-feature-timeline-item p,
+.sb-content-dark .sb-service-card p,
+.sb-content-dark .sb-testimonial-quote,
+.sb-content-dark .sb-testimonial-author span,
+.sb-content-dark .sb-feature-stat-item p { color: #C3D4E6; }
+.sb-content-dark .sb-feature-card,
+.sb-content-dark .sb-feature-timeline-item,
+.sb-content-dark .sb-service-card,
+.sb-content-dark .sb-testimonial-card,
+.sb-content-dark .sb-feature-checklist-item { background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 255, 255, 0.14); }
+.sb-content-dark .sb-feature-checklist-item { color: #FFFFFF; }
+.sb-content-dark .sb-feature-checklist-item svg { color: #FFFFFF; }
+.sb-content-dark .sb-faq-item,
+.sb-content-dark .sb-faq-item:first-child { border-color: rgba(255, 255, 255, 0.14); }
+.sb-content-dark .sb-feature-timeline-badge { color: #BFD4EC; }
+.sb-content-dark .sb-service-index { color: rgba(255, 255, 255, 0.35); }
 
 /* ── Generic structured-content blocks (FAQ / feature grid / testimonials) ── */
 .sb-faq-heading { margin: 0 0 14px; font-family: var(--sb-font-heading); color: var(--sb-heading-color, var(--sb-text)); }
@@ -352,7 +391,7 @@ body.sb-layout-with-sidebar .main-content { padding-left: 220px; }
 
 /* "checklist" -- a check mark + one line, in a flat light card -- no
    title/description split, no icon box. */
-.sb-feature-grid-checklist { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.sb-feature-grid-checklist { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
 .sb-feature-checklist-item {
   display: flex; align-items: flex-start; gap: 10px;
   background: var(--sb-background); border: 1px solid var(--sb-border, #e5e1d6);

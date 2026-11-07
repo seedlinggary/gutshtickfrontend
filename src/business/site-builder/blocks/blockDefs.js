@@ -75,6 +75,17 @@ export const BLOCK_DEFS = {
       items: [{ icon: 'Star', title: 'Service title', description: 'A paragraph describing this service in more depth.', points: ['Supporting point one', 'Supporting point two'] }],
     },
   },
+  // A tinted, bordered notice -- an emergency number, a warning, a
+  // highlighted tip -- with its own icon/color/text sizes, independent of
+  // the rest of the page's theme (an emergency notice should look like
+  // one regardless of the site's normal palette).
+  callout: {
+    label: 'Callout / notice', category: 'Content', defaultSize: { w: 92, h: 16 },
+    defaultContent: {
+      icon: 'Phone', heading: 'Heads up', text: 'Add the notice text here.',
+      colorScheme: 'red', headingSize: 15, textSize: 13,
+    },
+  },
 };
 
 export const CATEGORY_ORDER = ['Basic', 'Content', 'Forms', 'Commerce', 'Nonprofit'];

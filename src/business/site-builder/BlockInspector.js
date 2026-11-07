@@ -153,6 +153,23 @@ function clampNumber(v) {
  * as one generic component rather than three near-identical ones, same
  * reasoning LinksEditor (ChromeInspector.js) already established for its
  * own single-shape repeating list. */
+/** Opt-in light-text mode for a content block placed directly on a dark
+ * section background -- every color these blocks use (sb-text, sb-muted,
+ * sb-heading-color) is a token tuned for a light page background, so
+ * placed straight onto a dark hero/CTA section (not inside its own white
+ * card) that text is barely legible. Same convention the real site's own
+ * GoogleRatingBadge already uses (a `variant="dark"` prop) -- nothing
+ * here can see its own section's background color to detect this
+ * automatically, so it's a toggle the owner sets. */
+function DarkBackgroundToggle({ content, updateContent }) {
+  return (
+    <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, marginBottom: 12 }}>
+      <input type="checkbox" checked={!!content.dark} onChange={(e) => updateContent({ dark: e.target.checked })} />
+      On a dark background (use light text instead of the normal theme colors)
+    </label>
+  );
+}
+
 function ItemListEditor({ items, onChange, fields, blank, addLabel }) {
   const list = items || [];
   const updateItem = (i, patch) => onChange(list.map((it, idx) => (idx === i ? { ...it, ...patch } : it)));
@@ -380,6 +397,7 @@ export default function BlockInspector({ businessId, block, onChange, onClose })
         <div className="gs-field">
           <div className="gs-label">Heading (optional)</div>
           <input className="gs-input" value={block.content.heading || ''} onChange={(e) => updateContent({ heading: e.target.value })} style={{ marginBottom: 12 }} />
+          <DarkBackgroundToggle content={block.content} updateContent={updateContent} />
           <div className="gs-label">Questions</div>
           <ItemListEditor
             items={block.content.items}
@@ -406,6 +424,7 @@ export default function BlockInspector({ businessId, block, onChange, onClose })
             <option value="timeline">Timeline (a short badge like a year, instead of an icon)</option>
             <option value="stat">Stat (a big number + small label, no icon or border)</option>
           </select>
+          <DarkBackgroundToggle content={block.content} updateContent={updateContent} />
           <div className="gs-label">Items</div>
           <ItemListEditor
             items={block.content.items}
@@ -443,6 +462,7 @@ export default function BlockInspector({ businessId, block, onChange, onClose })
         <div className="gs-field">
           <div className="gs-label">Heading (optional)</div>
           <input className="gs-input" value={block.content.heading || ''} onChange={(e) => updateContent({ heading: e.target.value })} style={{ marginBottom: 12 }} />
+          <DarkBackgroundToggle content={block.content} updateContent={updateContent} />
           <div className="gs-label">Testimonials</div>
           <ItemListEditor
             items={block.content.items}
@@ -466,6 +486,7 @@ export default function BlockInspector({ businessId, block, onChange, onClose })
             <input type="checkbox" checked={block.content.numbered !== false} onChange={(e) => updateContent({ numbered: e.target.checked })} />
             Show numbered index (01, 02, …)
           </label>
+          <DarkBackgroundToggle content={block.content} updateContent={updateContent} />
           <div className="gs-label">Services</div>
           <ItemListEditor
             items={block.content.items}
@@ -479,6 +500,31 @@ export default function BlockInspector({ businessId, block, onChange, onClose })
               { key: 'points', label: 'Supporting points (one per line)', type: 'list', placeholder: 'Dedicated property manager\nMonthly financial statements' },
             ]}
           />
+        </div>
+      )}
+
+      {block.type === 'callout' && (
+        <div className="gs-field">
+          <div className="gs-label">Icon</div>
+          <select className="gs-select" value={block.content.icon || 'Phone'} onChange={(e) => updateContent({ icon: e.target.value })} style={{ marginBottom: 12 }}>
+            {ICON_NAMES.map((n) => <option key={n} value={n}>{n}</option>)}
+          </select>
+          <div className="gs-label">Color</div>
+          <select className="gs-select" value={block.content.colorScheme || 'red'} onChange={(e) => updateContent({ colorScheme: e.target.value })} style={{ marginBottom: 12 }}>
+            <option value="red">Red (warning / emergency)</option>
+            <option value="amber">Amber (caution)</option>
+            <option value="blue">Blue (info)</option>
+            <option value="green">Green (success / tip)</option>
+            <option value="gray">Gray (neutral)</option>
+          </select>
+          <div className="gs-label">Heading</div>
+          <input className="gs-input" value={block.content.heading || ''} onChange={(e) => updateContent({ heading: e.target.value })} style={{ marginBottom: 6 }} />
+          <input className="gs-input" type="number" min={11} max={28} value={block.content.headingSize || 15}
+            onChange={(e) => updateContent({ headingSize: Number(e.target.value) || 15 })} placeholder="Heading text size (px)" style={{ marginBottom: 12 }} />
+          <div className="gs-label">Text</div>
+          <textarea className="gs-input" rows={3} value={block.content.text || ''} onChange={(e) => updateContent({ text: e.target.value })} style={{ marginBottom: 6 }} />
+          <input className="gs-input" type="number" min={10} max={22} value={block.content.textSize || 13}
+            onChange={(e) => updateContent({ textSize: Number(e.target.value) || 13 })} placeholder="Body text size (px)" />
         </div>
       )}
 
