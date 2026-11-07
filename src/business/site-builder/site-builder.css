@@ -177,10 +177,9 @@
 .sb-block-selected { border-color: var(--accent) !important; box-shadow: 0 0 0 1px var(--accent); }
 .sb-block-body { width: 100%; height: 100%; overflow: hidden; }
 
-.sb-block-remove {
+.sb-block-remove, .sb-block-duplicate {
   position: absolute;
   top: -10px;
-  right: -10px;
   width: 20px;
   height: 20px;
   border-radius: 50%;
@@ -193,6 +192,8 @@
   cursor: pointer;
   z-index: 4;
 }
+.sb-block-remove { right: -10px; }
+.sb-block-duplicate { right: 16px; background: var(--muted, #8A7A68); }
 
 .sb-resize-handle {
   position: absolute;
@@ -222,12 +223,13 @@
     bottom: -14px;
     border-width: 3px;
   }
-  .sb-block-remove {
+  .sb-block-remove, .sb-block-duplicate {
     width: 30px;
     height: 30px;
     top: -16px;
-    right: -16px;
   }
+  .sb-block-remove { right: -16px; }
+  .sb-block-duplicate { right: 20px; }
   .sb-icon-btn {
     padding: 9px 13px;
     font-size: 13px;
@@ -273,6 +275,66 @@
   cursor: pointer;
 }
 .sb-add-block-dropdown button:hover { background: var(--bg); }
+.sb-add-block-dropdown { max-height: 70vh; overflow-y: auto; }
+.sb-add-block-search {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  color: var(--muted);
+  position: sticky;
+  top: 0;
+  background: var(--surface);
+}
+.sb-add-block-search input {
+  border: none;
+  outline: none;
+  font-size: 13px;
+  flex: 1;
+  background: none;
+  color: var(--text);
+}
+.sb-add-block-category {
+  padding: 8px 12px 2px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.sb-preset-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 4px;
+  display: flex;
+  flex-direction: column;
+  min-width: 280px;
+  max-height: 70vh;
+  overflow-y: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  z-index: 10;
+}
+.sb-preset-option {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+  padding: 10px 12px;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  background: none;
+  cursor: pointer;
+}
+.sb-preset-option:last-child { border-bottom: none; }
+.sb-preset-option:hover { background: var(--bg); }
+.sb-preset-option strong { font-size: 13px; }
+.sb-preset-option span { font-size: 12px; color: var(--muted); }
 
 .sb-gallery-remove {
   position: absolute;

@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { ArrowLeft, Download, Trash2 } from 'lucide-react';
-import nonprofitApiRequest from '../nonprofitApi';
 import FamilyLinkCell from '../FamilyLinkCell';
 import '../nonprofit.css';
 
@@ -12,23 +11,30 @@ function formatAnswer(value) {
   return String(value);
 }
 
-export default function NonprofitFormResponsesPage({ businessId, formId, onBack }) {
+export default function NonprofitFormResponsesPage({ apiRequest, fetchBlob, urlPrefix = '/nonprofit', formsSegment = 'forms', showFamilyLink = true, businessId, formId, onBack }) {
   const [form, setForm] = useState(null);
   const [responses, setResponses] = useState(null);
   const [families, setFamilies] = useState([]);
   const [familyBusyId, setFamilyBusyId] = useState(null);
 
-  const loadForm = () => nonprofitApiRequest('GET', null, `/nonprofit/forms/${formId}`).then((d) => setForm(d));
-  const loadResponses = () => nonprofitApiRequest('GET', null, `/nonprofit/forms/${formId}/responses`).then((d) => setResponses(d.responses)).catch(() => setResponses([]));
+  const formUrl = `${urlPrefix}/${formsSegment}/${formId}`;
+
+  const loadForm = () => apiRequest('GET', null, formUrl).then((d) => setForm(d));
+  const loadResponses = () => apiRequest('GET', null, `${formUrl}/responses`).then((d) => setResponses(d.responses)).catch(() => setResponses([]));
 
   useEffect(() => { loadForm(); loadResponses(); }, [formId]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
-    nonprofitApiRequest('GET', null, `/nonprofit/businesses/${businessId}/families`).then((d) => setFamilies(d.families)).catch(() => setFamilies([]));
-  }, [businessId]);
+    // Families are a nonprofit-only concept (household grouping across
+    // donations/memberships/holiday seats) -- a general business's own
+    // Custom Forms responses have nothing to link to, so this fetch (and
+    // the whole Family column below) is skipped entirely for that case.
+    if (!showFamilyLink) return;
+    apiRequest('GET', null, `${urlPrefix}/businesses/${businessId}/families`).then((d) => setFamilies(d.families)).catch(() => setFamilies([]));
+  }, [businessId, showFamilyLink]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const remove = (response) => {
     if (!window.confirm('Delete this response?')) return;
-    nonprofitApiRequest('DELETE', null, `/nonprofit/forms/${formId}/responses/${response.id}`).then(loadResponses);
+    apiRequest('DELETE', null, `${formUrl}/responses/${response.id}`).then(loadResponses);
   };
 
   // FormResponse isn't one of the record types families/merge understands
@@ -40,12 +46,12 @@ export default function NonprofitFormResponsesPage({ businessId, formId, onBack 
   // guessed identity, so fall back to asking).
   const chooseFamily = (response, choice) => {
     setFamilyBusyId(response.id);
-    const patchWith = (familyId) => nonprofitApiRequest('PATCH', { family_id: familyId }, `/nonprofit/forms/${formId}/responses/${response.id}`).then(loadResponses).finally(() => setFamilyBusyId(null));
+    const patchWith = (familyId) => apiRequest('PATCH', { family_id: familyId }, `${formUrl}/responses/${response.id}`).then(loadResponses).finally(() => setFamilyBusyId(null));
     if (choice === '__new__') {
       const guessedName = response.guessed_identity?.name;
       const name = guessedName || window.prompt('New family name:');
       if (!name || !name.trim()) { setFamilyBusyId(null); return; }
-      nonprofitApiRequest('POST', { full_name: name.trim() }, `/nonprofit/businesses/${businessId}/families`)
+      apiRequest('POST', { full_name: name.trim() }, `${urlPrefix}/businesses/${businessId}/families`)
         .then((family) => patchWith(family.id))
         .catch(() => setFamilyBusyId(null));
     } else {
@@ -54,11 +60,15 @@ export default function NonprofitFormResponsesPage({ businessId, formId, onBack 
   };
   const unlinkFamily = (response) => {
     setFamilyBusyId(response.id);
-    nonprofitApiRequest('PATCH', { family_id: null }, `/nonprofit/forms/${formId}/responses/${response.id}`).then(loadResponses).finally(() => setFamilyBusyId(null));
+    apiRequest('PATCH', { family_id: null }, `${formUrl}/responses/${response.id}`).then(loadResponses).finally(() => setFamilyBusyId(null));
   };
 
   const exportCsv = () => {
-    nonprofitApiRequest('GET', null, `/nonprofit/forms/${formId}/responses/export`).then((blob) => {
+    // CSV export returns a non-JSON blob, which the plain apiRequest
+    // helpers don't parse -- `fetchBlob` is the one piece each call site
+    // (nonprofit staff vs. a regular owner) still has to supply itself,
+    // since it needs that context's own auth header.
+    fetchBlob(`${formUrl}/responses/export`).then((blob) => {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -91,7 +101,7 @@ export default function NonprofitFormResponsesPage({ businessId, formId, onBack 
                 {fields.map((f) => (
                   <th key={f.id} style={{ textAlign: 'left', padding: '6px 10px', borderBottom: '1px solid var(--border)' }}>{f.label}</th>
                 ))}
-                <th style={{ textAlign: 'left', padding: '6px 10px', borderBottom: '1px solid var(--border)' }}>Family</th>
+                {showFamilyLink && <th style={{ textAlign: 'left', padding: '6px 10px', borderBottom: '1px solid var(--border)' }}>Family</th>}
                 <th style={{ borderBottom: '1px solid var(--border)' }} />
               </tr>
             </thead>
@@ -112,12 +122,14 @@ export default function NonprofitFormResponsesPage({ businessId, formId, onBack 
                         {formatAnswer(r.answers?.[f.id])}
                       </td>
                     ))}
-                    <td style={{ padding: '8px 10px', borderBottom: '1px solid var(--border)', verticalAlign: 'top' }}>
-                      <FamilyLinkCell
-                        families={families} familyId={r.family_id} familyName={r.family_name} busy={familyBusyId === r.id}
-                        onChoose={(choice) => chooseFamily(r, choice)} onUnlink={() => unlinkFamily(r)}
-                      />
-                    </td>
+                    {showFamilyLink && (
+                      <td style={{ padding: '8px 10px', borderBottom: '1px solid var(--border)', verticalAlign: 'top' }}>
+                        <FamilyLinkCell
+                          families={families} familyId={r.family_id} familyName={r.family_name} busy={familyBusyId === r.id}
+                          onChoose={(choice) => chooseFamily(r, choice)} onUnlink={() => unlinkFamily(r)}
+                        />
+                      </td>
+                    )}
                     <td style={{ padding: '8px 10px', borderBottom: '1px solid var(--border)', verticalAlign: 'top' }}>
                       <button type="button" className="sb-icon-btn" title="Delete" onClick={() => remove(r)}><Trash2 size={14} /></button>
                     </td>

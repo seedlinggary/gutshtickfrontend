@@ -18,6 +18,10 @@ export const THEME_PALETTES = {
   minimal: { primary: '#1A1A1A', secondary: '#6E6E6E', background: '#FFFFFF', surface: '#FAFAFA', text: '#1A1A1A', muted: '#9E9E9E', border: '#EAEAEA' },
   earthy: { primary: '#4A5D3A', secondary: '#8C7851', background: '#F5F0E6', surface: '#FFFFFF', text: '#2D2A22', muted: '#7A7260', border: '#DCD3BE' },
   dark: { primary: '#7C9EFF', secondary: '#B98CE8', background: '#121417', surface: '#1C1F24', text: '#F0F2F5', muted: '#9AA3AE', border: '#2C3036' },
+  sunset: { primary: '#D96C3F', secondary: '#F2B872', background: '#FFF6ED', surface: '#FFFFFF', text: '#3A2A1E', muted: '#9C7F63', border: '#F0DCC4' },
+  forest: { primary: '#2F6B4F', secondary: '#8FBF9B', background: '#F1F7F2', surface: '#FFFFFF', text: '#1E2E24', muted: '#6E8C78', border: '#D7E8DC' },
+  rose: { primary: '#B5456E', secondary: '#E8A9C0', background: '#FDF2F6', surface: '#FFFFFF', text: '#3A1F2A', muted: '#A6748A', border: '#F2D9E3' },
+  slate: { primary: '#475569', secondary: '#94A3B8', background: '#F1F5F9', surface: '#FFFFFF', text: '#1E293B', muted: '#64748B', border: '#E2E8F0' },
 };
 
 export const FONT_PAIRINGS = {
@@ -26,17 +30,20 @@ export const FONT_PAIRINGS = {
   friendly: { heading: "'Quicksand', Arial, sans-serif", body: "'Nunito', Arial, sans-serif", google: 'Quicksand:wght@700&family=Nunito:wght@400;600' },
   elegant: { heading: "'Cormorant Garamond', Georgia, serif", body: "'Work Sans', Arial, sans-serif", google: 'Cormorant+Garamond:wght@700&family=Work+Sans:wght@400;600' },
   bold: { heading: "'Archivo Black', Arial, sans-serif", body: "'Archivo', Arial, sans-serif", google: 'Archivo+Black&family=Archivo:wght@400;600' },
+  editorial: { heading: "'Libre Baskerville', Georgia, serif", body: "'Source Sans 3', Arial, sans-serif", google: 'Libre+Baskerville:wght@700&family=Source+Sans+3:wght@400;600' },
+  rounded: { heading: "'Baloo 2', Arial, sans-serif", body: "'Mulish', Arial, sans-serif", google: 'Baloo+2:wght@700&family=Mulish:wght@400;600' },
+  technical: { heading: "'Space Grotesk', Arial, sans-serif", body: "'IBM Plex Sans', Arial, sans-serif", google: 'Space+Grotesk:wght@700&family=IBM+Plex+Sans:wght@400;600' },
 };
 
-export const BUTTON_RADIUS = { rounded: '10px', pill: '999px', square: '2px', outline: '8px' };
+export const BUTTON_RADIUS = { rounded: '10px', pill: '999px', square: '2px', outline: '8px', ghost: '8px', shadow: '10px' };
 
 // Label-only mirrors of the backend's NAV_STYLES/FOOTER_STYLES -- the
 // editor needs these synchronously (to render a picker inside the
 // click-to-edit chrome panel) without waiting on a GET /business/site-
 // themes round trip, same reasoning the rest of this file mirrors the
 // backend's theme registries.
-export const NAV_STYLES = { top: { label: 'Top bar' }, side: { label: 'Sidebar' }, minimal: { label: 'Minimal (logo only)' } };
-export const FOOTER_STYLES = { simple: { label: 'Simple' }, columns: { label: 'Columns' }, none: { label: 'No footer' } };
+export const NAV_STYLES = { top: { label: 'Top bar' }, side: { label: 'Sidebar' }, minimal: { label: 'Minimal (logo only)' }, split: { label: 'Split (centered logo)' } };
+export const FOOTER_STYLES = { simple: { label: 'Simple' }, columns: { label: 'Columns' }, stacked: { label: 'Stacked (centered, with links)' }, none: { label: 'No footer' } };
 
 /** theme -> a style object for the top-level wrapper every storefront
  * page renders inside (see ThemeWrapper.js). customColors (if set)

@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { ArrowLeft, Save, Plus, Trash2, ChevronUp, ChevronDown, ChevronRight, X } from 'lucide-react';
-import nonprofitApiRequest from '../nonprofitApi';
 import '../nonprofit.css';
 
 const FIELD_TYPES = [
@@ -131,7 +130,7 @@ function emptyField() {
   return { _key: `tmp-${localKeySeq++}`, label: '', type: 'short_text', required: false, options: [], help_text: '', condition_field_id: null, condition_value: '', condition_mode: null, alt_label: '' };
 }
 
-export default function NonprofitFormBuilderPage({ businessId, formId, onBack }) {
+export default function NonprofitFormBuilderPage({ apiRequest, urlPrefix = '/nonprofit', formsSegment = 'forms', businessId, formId, onBack }) {
   const [meta, setMeta] = useState(null);
   const [fields, setFields] = useState([]);
   const [savingMeta, setSavingMeta] = useState(false);
@@ -139,7 +138,9 @@ export default function NonprofitFormBuilderPage({ businessId, formId, onBack })
   const [metaSaved, setMetaSaved] = useState(false);
   const [fieldsSaved, setFieldsSaved] = useState(false);
 
-  const load = () => nonprofitApiRequest('GET', null, `/nonprofit/forms/${formId}`).then((d) => {
+  const formUrl = `${urlPrefix}/${formsSegment}/${formId}`;
+
+  const load = () => apiRequest('GET', null, formUrl).then((d) => {
     setMeta({ title: d.title, slug: d.slug, description: d.description || '', thank_you_message: d.thank_you_message || '', is_open: d.is_open });
     setFields(d.fields.filter((f) => !f.archived).sort((a, b) => a.order - b.order).map((f) => ({ ...f, _key: `id-${f.id}` })));
   });
@@ -149,7 +150,7 @@ export default function NonprofitFormBuilderPage({ businessId, formId, onBack })
     e.preventDefault();
     setSavingMeta(true);
     setMetaSaved(false);
-    nonprofitApiRequest('PATCH', meta, `/nonprofit/forms/${formId}`)
+    apiRequest('PATCH', meta, formUrl)
       .then(() => setMetaSaved(true))
       .finally(() => setSavingMeta(false));
   };
@@ -171,7 +172,7 @@ export default function NonprofitFormBuilderPage({ businessId, formId, onBack })
         alt_label: f.alt_label || null,
       })),
     };
-    nonprofitApiRequest('PATCH', body, `/nonprofit/forms/${formId}`)
+    apiRequest('PATCH', body, formUrl)
       .then((d) => { setFields(d.fields.filter((f) => !f.archived).sort((a, b) => a.order - b.order).map((f) => ({ ...f, _key: `id-${f.id}` }))); setFieldsSaved(true); })
       .finally(() => setSavingFields(false));
   };

@@ -44,4 +44,17 @@ export async function nonprofitApiRequest(method, body, path) {
   return data;
 }
 
+/** CSV-export-shaped fetch -- the plain nonprofitApiRequest above already
+ * handles a text/csv response the same way (kept there for back-compat
+ * with any other caller), but NonprofitFormResponsesPage.js now takes its
+ * blob-fetcher as an explicit prop (see that file's own comment for why:
+ * it's shared with a non-nonprofit owner context that needs a totally
+ * different auth header), so this is that same logic exposed on its own. */
+export async function nonprofitFetchBlob(path) {
+  const token = getStaffToken();
+  const res = await fetch(`${API}${path}`, { headers: { 'X-Nonprofit-Token': token || '' } });
+  if (!res.ok) throw 'Could not export';
+  return res.blob();
+}
+
 export default nonprofitApiRequest;

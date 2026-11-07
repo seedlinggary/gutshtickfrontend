@@ -8,6 +8,7 @@ import ProductsPanel from './ProductsPanel';
 import BookingsPanel from './BookingsPanel';
 import CrmPanel from './CrmPanel';
 import InvoicesPanel from './InvoicesPanel';
+import FormsPanel from './FormsPanel';
 import ThemePanel from './ThemePanel';
 import TemplatesPanel from './TemplatesPanel';
 import { BLOCK_DEFS, newBlockId } from './blocks/blockDefs';
@@ -326,6 +327,44 @@ export default function SiteBuilderTab({ businessId }) {
       .catch((err) => setError(typeof err === 'string' ? err : 'Could not create the contact page.'));
   };
 
+  // Building a new page from an existing one's layout -- instead of
+  // starting blank every time -- used to mean reading the source page in
+  // another tab and manually re-placing every block. Composes 3 calls
+  // this file already makes elsewhere (load a page's draft, create a
+  // page, save its draft) -- no new backend endpoint needed. Always
+  // creates a (non-home) page with a unique "<title> Copy[ N]" slug; the
+  // new page starts unpublished regardless of the source's own status, so
+  // duplicating a live page never silently publishes a second copy of it.
+  const duplicatePage = (page) => {
+    setPagesError('');
+    apiRequest('GET', null, `/business/site-pages/${page.id}/draft`)
+      .then(({ sections }) => {
+        const existingSlugs = new Set(pages.map((p) => p.slug));
+        let candidate = `${page.slug}-copy`;
+        let i = 2;
+        while (existingSlugs.has(candidate)) { candidate = `${page.slug}-copy-${i}`; i += 1; }
+        return apiRequest('POST', { title: `${page.title} Copy`, slug: candidate, is_home: false }, `/business/businesses/${businessId}/site-pages`)
+          .then((created) => apiRequest('PUT', { sections }, `/business/site-pages/${created.id}/draft`).then(() => created));
+      })
+      .then((created) => { loadPages(); setEditingPageId(created.id); })
+      .catch((err) => setPagesError(typeof err === 'string' ? err : 'Could not duplicate that page.'));
+  };
+
+  // Creating a page doesn't put it in the nav automatically (nav_links is
+  // its own deliberately-manual list -- an owner may want a page reachable
+  // only by direct link, e.g. a landing page for one ad campaign) -- but
+  // forgetting that extra step is also the single most common "why can't
+  // visitors find my new page" cause. One click here does the same
+  // patchSite({nav_links}) call ChromeInspector's own editor uses.
+  const pagePath = (page) => (page.is_home ? '/' : `/${page.slug}`);
+  const isInNav = (page) => (site.nav_links || []).some((l) => l.path === pagePath(page));
+  const toggleNav = (page) => {
+    const links = site.nav_links || [];
+    const path = pagePath(page);
+    const next = isInNav(page) ? links.filter((l) => l.path !== path) : [...links, { label: page.title, path }];
+    patchSite({ nav_links: next });
+  };
+
   return (
     <div className="sb-tab">
       <div className="gs-card" style={{ marginBottom: 20 }}>
@@ -398,6 +437,12 @@ export default function SiteBuilderTab({ businessId }) {
         </div>
       )}
 
+      {site.enabled_modules.custom_forms && (
+        <div style={{ marginBottom: 20 }}>
+          <FormsPanel businessId={businessId} />
+        </div>
+      )}
+
       <div className="gs-card">
         {pagesError && <p style={{ color: 'var(--danger, #b42318)', fontSize: 13 }}>{pagesError}</p>}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -441,12 +486,25 @@ export default function SiteBuilderTab({ businessId }) {
                   /{p.slug} · {p.status === 'published' ? (p.has_draft_changes ? 'Published (unsaved changes)' : 'Published') : 'Draft'}
                 </div>
               </div>
-              <div style={{ display: 'flex', gap: 8 }}>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                {/* Not shown for Home -- it's always reachable (it IS the
+                    site), so toggling it into/out of nav_links would be
+                    meaningless. */}
+                {!p.is_home && (
+                  <button type="button" className={`gs-btn gs-btn-sm ${isInNav(p) ? '' : 'gs-btn-outline'}`}
+                    title={isInNav(p) ? 'Remove from your site\'s navigation menu' : 'Add to your site\'s navigation menu'}
+                    onClick={() => toggleNav(p)}>
+                    {isInNav(p) ? 'In menu' : '+ Add to menu'}
+                  </button>
+                )}
                 <button type="button" className="gs-btn gs-btn-outline gs-btn-sm" onClick={() => setEditingPageId(p.id)}>
                   <Pencil size={13} /> Edit
                 </button>
                 <button type="button" className="gs-btn gs-btn-outline gs-btn-sm" onClick={() => setRenamingPageId(p.id)}>
                   Rename
+                </button>
+                <button type="button" className="sb-icon-btn" title="Duplicate this page" onClick={() => duplicatePage(p)}>
+                  <Copy size={13} />
                 </button>
                 <button
                   type="button"

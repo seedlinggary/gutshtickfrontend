@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, Save, UploadCloud, EyeOff, Monitor, Pencil, Check, X, Search } from 'lucide-react';
+import { ArrowLeft, Save, UploadCloud, EyeOff, Monitor, Pencil, Check, X, Search, Undo2, Redo2 } from 'lucide-react';
 import apiRequest from '../../ApiRequest';
 import Canvas from './Canvas';
 import BlockInspector from './BlockInspector';
@@ -8,6 +8,7 @@ import SeoInspector from './SeoInspector';
 import { NavPreview, FooterPreview } from './ChromePreview';
 import AiAssistantPanel from './AiAssistantPanel';
 import DevicePreviewModal from './DevicePreviewModal';
+import useHistoryState from './useHistoryState';
 import { themeToCssVars, DEFAULT_THEME } from './theme';
 import './site-builder.css';
 import './theme.css';
@@ -61,7 +62,7 @@ function PageRenameControl({ page, onRenamed }) {
 
 export default function PageEditor({ businessId, pageId, subdomain, onClose }) {
   const [page, setPage] = useState(null);
-  const [sections, setSections] = useState([]);
+  const [sections, setSections, sectionsHistory] = useHistoryState([]);
   const [selected, setSelected] = useState({ sectionId: null, blockId: null });
   // null | 'nav' | 'footer' -- mutually exclusive with a selected block
   // (see the click handlers below), so only one overlay panel is ever
@@ -125,9 +126,26 @@ export default function PageEditor({ businessId, pageId, subdomain, onClose }) {
 
   useEffect(() => {
     apiRequest('GET', null, `/business/site-pages/${pageId}/draft`)
-      .then((data) => { setPage(data.page); setSections(data.sections || []); })
+      .then((data) => { setPage(data.page); sectionsHistory.reset(data.sections || []); })
       .catch(() => setError('Could not load this page.'));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pageId]);
+
+  // Ctrl/Cmd+Z to undo, Ctrl/Cmd+Shift+Z or Ctrl/Cmd+Y to redo -- skipped
+  // while focus is inside a text input/textarea (the inspector's own
+  // fields) so this doesn't fight the browser's native text-undo there.
+  useEffect(() => {
+    const onKeyDown = (e) => {
+      const tag = document.activeElement?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || document.activeElement?.isContentEditable) return;
+      const mod = e.ctrlKey || e.metaKey;
+      if (!mod || e.key.toLowerCase() !== 'z' && e.key.toLowerCase() !== 'y') return;
+      if (e.key.toLowerCase() === 'z' && !e.shiftKey) { e.preventDefault(); sectionsHistory.undo(); }
+      else if (e.key.toLowerCase() === 'y' || (e.key.toLowerCase() === 'z' && e.shiftKey)) { e.preventDefault(); sectionsHistory.redo(); }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [sectionsHistory]);
 
   const saveDraft = () => {
     setSaving(true);
@@ -162,6 +180,10 @@ export default function PageEditor({ businessId, pageId, subdomain, onClose }) {
       <div className="sb-editor-toolbar">
         <button type="button" className="gs-btn gs-btn-outline gs-btn-sm" onClick={onClose}><ArrowLeft size={14} /> Back to pages</button>
         <PageRenameControl page={page} onRenamed={setPage} />
+        <div style={{ display: 'flex', gap: 2, marginLeft: 10 }}>
+          <button type="button" className="sb-icon-btn" title="Undo (Ctrl+Z)" disabled={!sectionsHistory.canUndo} onClick={sectionsHistory.undo}><Undo2 size={15} /></button>
+          <button type="button" className="sb-icon-btn" title="Redo (Ctrl+Shift+Z)" disabled={!sectionsHistory.canRedo} onClick={sectionsHistory.redo}><Redo2 size={15} /></button>
+        </div>
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>
           {savedAt && <span style={{ fontSize: 12, color: 'var(--muted)' }}>Saved {savedAt.toLocaleTimeString()}</span>}
           <button type="button" className="gs-btn gs-btn-outline gs-btn-sm" onClick={() => { setSelected({ sectionId: null, blockId: null }); setChromeSelected('seo'); }}>

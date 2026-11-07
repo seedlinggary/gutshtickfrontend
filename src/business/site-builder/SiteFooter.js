@@ -18,24 +18,26 @@ export default function SiteFooter({ subdomain }) {
   const footerLinks = chrome.footer_links || [];
   const text = chrome.footer_text || `© ${new Date().getFullYear()} ${chrome.name}`;
 
+  const linkList = footerLinks.length > 0 && (
+    <ul className="sb-footer-links">
+      {footerLinks.map((link, i) => (
+        <li key={i}>
+          {link.path?.startsWith('http') ? (
+            <a href={link.path} target="_blank" rel="noreferrer">{link.label}</a>
+          ) : (
+            <Link to={link.path || '/'}>{link.label}</Link>
+          )}
+        </li>
+      ))}
+    </ul>
+  );
+
   return (
     <footer className={`sb-footer sb-footer-${theme.footerStyle}`}>
-      {theme.footerStyle === 'columns' ? (
+      {theme.footerStyle === 'columns' || theme.footerStyle === 'stacked' ? (
         <>
           <span>{text}</span>
-          {footerLinks.length > 0 && (
-            <ul className="sb-footer-links">
-              {footerLinks.map((link, i) => (
-                <li key={i}>
-                  {link.path?.startsWith('http') ? (
-                    <a href={link.path} target="_blank" rel="noreferrer">{link.label}</a>
-                  ) : (
-                    <Link to={link.path || '/'}>{link.label}</Link>
-                  )}
-                </li>
-              ))}
-            </ul>
-          )}
+          {linkList}
         </>
       ) : (
         <span>{text}</span>

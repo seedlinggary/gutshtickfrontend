@@ -1,4 +1,5 @@
 import React from 'react';
+import { ChevronDown } from 'lucide-react';
 import { DEFAULT_THEME } from './theme';
 
 /**
@@ -26,7 +27,19 @@ export function NavPreview({ theme, navLinks, businessName, selected, onSelect }
         {t.navStyle !== 'minimal' && (
           <ul className="sb-navbar-links">
             {(navLinks || []).length === 0 && <li style={{ opacity: 0.6 }}>No links yet</li>}
-            {(navLinks || []).map((link, i) => <li key={i}><span>{link.label}</span></li>)}
+            {(navLinks || []).map((link, i) => (
+              <li key={i} style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                  {link.label}
+                  {link.children?.length > 0 && <ChevronDown size={11} style={{ opacity: 0.6 }} />}
+                </span>
+                {link.children?.length > 0 && (
+                  <span style={{ fontSize: 11, opacity: 0.6, paddingLeft: 10 }}>
+                    {link.children.map((c) => c.label).join(' · ')}
+                  </span>
+                )}
+              </li>
+            ))}
           </ul>
         )}
       </nav>
@@ -57,7 +70,7 @@ export function FooterPreview({ theme, footerText, footerLinks, businessName, se
     >
       <footer className={`sb-footer sb-footer-${t.footerStyle}`}>
         <span>{text}</span>
-        {t.footerStyle === 'columns' && (footerLinks || []).length > 0 && (
+        {(t.footerStyle === 'columns' || t.footerStyle === 'stacked') && (footerLinks || []).length > 0 && (
           <ul className="sb-footer-links">
             {footerLinks.map((link, i) => <li key={i}>{link.label}</li>)}
           </ul>

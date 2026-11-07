@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { X, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Minus, Plus as PlusIcon } from 'lucide-react';
+import { X, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Minus, Plus as PlusIcon, Trash2 } from 'lucide-react';
 import UploadFile from '../../Uploadfile';
 import apiRequest from '../../ApiRequest';
-import { BLOCK_DEFS, MODULE_LABELS } from './blocks/blockDefs';
+import { BLOCK_DEFS, moduleLabelFor } from './blocks/blockDefs';
+import { ICON_NAMES } from './blocks/ContentBlocks';
 
 const NUDGE_STEP = 5; // percent per tap
 
@@ -143,6 +144,51 @@ function clampNumber(v) {
   const n = Number(v);
   if (Number.isNaN(n)) return 0;
   return Math.min(100, Math.max(0, n));
+}
+
+/** Shared "repeating item" list editor for the 3 new structured-content
+ * block types below -- each item is a fixed set of fields (declared by
+ * the caller via `fields`), rendered as a small card with a remove
+ * button, plus an "Add" button that appends one more using `blank`. Kept
+ * as one generic component rather than three near-identical ones, same
+ * reasoning LinksEditor (ChromeInspector.js) already established for its
+ * own single-shape repeating list. */
+function ItemListEditor({ items, onChange, fields, blank, addLabel }) {
+  const list = items || [];
+  const updateItem = (i, patch) => onChange(list.map((it, idx) => (idx === i ? { ...it, ...patch } : it)));
+  const removeItem = (i) => onChange(list.filter((_, idx) => idx !== i));
+  const addItem = () => onChange([...list, { ...blank }]);
+
+  return (
+    <div>
+      {list.map((item, i) => (
+        <div key={i} style={{ border: '1px solid var(--border, #e5e1d6)', borderRadius: 8, padding: 10, marginBottom: 8 }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 4 }}>
+            <button type="button" className="sb-icon-btn" onClick={() => removeItem(i)}><Trash2 size={13} /></button>
+          </div>
+          {fields.map((f) => (
+            <div key={f.key} style={{ marginBottom: 6 }}>
+              {f.label && <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 2 }}>{f.label}</div>}
+              {f.type === 'textarea' ? (
+                <textarea className="gs-input" rows={2} value={item[f.key] || ''} placeholder={f.placeholder}
+                  onChange={(e) => updateItem(i, { [f.key]: e.target.value })} />
+              ) : f.type === 'select' ? (
+                <select className="gs-select" value={item[f.key] || ''} onChange={(e) => updateItem(i, { [f.key]: e.target.value })}>
+                  {f.options.map((o) => <option key={o} value={o}>{o}</option>)}
+                </select>
+              ) : (
+                <input className="gs-input" value={item[f.key] || ''} placeholder={f.placeholder}
+                  onChange={(e) => updateItem(i, { [f.key]: e.target.value })} />
+              )}
+            </div>
+          ))}
+        </div>
+      ))}
+      <button type="button" className="gs-btn gs-btn-outline gs-btn-sm" onClick={addItem}>
+        <PlusIcon size={13} /> {addLabel}
+      </button>
+    </div>
+  );
 }
 
 /** The only place block.content ever gets edited -- the canvas renders
@@ -319,9 +365,83 @@ export default function BlockInspector({ businessId, block, onChange, onClose })
         </div>
       )}
 
+      {block.type === 'faq_accordion' && (
+        <div className="gs-field">
+          <div className="gs-label">Heading (optional)</div>
+          <input className="gs-input" value={block.content.heading || ''} onChange={(e) => updateContent({ heading: e.target.value })} style={{ marginBottom: 12 }} />
+          <div className="gs-label">Questions</div>
+          <ItemListEditor
+            items={block.content.items}
+            onChange={(items) => updateContent({ items })}
+            blank={{ question: '', answer: '' }}
+            addLabel="Add question"
+            fields={[
+              { key: 'question', label: 'Question', placeholder: 'What areas do you serve?' },
+              { key: 'answer', label: 'Answer', type: 'textarea', placeholder: 'We serve...' },
+            ]}
+          />
+        </div>
+      )}
+
+      {block.type === 'feature_grid' && (
+        <div className="gs-field">
+          <div className="gs-label">Heading (optional)</div>
+          <input className="gs-input" value={block.content.heading || ''} onChange={(e) => updateContent({ heading: e.target.value })} style={{ marginBottom: 12 }} />
+          <div className="gs-label">Items</div>
+          <ItemListEditor
+            items={block.content.items}
+            onChange={(items) => updateContent({ items })}
+            blank={{ icon: 'Star', title: '', description: '' }}
+            addLabel="Add item"
+            fields={[
+              { key: 'icon', label: 'Icon', type: 'select', options: ICON_NAMES },
+              { key: 'title', label: 'Title', placeholder: 'Financial Management' },
+              { key: 'description', label: 'Description', type: 'textarea', placeholder: 'A short description...' },
+            ]}
+          />
+        </div>
+      )}
+
+      {block.type === 'testimonial_grid' && (
+        <div className="gs-field">
+          <div className="gs-label">Heading (optional)</div>
+          <input className="gs-input" value={block.content.heading || ''} onChange={(e) => updateContent({ heading: e.target.value })} style={{ marginBottom: 12 }} />
+          <div className="gs-label">Testimonials</div>
+          <ItemListEditor
+            items={block.content.items}
+            onChange={(items) => updateContent({ items })}
+            blank={{ quote: '', author: '', role: '' }}
+            addLabel="Add testimonial"
+            fields={[
+              { key: 'quote', label: 'Quote', type: 'textarea', placeholder: 'What they said...' },
+              { key: 'author', label: 'Name', placeholder: 'Jane Smith' },
+              { key: 'role', label: 'Title / company (optional)', placeholder: 'Board President, 123 Main St' },
+            ]}
+          />
+        </div>
+      )}
+
+      {block.type === 'google_reviews_badge' && (
+        <div className="gs-field">
+          <div className="gs-label">Rating (out of 5)</div>
+          <input className="gs-input" type="number" min={0} max={5} step={0.1} value={block.content.rating ?? 5}
+            onChange={(e) => updateContent({ rating: Number(e.target.value) })} style={{ marginBottom: 12 }} />
+          <div className="gs-label">Review count (optional)</div>
+          <input className="gs-input" type="number" min={0} step={1} value={block.content.reviewCount ?? ''}
+            placeholder="e.g. 27" onChange={(e) => updateContent({ reviewCount: e.target.value ? Number(e.target.value) : null })} style={{ marginBottom: 12 }} />
+          <div className="gs-label">Link to your Google reviews (optional)</div>
+          <input className="gs-input" value={block.content.url || ''} placeholder="https://g.page/r/.../review"
+            onChange={(e) => updateContent({ url: e.target.value })} />
+          <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 6 }}>
+            Enter these from your Google Business Profile -- they're not fetched automatically. Update them here whenever your rating changes.
+            Find your review link under your Business Profile's "Ask for reviews" / share link.
+          </p>
+        </div>
+      )}
+
       {def?.requiresModule && (
         <p style={{ fontSize: 12, color: 'var(--muted)' }}>
-          This block goes live once "{MODULE_LABELS[def.requiresModule] || def.requiresModule}" is turned on in your site's Features.
+          This block goes live once "{moduleLabelFor(def.requiresModule)}" is turned on in your site's Features.
         </p>
       )}
 

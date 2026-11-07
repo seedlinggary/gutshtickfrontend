@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Search, Users, CalendarDays, HandCoins, Repeat, Link2,
   AlertTriangle, ListTree, ClipboardList, Settings as SettingsIcon, History, LogOut,
 } from 'lucide-react';
-import nonprofitApiRequest, { clearStaffToken, getStaffToken } from './nonprofitApi';
+import nonprofitApiRequest, { clearStaffToken, getStaffToken, nonprofitFetchBlob } from './nonprofitApi';
 import NonprofitDashboardPage from './pages/NonprofitDashboardPage';
 import NonprofitSearchPage from './pages/NonprofitSearchPage';
 import NonprofitFamiliesPage from './pages/NonprofitFamiliesPage';
@@ -66,7 +66,7 @@ function MembershipDetailRoute({ businessId, staff }) {
 function FormBuilderRoute({ businessId }) {
   const { formId } = useParams();
   const navigate = useNavigate();
-  return <NonprofitFormBuilderPage businessId={businessId} formId={Number(formId)} onBack={() => navigate('..')} />;
+  return <NonprofitFormBuilderPage apiRequest={nonprofitApiRequest} businessId={businessId} formId={Number(formId)} onBack={() => navigate('..')} />;
 }
 function FormResponsesRoute({ businessId }) {
   const { formId } = useParams();
@@ -74,7 +74,7 @@ function FormResponsesRoute({ businessId }) {
   // Path pattern is "forms/:formId/responses" (3 segments) -- '..' alone
   // would only strip "responses" and land back on the form BUILDER
   // (which also matches "forms/:formId"), not the forms list.
-  return <NonprofitFormResponsesPage businessId={businessId} formId={Number(formId)} onBack={() => navigate('../..')} />;
+  return <NonprofitFormResponsesPage apiRequest={nonprofitApiRequest} fetchBlob={nonprofitFetchBlob} businessId={businessId} formId={Number(formId)} onBack={() => navigate('../..')} />;
 }
 function FamiliesListRoute({ businessId }) {
   const navigate = useNavigate();
@@ -90,7 +90,7 @@ function MembershipsListRoute({ businessId, staff }) {
 }
 function FormsListRoute({ businessId }) {
   const navigate = useNavigate();
-  return <NonprofitFormsPage businessId={businessId} onOpenItem={(id) => navigate(String(id))} onOpenResponses={(id) => navigate(`${id}/responses`)} />;
+  return <NonprofitFormsPage apiRequest={nonprofitApiRequest} businessId={businessId} onOpenItem={(id) => navigate(String(id))} onOpenResponses={(id) => navigate(`${id}/responses`)} />;
 }
 
 /** Mounted at /staff/* on a nonprofit's own subdomain -- see

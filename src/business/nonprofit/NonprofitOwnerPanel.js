@@ -4,7 +4,7 @@ import {
   AlertTriangle, ListTree, ClipboardList, Settings as SettingsIcon, History,
 } from 'lucide-react';
 import apiRequest from '../../ApiRequest';
-import nonprofitApiRequest, { setStaffToken } from './nonprofitApi';
+import nonprofitApiRequest, { setStaffToken, nonprofitFetchBlob } from './nonprofitApi';
 import NonprofitDashboardPage from './pages/NonprofitDashboardPage';
 import NonprofitSearchPage from './pages/NonprofitSearchPage';
 import NonprofitFamiliesPage from './pages/NonprofitFamiliesPage';
@@ -118,12 +118,13 @@ export default function NonprofitOwnerPanel({ businessId }) {
       break;
     case 'forms':
       if (formMode === 'builder') {
-        content = <NonprofitFormBuilderPage businessId={businessId} formId={formId} onBack={() => { setFormId(null); setFormMode(null); }} />;
+        content = <NonprofitFormBuilderPage apiRequest={nonprofitApiRequest} businessId={businessId} formId={formId} onBack={() => { setFormId(null); setFormMode(null); }} />;
       } else if (formMode === 'responses') {
-        content = <NonprofitFormResponsesPage businessId={businessId} formId={formId} onBack={() => { setFormId(null); setFormMode(null); }} />;
+        content = <NonprofitFormResponsesPage apiRequest={nonprofitApiRequest} fetchBlob={nonprofitFetchBlob} businessId={businessId} formId={formId} onBack={() => { setFormId(null); setFormMode(null); }} />;
       } else {
         content = (
           <NonprofitFormsPage
+            apiRequest={nonprofitApiRequest}
             businessId={businessId}
             onOpenItem={(id) => { setFormId(id); setFormMode('builder'); }}
             onOpenResponses={(id) => { setFormId(id); setFormMode('responses'); }}

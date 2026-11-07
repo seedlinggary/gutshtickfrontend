@@ -5,8 +5,9 @@ import { ProductGridBody, ProductDetailBody } from './ProductBlocks';
 import BookingWidgetBlock from './BookingWidgetBlock';
 import AnalyticsWidgetBlock from './AnalyticsWidgetBlock';
 import { DonationFormBlock, MembershipFormBlock, HolidaySeatsFormBlock, DynamicFormBlock, FamilyLoginButtonBlock } from '../../nonprofit/blocks/NonprofitBlocks';
+import { FaqAccordionBlock, FeatureGridBlock, TestimonialGridBlock, GoogleReviewsBadgeBlock } from './ContentBlocks';
 import { DEFAULT_THEME, BUTTON_RADIUS } from '../theme';
-import { BLOCK_DEFS, MODULE_LABELS } from './blockDefs';
+import { BLOCK_DEFS, isModuleSatisfied, moduleLabelFor } from './blockDefs';
 
 function TextBody({ content }) {
   return (
@@ -32,17 +33,19 @@ function ImageBody({ content, editable }) {
   return <img src={content.src} alt={content.alt || ''} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 8 }} />;
 }
 
+// Styles that need an actual class swap (background/color/shadow, not
+// just radius) -- 'rounded'/'pill'/'square' only ever change
+// --sb-button-radius, already applied via CSS var regardless of which
+// component is rendering, so they need no class of their own.
+const BUTTON_STYLE_CLASS = { outline: 'sb-button-outline', ghost: 'sb-button-ghost', shadow: 'sb-button-shadow' };
+
 function ButtonBody({ content, editable, theme }) {
   // content.buttonStyle, when set, overrides the site-wide default (Look &
   // feel's Buttons picker) for just this one button -- "use site default"
-  // in the inspector clears it back to null. "outline" needs an actual
-  // class swap (background/color, not just radius); the others only ever
-  // changed --sb-button-radius, already applied via CSS var regardless of
-  // which component is rendering, so they don't need a class at all --
-  // only a radius override when it disagrees with the site default.
+  // in the inspector clears it back to null.
   const effectiveStyle = content.buttonStyle || (theme || DEFAULT_THEME).buttonStyle || 'rounded';
   const style = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' };
-  const btnClass = `sb-button${effectiveStyle === 'outline' ? ' sb-button-outline' : ''}`;
+  const btnClass = `sb-button${BUTTON_STYLE_CLASS[effectiveStyle] ? ` ${BUTTON_STYLE_CLASS[effectiveStyle]}` : ''}`;
   const btnStyle = {
     width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
     borderRadius: content.buttonStyle ? (BUTTON_RADIUS[effectiveStyle] || BUTTON_RADIUS.rounded) : undefined,
@@ -103,11 +106,11 @@ function ComingSoonBody({ type }) {
 // icon + tooltip) and BlockInspector.js repeats the note once selected,
 // but a block added before either of those existed, or added then the
 // module later turned back off, still needs this fallback at render time.
-function ModuleGatedBody({ moduleKey }) {
+function ModuleGatedBody({ requiresModule }) {
   return (
     <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 6, background: 'var(--border-soft, #eef3f0)', borderRadius: 8, color: 'var(--muted)', fontSize: 13, textAlign: 'center', padding: 8 }}>
       <Hourglass size={20} style={{ opacity: 0.5 }} />
-      <span>Not available yet -- this business hasn't turned on {MODULE_LABELS[moduleKey] || moduleKey}.</span>
+      <span>Not available yet -- this business hasn't turned on {moduleLabelFor(requiresModule)}.</span>
     </div>
   );
 }
@@ -128,8 +131,8 @@ export default function BlockRenderer({ block, editable, subdomain, businessId, 
   // owner is still the one configuring the block, and BlockInspector's own
   // note already tells them it won't go live until the module's on.
   const requiresModule = BLOCK_DEFS[block.type]?.requiresModule;
-  if (!editable && requiresModule && !enabledModules?.[requiresModule]) {
-    return <ModuleGatedBody moduleKey={requiresModule} />;
+  if (!editable && requiresModule && !isModuleSatisfied(requiresModule, enabledModules)) {
+    return <ModuleGatedBody requiresModule={requiresModule} />;
   }
 
   switch (block.type) {
@@ -149,6 +152,10 @@ export default function BlockRenderer({ block, editable, subdomain, businessId, 
     case 'holiday_seats_form': return <HolidaySeatsFormBlock content={content} editable={editable} subdomain={subdomain} />;
     case 'dynamic_form': return <DynamicFormBlock content={content} editable={editable} subdomain={subdomain} />;
     case 'family_login_button': return <FamilyLoginButtonBlock content={content} editable={editable} />;
+    case 'faq_accordion': return <FaqAccordionBlock content={content} editable={editable} />;
+    case 'feature_grid': return <FeatureGridBlock content={content} editable={editable} />;
+    case 'testimonial_grid': return <TestimonialGridBlock content={content} editable={editable} />;
+    case 'google_reviews_badge': return <GoogleReviewsBadgeBlock content={content} editable={editable} />;
     default: return <ComingSoonBody type={block.type} />;
   }
 }

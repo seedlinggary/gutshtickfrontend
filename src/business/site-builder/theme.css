@@ -43,6 +43,16 @@
   background: transparent;
   color: var(--sb-primary, #C8553D);
 }
+.sb-button-ghost {
+  background: transparent;
+  color: var(--sb-primary, #C8553D);
+  border-color: transparent;
+}
+.sb-button-ghost:hover { background: var(--sb-border, #E3D5C0); opacity: 1; }
+.sb-button-shadow {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+  border-color: transparent;
+}
 .sb-button-sm { padding: 6px 12px; font-size: 12px; }
 
 .sb-input, .sb-textarea, .sb-select {
@@ -147,6 +157,70 @@ body.sb-layout-with-sidebar .main-content { padding-left: 220px; }
   body.sb-layout-with-sidebar .main-content { padding-left: 0; }
 }
 
+/* Split nav style -- logo genuinely centered regardless of how many links
+   are on each side, via 3 equal grid columns (plain flexbox space-between
+   only centers the middle child when both outer children happen to be
+   the same width, which isn't true once link counts differ). */
+.sb-navbar-split {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+}
+.sb-navbar-split .sb-navbar-links-left { justify-content: flex-start; }
+.sb-navbar-split .sb-navbar-links-right { justify-content: flex-end; }
+.sb-navbar-split .sb-navbar-brand { justify-self: center; }
+@media (max-width: 720px) {
+  .sb-navbar-split { grid-template-columns: 1fr; justify-items: center; gap: 10px; }
+  .sb-navbar-split .sb-navbar-links-left, .sb-navbar-split .sb-navbar-links-right { justify-content: center; }
+}
+
+/* Dropdown submenus (nav_links[].children) -- hover-driven for mouse/
+   trackpad (no JS needed), with a click-toggled class as the touch
+   fallback (hover has no equivalent there). Sidebar nav style renders
+   children as a plain indented list instead (see sb-navbar-side rule
+   below) -- a flyout makes little sense off a vertical rail. */
+.sb-navbar-links > li { position: relative; }
+.sb-navbar-dropdown-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.sb-navbar-dropdown {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 8px;
+  min-width: 170px;
+  background: var(--sb-surface, #FFFFFF);
+  border: 1px solid var(--sb-border, #E3D5C0);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  padding: 6px;
+  list-style: none;
+  z-index: 20;
+}
+.sb-navbar-links > li:hover > .sb-navbar-dropdown,
+.sb-navbar-dropdown-open { display: block; }
+.sb-navbar-dropdown li { padding: 0; }
+.sb-navbar-dropdown a { display: block; padding: 7px 10px; border-radius: 6px; white-space: nowrap; }
+.sb-navbar-dropdown a:hover { background: var(--sb-background, #FAF3E8); }
+.sb-navbar-side .sb-navbar-dropdown {
+  display: block;
+  position: static;
+  box-shadow: none;
+  border: none;
+  margin: 2px 0 2px 14px;
+  padding: 0;
+  background: none;
+}
+
 /* ── Footer ───────────────────────────────────────────────────────────── */
 .sb-footer {
   padding: 28px 20px;
@@ -171,3 +245,65 @@ body.sb-layout-with-sidebar .main-content { padding-left: 220px; }
 }
 .sb-footer-links a { color: var(--sb-muted, #8A7A68); text-decoration: none; }
 .sb-footer-links a:hover { color: var(--sb-primary, #C8553D); }
+.sb-footer-stacked {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+}
+.sb-footer-stacked .sb-footer-links { justify-content: center; }
+
+/* ── Generic structured-content blocks (FAQ / feature grid / testimonials) ── */
+.sb-faq-heading { margin: 0 0 14px; font-family: var(--sb-font-heading); color: var(--sb-text); }
+.sb-faq-item { border-bottom: 1px solid var(--sb-border, #e5e1d6); }
+.sb-faq-item:first-child { border-top: 1px solid var(--sb-border, #e5e1d6); }
+.sb-faq-question {
+  width: 100%; display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; padding: 12px 2px; background: none; border: none; cursor: pointer;
+  text-align: left; font-weight: 600; color: var(--sb-text); font-size: 15px;
+}
+.sb-faq-question:disabled { cursor: default; }
+.sb-faq-answer { padding: 0 2px 14px; color: var(--sb-muted); font-size: 14px; line-height: 1.6; }
+
+.sb-feature-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;
+}
+.sb-feature-card {
+  background: var(--sb-surface); border: 1px solid var(--sb-border, #e5e1d6);
+  border-radius: var(--sb-button-radius, 10px); padding: 16px;
+}
+.sb-feature-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px; border-radius: 10px;
+  background: var(--sb-primary); color: var(--sb-surface); margin-bottom: 10px;
+}
+.sb-feature-card h4 { margin: 0 0 6px; font-family: var(--sb-font-heading); color: var(--sb-text); font-size: 16px; }
+.sb-feature-card p { margin: 0; color: var(--sb-muted); font-size: 13px; line-height: 1.5; }
+
+.sb-testimonial-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px;
+}
+.sb-testimonial-card {
+  background: var(--sb-surface); border: 1px solid var(--sb-border, #e5e1d6);
+  border-radius: var(--sb-button-radius, 10px); padding: 18px;
+}
+.sb-testimonial-quote-icon { color: var(--sb-secondary); opacity: 0.6; }
+.sb-testimonial-quote { margin: 8px 0 12px; color: var(--sb-text); font-size: 14px; line-height: 1.6; font-style: italic; }
+.sb-testimonial-author { margin: 0; font-weight: 600; color: var(--sb-text); font-size: 13px; }
+.sb-testimonial-author span { display: block; font-weight: 400; color: var(--sb-muted); font-size: 12px; }
+
+.sb-google-badge, .sb-google-badge-link {
+  display: inline-flex; align-items: center; gap: 8px;
+  color: var(--sb-text); text-decoration: none;
+}
+.sb-google-badge-link:hover .sb-google-badge-text { text-decoration: underline; }
+.sb-google-badge-label { font-weight: 700; font-size: 13px; color: var(--sb-text); }
+.sb-google-stars { position: relative; display: inline-flex; }
+.sb-google-stars-row { display: flex; gap: 1px; white-space: nowrap; }
+.sb-google-stars-outline { color: var(--sb-border, #d8d2c4); }
+.sb-google-stars-filled {
+  position: absolute; top: 0; left: 0; overflow: hidden;
+  color: #f5b400; /* Google's own star-rating yellow -- intentionally not a theme token, this badge only reads right in its real brand color regardless of site palette */
+}
+.sb-google-badge-text { font-size: 13px; color: var(--sb-muted); white-space: nowrap; }

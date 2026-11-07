@@ -1,10 +1,40 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { X, Monitor, Smartphone } from 'lucide-react';
+import { X, Monitor, Smartphone, ChevronDown } from 'lucide-react';
 import PublicSiteRenderer from './PublicSiteRenderer';
 import { themeToCssVars } from './theme';
 import './theme.css';
 import './public-site.css';
+
+function PreviewNavLink({ link }) {
+  return link.path?.startsWith('http') ? (
+    <a href={link.path} target="_blank" rel="noreferrer">{link.label}</a>
+  ) : (
+    <Link to={link.path || '/'}>{link.label}</Link>
+  );
+}
+
+/** Same dropdown markup as BusinessSiteNavbar.js's own NavItem -- hover
+ * works here via the same CSS rule (this modal loads theme.css too), so
+ * the touch-only click-toggle state isn't needed in a desktop preview
+ * modal. */
+function PreviewNavItem({ link }) {
+  const hasChildren = link.children?.length > 0;
+  return (
+    <li>
+      {hasChildren ? (
+        <span className="sb-navbar-dropdown-toggle">{link.label} <ChevronDown size={12} /></span>
+      ) : (
+        <PreviewNavLink link={link} />
+      )}
+      {hasChildren && (
+        <ul className="sb-navbar-dropdown">
+          {link.children.map((child, i) => <li key={i}><PreviewNavLink link={child} /></li>)}
+        </ul>
+      )}
+    </li>
+  );
+}
 
 /** Non-interactive stand-ins for the real BusinessSiteNavbar/SiteFooter --
  * those two fetch their own site-chrome data by subdomain (via
@@ -15,21 +45,32 @@ import './public-site.css';
  * in state. Markup/classes match the real ones exactly so this looks like
  * what a visitor will actually see. */
 function PreviewNavbar({ theme, navLinks, businessName }) {
+  const links = navLinks || [];
+  const isSplit = theme.navStyle === 'split';
   const navClass = `sb-navbar sb-navbar-${theme.navStyle}${theme.navStyle === 'side' ? ' sb-navbar-side' : ''}`;
+  const brand = <span className="sb-navbar-brand">{businessName || 'Your Business'}</span>;
+
+  if (isSplit && theme.navStyle !== 'minimal') {
+    const mid = Math.ceil(links.length / 2);
+    return (
+      <nav className={navClass}>
+        <ul className="sb-navbar-links sb-navbar-links-left">
+          {links.slice(0, mid).map((link, i) => <PreviewNavItem key={i} link={link} />)}
+        </ul>
+        {brand}
+        <ul className="sb-navbar-links sb-navbar-links-right">
+          {links.slice(mid).map((link, i) => <PreviewNavItem key={i} link={link} />)}
+        </ul>
+      </nav>
+    );
+  }
+
   return (
     <nav className={navClass}>
-      <span className="sb-navbar-brand">{businessName || 'Your Business'}</span>
+      {brand}
       {theme.navStyle !== 'minimal' && (
         <ul className="sb-navbar-links">
-          {(navLinks || []).map((link, i) => (
-            <li key={i}>
-              {link.path?.startsWith('http') ? (
-                <a href={link.path} target="_blank" rel="noreferrer">{link.label}</a>
-              ) : (
-                <Link to={link.path || '/'}>{link.label}</Link>
-              )}
-            </li>
-          ))}
+          {links.map((link, i) => <PreviewNavItem key={i} link={link} />)}
         </ul>
       )}
     </nav>
@@ -41,7 +82,7 @@ function PreviewFooter({ theme, footerText, footerLinks, businessName }) {
   const text = footerText || `© ${new Date().getFullYear()} ${businessName || 'your business'}`;
   return (
     <footer className={`sb-footer sb-footer-${theme.footerStyle}`}>
-      {theme.footerStyle === 'columns' ? (
+      {theme.footerStyle === 'columns' || theme.footerStyle === 'stacked' ? (
         <>
           <span>{text}</span>
           {(footerLinks || []).length > 0 && (

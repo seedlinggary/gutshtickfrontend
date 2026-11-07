@@ -1,7 +1,8 @@
-import React, { useCallback, useRef, useState } from 'react';
-import { Plus, X, ArrowUpDown, ChevronUp, ChevronDown, Lock } from 'lucide-react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Plus, X, ArrowUpDown, ChevronUp, ChevronDown, Lock, Copy, Rows3, Search } from 'lucide-react';
 import BlockRenderer from './blocks/BlockRenderer';
-import { BLOCK_DEFS, MODULE_LABELS, newBlockId } from './blocks/blockDefs';
+import { BLOCK_DEFS, CATEGORY_ORDER, newBlockId, isModuleSatisfied, moduleLabelFor } from './blocks/blockDefs';
+import { SECTION_PRESETS } from './sectionPresets';
 import { DEFAULT_SECTION_HEIGHT, SECTION_HEIGHT_STEP, MIN_SECTION_HEIGHT, MAX_SECTION_HEIGHT } from './sectionDefaults';
 
 const MIN_SIZE = 4; // percent, floor for either dimension
@@ -186,9 +187,68 @@ export default function Canvas({ sections, onChange, selected, onSelect, subdoma
   };
 
   const removeBlock = (sectionId, blockId) => {
-    onChange(sections.map((s) => (s.id !== sectionId ? s : { ...s, blocks: s.blocks.filter((b) => b.id !== blockId) })));
+    onChange(sections.map((s) => (s.id !== sectionId ? s : { ...s, blocks: s.blocks.filter((b) => b.id !== blockId) })), { commit: true });
     if (selected && selected.blockId === blockId) onSelect(null, null);
   };
+
+  // Offset 3% so the copy is visibly a separate block instead of sitting
+  // exactly on top of the original -- clamped so duplicating a block
+  // already near the section's edge doesn't push it out of bounds.
+  const duplicateBlock = (sectionId, blockId) => {
+    const section = sections.find((s) => s.id === sectionId);
+    const block = section?.blocks.find((b) => b.id === blockId);
+    if (!block) return;
+    const copy = {
+      ...block, id: newBlockId('block'),
+      x: clamp(block.x + 3, 0, 100 - block.w), y: clamp(block.y + 3, 0, 100 - block.h),
+      content: { ...block.content },
+    };
+    onChange(sections.map((s) => (s.id !== sectionId ? s : { ...s, blocks: [...s.blocks, copy] })), { commit: true });
+    onSelect(sectionId, copy.id);
+  };
+
+  const duplicateSection = (index) => {
+    const source = sections[index];
+    const copy = {
+      ...source, id: newBlockId('section'),
+      blocks: source.blocks.map((b) => ({ ...b, id: newBlockId('block'), content: { ...b.content } })),
+    };
+    const next = [...sections];
+    next.splice(index + 1, 0, copy);
+    onChange(next, { commit: true });
+  };
+
+  const insertPresetSection = (preset) => {
+    onChange([...sections, preset.build()], { commit: true });
+  };
+
+  // Delete/Backspace removes the selected block, Escape deselects,
+  // Ctrl/Cmd+D duplicates the selected block -- skipped while focus is in
+  // a text input/textarea (the inspector's own fields, or a text block's
+  // nothing here, but future-proofs against one) so this never fights
+  // normal typing/deleting text.
+  useEffect(() => {
+    const onKeyDown = (e) => {
+      const tag = document.activeElement?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || document.activeElement?.isContentEditable) return;
+      if (!selected?.blockId) {
+        if (e.key === 'Escape') onSelect(null, null);
+        return;
+      }
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        e.preventDefault();
+        removeBlock(selected.sectionId, selected.blockId);
+      } else if (e.key === 'Escape') {
+        onSelect(null, null);
+      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'd') {
+        e.preventDefault();
+        duplicateBlock(selected.sectionId, selected.blockId);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selected, sections]);
 
   return (
     <div className="sb-canvas">
@@ -234,6 +294,9 @@ export default function Canvas({ sections, onChange, selected, onSelect, subdoma
                 <X size={12} />
               </button>
             )}
+            <button type="button" className="sb-icon-btn" title="Duplicate this section" onClick={() => duplicateSection(index)}>
+              <Copy size={13} />
+            </button>
             <button type="button" className="sb-icon-btn" title="Remove section" onClick={() => removeSection(section.id)}>
               <X size={14} />
             </button>
@@ -261,7 +324,17 @@ export default function Canvas({ sections, onChange, selected, onSelect, subdoma
                     <>
                       <button
                         type="button"
+                        className="sb-block-duplicate"
+                        title="Duplicate (Ctrl+D)"
+                        onPointerDown={(e) => e.stopPropagation()}
+                        onClick={(e) => { e.stopPropagation(); duplicateBlock(section.id, block.id); }}
+                      >
+                        <Copy size={11} />
+                      </button>
+                      <button
+                        type="button"
                         className="sb-block-remove"
+                        title="Delete (Del)"
                         onPointerDown={(e) => e.stopPropagation()}
                         onClick={(e) => { e.stopPropagation(); removeBlock(section.id, block.id); }}
                       >
@@ -282,15 +355,49 @@ export default function Canvas({ sections, onChange, selected, onSelect, subdoma
           />
         </div>
       ))}
-      <button type="button" className="gs-btn gs-btn-outline" onClick={addSection} style={{ margin: '16px auto', display: 'flex' }}>
-        <Plus size={15} /> Add section
+      <div style={{ display: 'flex', gap: 10, justifyContent: 'center', margin: '16px auto' }}>
+        <button type="button" className="gs-btn gs-btn-outline" onClick={addSection}>
+          <Plus size={15} /> Add blank section
+        </button>
+        <InsertPresetMenu onInsert={insertPresetSection} />
+      </div>
+    </div>
+  );
+}
+
+/** "Add a blank section" (above) starts from nothing; this starts from a
+ * finished, pre-laid-out section instead -- a hero, a features grid, an
+ * FAQ, etc. (see sectionPresets.js) -- so building a real page doesn't
+ * mean placing and positioning every single block by hand every time. */
+function InsertPresetMenu({ onInsert }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="sb-add-block-menu">
+      <button type="button" className="gs-btn gs-btn-sm" onClick={() => setOpen((o) => !o)}>
+        <Rows3 size={14} /> Insert ready-made section
       </button>
+      {open && (
+        <div className="sb-preset-dropdown">
+          {SECTION_PRESETS.map((preset) => (
+            <button key={preset.id} type="button" className="sb-preset-option" onClick={() => { onInsert(preset); setOpen(false); }}>
+              <strong>{preset.label}</strong>
+              <span>{preset.description}</span>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
 
 function AddBlockMenu({ onAdd, enabledModules }) {
   const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState('');
+
+  const q = query.trim().toLowerCase();
+  const entries = Object.entries(BLOCK_DEFS).filter(([, def]) => !q || def.label.toLowerCase().includes(q));
+  const byCategory = CATEGORY_ORDER.map((cat) => ({ cat, items: entries.filter(([, def]) => def.category === cat) })).filter((g) => g.items.length > 0);
+
   return (
     <div className="sb-add-block-menu">
       <button type="button" className="sb-icon-btn" onClick={() => setOpen((o) => !o)}>
@@ -298,20 +405,30 @@ function AddBlockMenu({ onAdd, enabledModules }) {
       </button>
       {open && (
         <div className="sb-add-block-dropdown">
-          {Object.entries(BLOCK_DEFS).map(([type, def]) => {
-            // Adding a gated block is still allowed (it just renders a
-            // "coming soon" placeholder on the live site until the module's
-            // on -- see blockDefs.js's comment) -- this is only here so that
-            // shows up BEFORE adding it, not as a surprise after picking it
-            // and opening the inspector (BlockInspector.js has the same note).
-            const locked = def.requiresModule && !enabledModules?.[def.requiresModule];
-            return (
-              <button key={type} type="button" onClick={() => { onAdd(type); setOpen(false); }} title={locked ? `Needs "${MODULE_LABELS[def.requiresModule] || def.requiresModule}" turned on in Features to go live` : undefined}>
-                {def.label}
-                {locked && <Lock size={11} style={{ marginLeft: 6, opacity: 0.6 }} />}
-              </button>
-            );
-          })}
+          <div className="sb-add-block-search">
+            <Search size={13} />
+            <input autoFocus placeholder="Search blocks…" value={query} onChange={(e) => setQuery(e.target.value)} />
+          </div>
+          {byCategory.length === 0 && <p style={{ fontSize: 12, color: 'var(--muted)', padding: '6px 10px' }}>No blocks match "{query}".</p>}
+          {byCategory.map(({ cat, items }) => (
+            <div key={cat}>
+              <div className="sb-add-block-category">{cat}</div>
+              {items.map(([type, def]) => {
+                // Adding a gated block is still allowed (it just renders a
+                // "coming soon" placeholder on the live site until the module's
+                // on -- see blockDefs.js's comment) -- this is only here so that
+                // shows up BEFORE adding it, not as a surprise after picking it
+                // and opening the inspector (BlockInspector.js has the same note).
+                const locked = def.requiresModule && !isModuleSatisfied(def.requiresModule, enabledModules);
+                return (
+                  <button key={type} type="button" onClick={() => { onAdd(type); setOpen(false); setQuery(''); }} title={locked ? `Needs "${moduleLabelFor(def.requiresModule)}" turned on in Features to go live` : undefined}>
+                    {def.label}
+                    {locked && <Lock size={11} style={{ marginLeft: 6, opacity: 0.6 }} />}
+                  </button>
+                );
+              })}
+            </div>
+          ))}
         </div>
       )}
     </div>

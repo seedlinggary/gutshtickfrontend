@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { ClipboardList, Plus, Trash2, FileText, BarChart3 } from 'lucide-react';
-import nonprofitApiRequest from '../nonprofitApi';
 import '../nonprofit.css';
 
-function NewFormForm({ businessId, onCreated, onCancel }) {
+function NewFormForm({ apiRequest, urlPrefix, formsSegment, businessId, onCreated, onCancel }) {
   const [slug, setSlug] = useState('');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -18,7 +17,7 @@ function NewFormForm({ businessId, onCreated, onCancel }) {
     }
     setSaving(true);
     setError('');
-    nonprofitApiRequest('POST', { slug: slug.trim(), title: title.trim(), description: description.trim() || null }, `/nonprofit/businesses/${businessId}/forms`)
+    apiRequest('POST', { slug: slug.trim(), title: title.trim(), description: description.trim() || null }, `${urlPrefix}/businesses/${businessId}/${formsSegment}`)
       .then(onCreated)
       .catch((err) => setError(typeof err === 'string' ? err : 'Could not create form.'))
       .finally(() => setSaving(false));
@@ -38,18 +37,27 @@ function NewFormForm({ businessId, onCreated, onCancel }) {
   );
 }
 
-export default function NonprofitFormsPage({ businessId, onOpenItem, onOpenResponses }) {
+/** `apiRequest`/`urlPrefix`/`formsSegment` let this same component (and
+ * its siblings NonprofitFormBuilderPage/NonprofitFormResponsesPage) serve
+ * two completely different auth contexts with zero duplicated UI:
+ * nonprofit staff (`nonprofitApiRequest`, '/nonprofit', 'forms' -- see
+ * NonprofitOwnerPanel.js) and any other business's own owner login
+ * (plain `apiRequest`, '/business', 'custom-forms' -- see
+ * site-builder/FormsPanel.js, backend/business/routes/site_forms.py).
+ * Defaults match the original nonprofit-only call sites so this is a
+ * backward-compatible prop addition, not a breaking change. */
+export default function NonprofitFormsPage({ apiRequest, urlPrefix = '/nonprofit', formsSegment = 'forms', businessId, onOpenItem, onOpenResponses }) {
   const [forms, setForms] = useState(null);
   const [formOpen, setFormOpen] = useState(false);
 
-  const load = () => nonprofitApiRequest('GET', null, `/nonprofit/businesses/${businessId}/forms`).then((d) => setForms(d.forms)).catch(() => setForms([]));
+  const load = () => apiRequest('GET', null, `${urlPrefix}/businesses/${businessId}/${formsSegment}`).then((d) => setForms(d.forms)).catch(() => setForms([]));
   useEffect(() => { load(); }, [businessId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const toggleOpen = (form) => nonprofitApiRequest('PATCH', { is_open: !form.is_open }, `/nonprofit/forms/${form.id}`).then(load);
+  const toggleOpen = (form) => apiRequest('PATCH', { is_open: !form.is_open }, `${urlPrefix}/${formsSegment}/${form.id}`).then(load);
 
   const remove = (form) => {
     if (!window.confirm(`Delete the form "${form.title}"? This also removes access to its responses.`)) return;
-    nonprofitApiRequest('DELETE', null, `/nonprofit/forms/${form.id}`).then(load);
+    apiRequest('DELETE', null, `${urlPrefix}/${formsSegment}/${form.id}`).then(load);
   };
 
   if (!forms) return <div className="gs-loading"><div className="gs-spinner" /></div>;
@@ -66,6 +74,9 @@ export default function NonprofitFormsPage({ businessId, onOpenItem, onOpenRespo
       {formOpen && (
         <div className="gs-card" style={{ marginBottom: 16 }}>
           <NewFormForm
+            apiRequest={apiRequest}
+            urlPrefix={urlPrefix}
+            formsSegment={formsSegment}
             businessId={businessId}
             onCreated={(form) => onOpenItem(form.id)}
             onCancel={() => setFormOpen(false)}

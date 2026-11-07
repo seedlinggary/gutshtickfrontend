@@ -34,7 +34,14 @@ async function fetchBusinessSiteMeta(subdomain, path) {
     const page = data.page || {};
     const title = page.seo_title || (page.title ? `${page.title} | ${data.name}` : data.name);
     if (!title) return null;
-    return { title, description: page.seo_description || '', image: page.seo_og_image || null };
+    return {
+      title, description: page.seo_description || '', image: page.seo_og_image || null,
+      // Built server-side (backend/business/routes/business_site_public.py's
+      // _structured_data) from the business's own real data -- never
+      // owner-authored, so there's nothing here to escape/sanitize beyond
+      // the standard </script>-breakout guard in injectBusinessSiteMeta.
+      structuredData: data.structured_data || null,
+    };
   } catch (_) {
     return null;
   }
@@ -42,6 +49,13 @@ async function fetchBusinessSiteMeta(subdomain, path) {
 
 function injectBusinessSiteMeta(html, meta, canonicalUrl) {
   if (!meta || !meta.title) return html;
+  const structuredDataJson = meta.structuredData
+    ? JSON.stringify({ ...meta.structuredData, url: meta.structuredData.url || canonicalUrl })
+      // Guards against a value that happens to contain "</script>" (e.g. an
+      // owner's "about" text) from breaking out of the script tag --
+      // standard JSON-in-<script> escaping, not specific to any field here.
+      .replace(/</g, '\\u003c')
+    : null;
   const headExtra = `
     <title>${escapeHtml(meta.title)}</title>
     ${meta.description ? `<meta name="description" content="${escapeHtml(meta.description)}" />` : ''}
@@ -51,6 +65,7 @@ function injectBusinessSiteMeta(html, meta, canonicalUrl) {
     ${meta.description ? `<meta property="og:description" content="${escapeHtml(meta.description)}" />` : ''}
     <meta property="og:url" content="${canonicalUrl}" />
     ${meta.image ? `<meta property="og:image" content="${escapeHtml(meta.image)}" />` : ''}
+    ${structuredDataJson ? `<script type="application/ld+json">${structuredDataJson}</script>` : ''}
 `;
   return html
     .replace(/<title>.*?<\/title>\s*/s, '')
