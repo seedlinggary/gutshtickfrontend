@@ -14,16 +14,22 @@ function TemplateSwatch({ themeKey }) {
   );
 }
 
-/** Lets an owner apply a starter template to their home page -- always
+/** Lets an owner apply a starter template -- a complete, multi-page site
+ * (Home plus, for most templates, About/Services/Contact), not just a
+ * home page -- instead of starting from a blank canvas. Always
  * available, not just on a brand-new site, since reaching for a fresh
- * layout later is a completely reasonable thing to want too. Applying
- * only ever writes a new DRAFT version (see site_templates.py's
- * apply_template) -- the live published page is untouched until the
- * owner opens the page and hits Publish themselves. */
+ * look later is completely reasonable too. Applying only ever writes
+ * new DRAFT versions (see site_templates.py's apply_template) -- every
+ * live published page is untouched until the owner opens it and hits
+ * Publish themselves. The color palette (and font pairing) can be
+ * changed afterward from Look & Feel without touching any of the
+ * template's layout -- every template's own text relies on theme color
+ * tokens rather than hardcoded colors, by design. */
 export default function TemplatesPanel({ businessId, onApplied }) {
   const [templates, setTemplates] = useState(null);
   const [applyingId, setApplyingId] = useState(null);
   const [appliedId, setAppliedId] = useState(null);
+  const [pagesCreated, setPagesCreated] = useState(null);
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -34,7 +40,7 @@ export default function TemplatesPanel({ businessId, onApplied }) {
   const apply = (templateId) => {
     setApplyingId(templateId);
     apiRequest('POST', { template_id: templateId }, `/business/businesses/${businessId}/site/apply-template`)
-      .then(() => { setAppliedId(templateId); onApplied?.(); })
+      .then((data) => { setAppliedId(templateId); setPagesCreated(data.pages_created); onApplied?.(); })
       .finally(() => setApplyingId(null));
   };
 
@@ -46,7 +52,7 @@ export default function TemplatesPanel({ businessId, onApplied }) {
           {open ? 'Hide' : 'Browse templates'}
         </button>
       </div>
-      {!open && <p style={{ color: 'var(--muted)', fontSize: 13, marginBottom: 0 }}>Start your home page from a ready-made layout instead of a blank canvas.</p>}
+      {!open && <p style={{ color: 'var(--muted)', fontSize: 13, marginBottom: 0 }}>Start your whole site -- home, about, services, contact -- from a ready-made layout instead of a blank canvas.</p>}
 
       {open && (
         !templates ? (
@@ -65,10 +71,13 @@ export default function TemplatesPanel({ businessId, onApplied }) {
                   className="gs-btn gs-btn-sm"
                   disabled={applyingId === t.id}
                   onClick={() => {
-                    if (window.confirm(`Apply "${t.name}"? This replaces your home page's DRAFT (your published page stays live until you publish again).`)) apply(t.id);
+                    const pageNote = t.extra_pages?.length
+                      ? ` This creates DRAFTS of ${1 + t.extra_pages.length} pages (Home${t.extra_pages.map((p) => `, ${p.title}`).join('')}).`
+                      : " This replaces your home page's DRAFT.";
+                    if (window.confirm(`Apply "${t.name}"?${pageNote} Every published page stays live until you publish again.`)) apply(t.id);
                   }}
                 >
-                  {appliedId === t.id ? <><Check size={13} /> Applied</> : applyingId === t.id ? 'Applying…' : 'Use this template'}
+                  {appliedId === t.id ? <><Check size={13} /> Applied{pagesCreated ? ` (${pagesCreated} pages)` : ''}</> : applyingId === t.id ? 'Applying…' : 'Use this template'}
                 </button>
               </div>
             ))}
