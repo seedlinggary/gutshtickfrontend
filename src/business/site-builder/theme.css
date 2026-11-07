@@ -89,6 +89,61 @@
 .sb-form-card-body { padding: 18px 20px 20px; }
 .sb-form-helper { margin: 2px 0 0; font-size: 12px; text-align: center; color: var(--sb-muted); }
 
+/* Plain bordered/shadowed card wrapper for an embedded form (donation,
+   membership, holiday seats, contact) -- every one of these used to
+   render as a bare, unframed flex column, with no card, intro text, or
+   structure at all; a real business's actual version of every one of
+   these is this exact card treatment. */
+.sb-form-plain-card {
+  background: var(--sb-surface); border: 1px solid var(--sb-border, #e5e1d6);
+  border-radius: 14px; padding: 24px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+}
+.sb-form-intro { margin: 0; color: var(--sb-muted); font-size: 14px; line-height: 1.6; }
+.sb-form-section-heading { margin: 0 0 10px; font-family: var(--sb-font-heading); color: var(--sb-heading-color, var(--sb-text)); font-size: 16px; font-weight: 600; }
+.sb-form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 480px) { .sb-form-grid-2 { grid-template-columns: 1fr; } }
+.sb-form-footer {
+  display: flex; align-items: center; justify-content: flex-end; gap: 16px;
+  border-top: 1px solid var(--sb-border, #e5e1d6); padding-top: 16px; margin-top: 4px;
+}
+.sb-form-footer-total { margin-right: auto; }
+.sb-form-footer-total .sb-form-total-label { margin: 0; font-size: 12px; color: var(--sb-muted); }
+.sb-form-footer-total .sb-form-total-value { margin: 2px 0 0; font-family: var(--sb-font-heading); font-size: 22px; color: var(--sb-heading-color, var(--sb-text)); }
+
+/* Small selectable "chip" -- a suggested donation amount, member/
+   non-member toggle, etc. */
+.sb-choice-chip {
+  border: 1px solid var(--sb-border, #e5e1d6); border-radius: 8px; padding: 8px 16px;
+  font-size: 13px; font-weight: 600; background: none; color: var(--sb-text); cursor: pointer;
+}
+.sb-choice-chip-active { border-color: var(--sb-primary); background: color-mix(in srgb, var(--sb-primary) 10%, transparent); color: var(--sb-primary); }
+
+/* Bigger selectable card -- a membership tier, a plan. */
+.sb-choice-card {
+  display: block; width: 100%; text-align: left; border: 1px solid var(--sb-border, #e5e1d6);
+  border-radius: 10px; padding: 14px 16px; background: none; cursor: pointer;
+}
+.sb-choice-card-active { border-color: var(--sb-primary); background: color-mix(in srgb, var(--sb-primary) 6%, transparent); }
+.sb-choice-card-title { margin: 0; font-family: var(--sb-font-heading); font-weight: 600; color: var(--sb-heading-color, var(--sb-text)); font-size: 15px; }
+.sb-choice-card-sub { margin: 2px 0 0; font-size: 13px; color: var(--sb-muted); }
+
+/* One holiday's own seat-signup card (title, description, per-seat
+   pricing, seat steppers). */
+.sb-seat-card { border: 1px solid var(--sb-border, #e5e1d6); border-radius: 10px; padding: 14px 16px; }
+.sb-seat-card-active { border-color: var(--sb-primary); background: color-mix(in srgb, var(--sb-primary) 5%, transparent); }
+.sb-seat-card h4 { margin: 0; font-family: var(--sb-font-heading); color: var(--sb-heading-color, var(--sb-text)); font-size: 15px; }
+.sb-seat-card-desc { margin: 4px 0 0; font-size: 13px; color: var(--sb-muted); }
+.sb-seat-card-prices { margin: 6px 0 0; display: flex; gap: 14px; font-size: 12px; color: var(--sb-muted); }
+.sb-seat-steppers { margin-top: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.sb-stepper-label { display: block; margin-bottom: 4px; font-size: 12px; font-weight: 600; color: var(--sb-text); }
+.sb-stepper-row { display: flex; align-items: center; gap: 8px; }
+.sb-stepper-btn {
+  display: flex; align-items: center; justify-content: center; width: 30px; height: 30px;
+  border: 1px solid var(--sb-border, #e5e1d6); border-radius: 7px; background: var(--sb-surface);
+  color: var(--sb-text); cursor: pointer; font-size: 15px; line-height: 1;
+}
+.sb-stepper-value { min-width: 28px; text-align: center; font-size: 14px; font-weight: 600; }
+
 /* Form style variants -- applied via a class on the form/field wrapper */
 .sb-form-underline .sb-input, .sb-form-underline .sb-textarea {
   border: none;

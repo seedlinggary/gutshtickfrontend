@@ -48,10 +48,16 @@ export default function ContactFormBlock({ content, editable, subdomain, theme }
   // embedded directly in a dark hero (not inside its own white card)
   // needs this explicitly set to stay legible.
   const headingColor = content.dark ? '#FFFFFF' : undefined;
+  // A real business's own contact form is a bordered/shadowed card (see
+  // DonationFormBlock's comment for the same comparison) -- on by
+  // default since every real example of this had one; content.noCard
+  // opts out for a page where the surrounding section already provides
+  // its own framing.
+  const cardClass = content.noCard ? '' : ' sb-form-plain-card';
 
   return (
-    <form onSubmit={submit} className={formClass} style={{ display: 'flex', flexDirection: 'column', gap: 10, height: '100%', overflow: 'auto' }}>
-      {content.heading && <h3 style={{ margin: 0, color: headingColor }}>{content.heading}</h3>}
+    <form onSubmit={submit} className={`${formClass}${cardClass}`} style={{ display: 'flex', flexDirection: 'column', gap: 16, height: '100%', overflow: 'auto', boxSizing: 'border-box' }}>
+      {content.heading && <h3 style={{ margin: 0, color: headingColor, fontFamily: 'var(--sb-font-heading)' }}>{content.heading}</h3>}
       <input className="sb-input" placeholder="Your name" required disabled={editable}
         value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
       <input className="sb-input" type="email" placeholder="Your email" required disabled={editable}
@@ -59,9 +65,11 @@ export default function ContactFormBlock({ content, editable, subdomain, theme }
       <textarea className="sb-textarea" placeholder="Message" required disabled={editable} rows={4}
         value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} />
       {error && <p style={{ color: 'var(--danger, #b42318)', fontSize: 12, margin: 0 }}>{error}</p>}
-      <button type="submit" className="sb-button" disabled={editable || state === 'sending'} style={{ alignSelf: 'flex-start' }}>
-        <Send size={14} /> {state === 'sending' ? 'Sending…' : 'Send'}
-      </button>
+      <div className="sb-form-footer">
+        <button type="submit" className="sb-button" disabled={editable || state === 'sending'}>
+          <Send size={14} /> {state === 'sending' ? 'Sending…' : 'Send'}
+        </button>
+      </div>
     </form>
   );
 }

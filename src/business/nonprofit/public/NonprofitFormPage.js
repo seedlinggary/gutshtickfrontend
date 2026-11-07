@@ -71,19 +71,21 @@ export default function NonprofitFormPage({ subdomain }) {
 
   return (
     <div className="sb-theme">
-      <div style={{ maxWidth: 560, margin: '0 auto', padding: 24 }}>
-        <h1>{form.title}</h1>
-        {form.description && <p style={{ color: 'var(--sb-muted, #8a7a68)' }}>{form.description}</p>}
-        <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <div style={{ maxWidth: 560, margin: '0 auto', padding: '32px 24px' }}>
+        <h1 style={{ marginBottom: form.description ? 8 : 20 }}>{form.title}</h1>
+        {form.description && <p className="sb-form-intro" style={{ marginBottom: 20 }}>{form.description}</p>}
+        <form onSubmit={submit} className="sb-form-plain-card" style={{ display: 'flex', flexDirection: 'column', gap: 16, boxSizing: 'border-box' }}>
           {visibleFields.map((field) => (
-            <div key={field.id} className="gs-field">
-              <div className="gs-label">{fieldLabel(field, answers)}{field.required && ' *'}</div>
+            <div key={field.id} className="gs-field" style={{ marginBottom: 0 }}>
+              <div className="gs-label" style={{ fontFamily: 'var(--sb-font-body)' }}>{fieldLabel(field, answers)}{field.required && ' *'}</div>
               {field.help_text && <p style={{ fontSize: 12, color: 'var(--sb-muted, #8a7a68)', margin: '0 0 6px' }}>{field.help_text}</p>}
               <FieldInput field={field} value={answers[String(field.id)]} onChange={(v) => setAnswers((a) => ({ ...a, [String(field.id)]: v }))} />
             </div>
           ))}
-          {error && <p style={{ color: 'var(--danger, #b42318)', fontSize: 13 }}>{error}</p>}
-          <button type="submit" className="sb-button" disabled={busy}>{busy ? 'Submitting…' : 'Submit'}</button>
+          {error && <p style={{ color: 'var(--danger, #b42318)', fontSize: 13, margin: 0 }}>{error}</p>}
+          <div className="sb-form-footer">
+            <button type="submit" className="sb-button" disabled={busy}>{busy ? 'Submitting…' : 'Submit'}</button>
+          </div>
         </form>
       </div>
       <SiteFooter subdomain={subdomain} />

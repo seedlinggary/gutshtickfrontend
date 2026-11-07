@@ -9,6 +9,9 @@ function formatCents(cents) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'ILS' }).format((cents || 0) / 100);
 }
 
+// Same card/chip/grid treatment as the embeddable MembershipFormBlock --
+// see NonprofitDonatePage.js's own comment for why this standalone page
+// needed the same fix independently.
 export default function NonprofitMembershipPage({ subdomain }) {
   const [prices, setPrices] = useState(null);
   const [tier, setTier] = useState('associate');
@@ -44,35 +47,42 @@ export default function NonprofitMembershipPage({ subdomain }) {
 
   return (
     <div className="sb-theme">
-      <div style={{ maxWidth: 480, margin: '0 auto', padding: 24 }}>
-        <h1 style={{ display: 'flex', alignItems: 'center', gap: 10 }}><Repeat size={24} /> Become a member</h1>
-        <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div className="gs-field">
-            <div className="gs-label">Membership tier</div>
-            <div style={{ display: 'flex', gap: 10 }}>
+      <div style={{ maxWidth: 560, margin: '0 auto', padding: '32px 24px' }}>
+        <h1 style={{ display: 'flex', alignItems: 'center', gap: 10, fontFamily: 'var(--sb-font-heading)', marginBottom: 20 }}>
+          <Repeat size={24} /> Become a member
+        </h1>
+        <form onSubmit={submit} className="sb-form-plain-card" style={{ display: 'flex', flexDirection: 'column', gap: 16, boxSizing: 'border-box' }}>
+          <div>
+            <div className="sb-form-section-heading">Choose Your Membership</div>
+            <div className="sb-form-grid-2">
               {['associate', 'full'].map((t) => (
-                <button key={t} type="button" className={`gs-btn gs-btn-sm${tier === t ? '' : ' gs-btn-outline'}`} onClick={() => setTier(t)} style={{ flex: 1 }}>
-                  {t === 'associate' ? 'Associate' : 'Full'} -- {formatCents(prices[t])}/mo
+                <button key={t} type="button" className={`sb-choice-card${tier === t ? ' sb-choice-card-active' : ''}`} onClick={() => setTier(t)}>
+                  <p className="sb-choice-card-title">{t === 'associate' ? 'Associate Member' : 'Full Member'}</p>
+                  <p className="sb-choice-card-sub">{formatCents(prices[t])} / month</p>
                 </button>
               ))}
             </div>
           </div>
-          <input className="sb-input" placeholder="Full name" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
-          <input className="sb-input" type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-          <input className="sb-input" placeholder="Phone (optional)" value={phone} onChange={(e) => setPhone(e.target.value)} />
-          <input className="sb-input" placeholder="Address (optional)" value={address} onChange={(e) => setAddress(e.target.value)} />
-          <input className="sb-input" placeholder="City (optional)" value={city} onChange={(e) => setCity(e.target.value)} />
+          <div className="sb-form-grid-2">
+            <input className="sb-input" placeholder="Full name *" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
+            <input className="sb-input" type="email" placeholder="Email *" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            <input className="sb-input" type="tel" placeholder="Phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
+            <input className="sb-input" placeholder="Address" value={address} onChange={(e) => setAddress(e.target.value)} />
+            <input className="sb-input" placeholder="City" value={city} onChange={(e) => setCity(e.target.value)} />
+          </div>
 
-          <p style={{ fontSize: 12, color: 'var(--sb-muted, #8a7a68)' }}>
+          <p className="sb-form-intro">
             This sets up a monthly standing order -- you'll continue to be charged {formatCents(prices[tier])} every month until you cancel.
           </p>
 
           <TurnstileWidget onToken={setCaptchaToken} />
-          {error && <p style={{ color: 'var(--danger, #b42318)', fontSize: 13 }}>{error}</p>}
+          {error && <p style={{ color: 'var(--danger, #b42318)', fontSize: 13, margin: 0 }}>{error}</p>}
 
-          <button type="submit" className="sb-button" disabled={busy || captchaToken === undefined}>
-            {busy ? 'Redirecting to payment…' : 'Set up membership'}
-          </button>
+          <div className="sb-form-footer">
+            <button type="submit" className="sb-button" disabled={busy || captchaToken === undefined}>
+              {busy ? 'Redirecting to payment…' : 'Continue to Payment'}
+            </button>
+          </div>
         </form>
       </div>
       <SiteFooter subdomain={subdomain} />

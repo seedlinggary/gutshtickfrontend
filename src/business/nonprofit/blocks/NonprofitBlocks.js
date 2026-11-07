@@ -32,6 +32,10 @@ export function DonationFormBlock({ content, editable, subdomain }) {
   const [customAmount, setCustomAmount] = useState('');
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [address, setAddress] = useState('');
+  const [city, setCity] = useState('');
+  const [purpose, setPurpose] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [captchaToken, setCaptchaToken] = useState(undefined);
@@ -43,40 +47,70 @@ export function DonationFormBlock({ content, editable, subdomain }) {
     if (editable) return;
     setBusy(true);
     setError('');
-    apiRequest('POST', { full_name: fullName, email, amount: finalAmount, captcha_token: captchaToken || undefined },
+    apiRequest('POST', { full_name: fullName, email, phone, address, city, purpose, amount: finalAmount, captcha_token: captchaToken || undefined },
       `/nonprofit/public/${subdomain}/donate`)
       .then((data) => { window.location.href = data.payment_url; })
       .catch((err) => { setError(typeof err === 'string' ? err : 'Could not start your donation -- try again.'); setBusy(false); });
   };
 
+  // Rebuilt against a real business's actual donation form -- a bare
+  // flex column of inputs (the only look this ever had) is a real
+  // regression from a real site's own version of this exact form: a
+  // bordered card, an intro line, amount picked via selectable chips
+  // (not the admin dashboard's own gs-btn styling -- those were never
+  // theme-aware, so they looked disconnected from the rest of the site
+  // regardless of which palette/fonts the owner picked), and the
+  // phone/address/city/purpose fields the backend already accepts and
+  // stores (NonprofitDonation has all four columns) but this block never
+  // actually collected.
   return (
-    <form onSubmit={submit} className="sb-theme" style={{ display: 'flex', flexDirection: 'column', gap: 10, height: '100%', overflow: 'auto', padding: 4 }}>
-      {content.heading && <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}><HandCoins size={18} /> {content.heading}</h3>}
-      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-        {SUGGESTED_AMOUNTS.map((a) => (
-          <button key={a} type="button" disabled={editable} className={`gs-btn gs-btn-sm${amount === a && !customAmount ? '' : ' gs-btn-outline'}`}
-            onClick={() => { setAmount(a); setCustomAmount(''); }}>
-            ₪{a}
-          </button>
-        ))}
+    <form onSubmit={submit} className="sb-theme sb-form-plain-card" style={{ display: 'flex', flexDirection: 'column', gap: 16, height: '100%', overflow: 'auto', boxSizing: 'border-box' }}>
+      {content.heading && <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'var(--sb-font-heading)' }}><HandCoins size={18} /> {content.heading}</h3>}
+      {content.intro && <p className="sb-form-intro">{content.intro}</p>}
+      <div>
+        <div className="sb-form-section-heading">Amount</div>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
+          {SUGGESTED_AMOUNTS.map((a) => (
+            <button key={a} type="button" disabled={editable} className={`sb-choice-chip${amount === a && !customAmount ? ' sb-choice-chip-active' : ''}`}
+              onClick={() => { setAmount(a); setCustomAmount(''); }}>
+              ₪{a}
+            </button>
+          ))}
+        </div>
+        <input className="sb-input" type="number" min="1" placeholder="Custom amount (₪)" value={customAmount} disabled={editable}
+          onChange={(e) => setCustomAmount(e.target.value)} />
       </div>
-      <input className="sb-input" type="number" min="1" placeholder="Custom amount (₪)" value={customAmount} disabled={editable}
-        onChange={(e) => setCustomAmount(e.target.value)} />
-      <input className="sb-input" placeholder="Full name" value={fullName} disabled={editable} required onChange={(e) => setFullName(e.target.value)} />
-      <input className="sb-input" type="email" placeholder="Email" value={email} disabled={editable} required onChange={(e) => setEmail(e.target.value)} />
+      <input className="sb-input" placeholder="In honor/memory of (optional)" value={purpose} disabled={editable} onChange={(e) => setPurpose(e.target.value)} />
+      <div className="sb-form-grid-2">
+        <input className="sb-input" placeholder="Full name *" value={fullName} disabled={editable} required onChange={(e) => setFullName(e.target.value)} />
+        <input className="sb-input" type="email" placeholder="Email *" value={email} disabled={editable} required onChange={(e) => setEmail(e.target.value)} />
+        <input className="sb-input" type="tel" placeholder="Phone" value={phone} disabled={editable} onChange={(e) => setPhone(e.target.value)} />
+        <input className="sb-input" placeholder="Address" value={address} disabled={editable} onChange={(e) => setAddress(e.target.value)} />
+        <input className="sb-input" placeholder="City" value={city} disabled={editable} onChange={(e) => setCity(e.target.value)} />
+      </div>
       {!editable && <TurnstileWidget onToken={setCaptchaToken} />}
       {error && <p style={{ color: 'var(--danger, #b42318)', fontSize: 12, margin: 0 }}>{error}</p>}
-      <button type="submit" className="sb-button" disabled={editable || busy || !finalAmount || captchaToken === undefined} style={{ alignSelf: 'flex-start' }}>
-        {busy ? 'Redirecting…' : `Donate ₪${finalAmount || 0}`}
-      </button>
+      <div className="sb-form-footer">
+        <button type="submit" className="sb-button" disabled={editable || busy || !finalAmount || captchaToken === undefined}>
+          {busy ? 'Redirecting…' : `Donate ₪${finalAmount || 0}`}
+        </button>
+      </div>
     </form>
   );
 }
+
+const DEFAULT_MEMBERSHIP_TIERS = [
+  { id: 'associate', label: 'Associate Member' },
+  { id: 'full', label: 'Full Member' },
+];
 
 export function MembershipFormBlock({ content, editable, subdomain }) {
   const [tier, setTier] = useState('associate');
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [address, setAddress] = useState('');
+  const [city, setCity] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [captchaToken, setCaptchaToken] = useState(undefined);
@@ -86,30 +120,51 @@ export function MembershipFormBlock({ content, editable, subdomain }) {
     if (editable) return;
     setBusy(true);
     setError('');
-    apiRequest('POST', { full_name: fullName, email, tier, captcha_token: captchaToken || undefined },
+    apiRequest('POST', { full_name: fullName, email, phone, address, city, tier, captcha_token: captchaToken || undefined },
       `/nonprofit/public/${subdomain}/membership`)
       .then((data) => { window.location.href = data.payment_url; })
       .catch((err) => { setError(typeof err === 'string' ? err : 'Could not start -- try again.'); setBusy(false); });
   };
 
+  // Tiers are picked from big labeled cards (content.tiers, with an
+  // optional sub-line the owner can use for a price note) instead of two
+  // tiny gs-btn pills with no price/description at all -- same
+  // real-business comparison as DonationFormBlock above. Actual pricing
+  // stays server-side (set in the owner's Membership settings, not
+  // exposed on this public form), so the sub-line is owner-authored text,
+  // never a fetched/guessed number.
+  const tiers = content.tiers?.length ? content.tiers : DEFAULT_MEMBERSHIP_TIERS;
+
   return (
-    <form onSubmit={submit} className="sb-theme" style={{ display: 'flex', flexDirection: 'column', gap: 10, height: '100%', overflow: 'auto', padding: 4 }}>
-      {content.heading && <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}><Repeat size={18} /> {content.heading}</h3>}
-      <div style={{ display: 'flex', gap: 8 }}>
-        {['associate', 'full'].map((t) => (
-          <button key={t} type="button" disabled={editable} className={`gs-btn gs-btn-sm${tier === t ? '' : ' gs-btn-outline'}`} style={{ flex: 1 }}
-            onClick={() => setTier(t)}>
-            {t === 'associate' ? 'Associate' : 'Full'}
-          </button>
-        ))}
+    <form onSubmit={submit} className="sb-theme sb-form-plain-card" style={{ display: 'flex', flexDirection: 'column', gap: 16, height: '100%', overflow: 'auto', boxSizing: 'border-box' }}>
+      {content.heading && <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'var(--sb-font-heading)' }}><Repeat size={18} /> {content.heading}</h3>}
+      {content.intro && <p className="sb-form-intro">{content.intro}</p>}
+      <div>
+        <div className="sb-form-section-heading">Choose Your Membership</div>
+        <div className="sb-form-grid-2">
+          {tiers.map((t) => (
+            <button key={t.id} type="button" disabled={editable} className={`sb-choice-card${tier === t.id ? ' sb-choice-card-active' : ''}`}
+              onClick={() => setTier(t.id)}>
+              <p className="sb-choice-card-title">{t.label}</p>
+              {t.sub && <p className="sb-choice-card-sub">{t.sub}</p>}
+            </button>
+          ))}
+        </div>
       </div>
-      <input className="sb-input" placeholder="Full name" value={fullName} disabled={editable} required onChange={(e) => setFullName(e.target.value)} />
-      <input className="sb-input" type="email" placeholder="Email" value={email} disabled={editable} required onChange={(e) => setEmail(e.target.value)} />
+      <div className="sb-form-grid-2">
+        <input className="sb-input" placeholder="Full name *" value={fullName} disabled={editable} required onChange={(e) => setFullName(e.target.value)} />
+        <input className="sb-input" type="email" placeholder="Email *" value={email} disabled={editable} required onChange={(e) => setEmail(e.target.value)} />
+        <input className="sb-input" type="tel" placeholder="Phone" value={phone} disabled={editable} onChange={(e) => setPhone(e.target.value)} />
+        <input className="sb-input" placeholder="Address" value={address} disabled={editable} onChange={(e) => setAddress(e.target.value)} />
+        <input className="sb-input" placeholder="City" value={city} disabled={editable} onChange={(e) => setCity(e.target.value)} />
+      </div>
       {!editable && <TurnstileWidget onToken={setCaptchaToken} />}
       {error && <p style={{ color: 'var(--danger, #b42318)', fontSize: 12, margin: 0 }}>{error}</p>}
-      <button type="submit" className="sb-button" disabled={editable || busy || captchaToken === undefined} style={{ alignSelf: 'flex-start' }}>
-        {busy ? 'Redirecting…' : 'Set up membership'}
-      </button>
+      <div className="sb-form-footer">
+        <button type="submit" className="sb-button" disabled={editable || busy || captchaToken === undefined}>
+          {busy ? 'Redirecting…' : 'Continue to Payment'}
+        </button>
+      </div>
     </form>
   );
 }
@@ -117,9 +172,11 @@ export function MembershipFormBlock({ content, editable, subdomain }) {
 export function HolidaySeatsFormBlock({ content, editable, subdomain }) {
   const [holidays, setHolidays] = useState(editable ? [] : null);
   const [seats, setSeats] = useState({});
-  const [isMember, setIsMember] = useState(false);
+  const [isMember, setIsMember] = useState(null);
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
+  const [notes, setNotes] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [captchaToken, setCaptchaToken] = useState(undefined);
@@ -138,7 +195,7 @@ export function HolidaySeatsFormBlock({ content, editable, subdomain }) {
   };
 
   const { items, totalCents } = useMemo(() => {
-    if (!holidays) return { items: [], totalCents: 0 };
+    if (!holidays || isMember === null) return { items: [], totalCents: 0 };
     let total = 0;
     const list = [];
     for (const h of holidays) {
@@ -156,7 +213,7 @@ export function HolidaySeatsFormBlock({ content, editable, subdomain }) {
     if (editable) return;
     setBusy(true);
     setError('');
-    apiRequest('POST', { full_name: fullName, phone, is_member: isMember, items, captcha_token: captchaToken || undefined },
+    apiRequest('POST', { full_name: fullName, phone, email, is_member: isMember, notes, items, captcha_token: captchaToken || undefined },
       `/nonprofit/public/${subdomain}/holiday-seats`)
       .then((data) => { window.location.href = data.payment_url; })
       .catch((err) => { setError(typeof err === 'string' ? err : 'Could not start checkout -- try again.'); setBusy(false); });
@@ -164,58 +221,96 @@ export function HolidaySeatsFormBlock({ content, editable, subdomain }) {
 
   if (editable) {
     return (
-      <div className="sb-theme" style={{ height: '100%', overflow: 'auto', padding: 4 }}>
-        {content.heading && <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}><CalendarDays size={18} /> {content.heading}</h3>}
+      <div className="sb-theme sb-form-plain-card" style={{ height: '100%', overflow: 'auto', boxSizing: 'border-box' }}>
+        {content.heading && <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'var(--sb-font-heading)' }}><CalendarDays size={18} /> {content.heading}</h3>}
         <p style={{ fontSize: 12, color: 'var(--sb-muted, #8a7a68)' }}>Visitors will pick open holidays and seat counts here.</p>
       </div>
     );
   }
   if (holidays === null) return <div className="gs-loading" style={{ height: '100%' }}><div className="gs-spinner" /></div>;
 
+  // Rebuilt against a real business's actual seat-signup form: each
+  // holiday gets its own card (title, description, BOTH member/non-
+  // member prices shown together, and a labeled stepper per seat type)
+  // instead of a bare strong/div with no card, no description, and only
+  // whichever single price matched the current member toggle -- plus the
+  // email/notes fields the backend (NonprofitBill) already stores but
+  // this block never collected.
   return (
-    <div className="sb-theme" style={{ height: '100%', overflow: 'auto', padding: 4 }}>
-      {content.heading && <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}><CalendarDays size={18} /> {content.heading}</h3>}
-      {holidays.length === 0 && <p className="gs-empty">No holidays are open right now.</p>}
-      <label style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 8, margin: '8px 0' }}>
-        <input type="checkbox" checked={isMember} onChange={(e) => setIsMember(e.target.checked)} /> I am a member
-      </label>
-      {holidays.map((h) => {
-        const s = seats[h.id] || { men: 0, women: 0 };
-        const price = isMember ? h.member_price_cents : h.non_member_price_cents;
-        return (
-          <div key={h.id} style={{ borderBottom: '1px solid var(--sb-border, #e5e1d6)', padding: '8px 0' }}>
-            <strong style={{ fontSize: 14 }}>{h.name_en}</strong>
-            <div style={{ fontSize: 12, color: 'var(--sb-muted, #8a7a68)' }}>{formatCents(price)} per seat</div>
-            <div style={{ display: 'flex', gap: 16, marginTop: 6 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ fontSize: 12 }}>Men</span>
-                <button type="button" className="sb-icon-btn" onClick={() => setCount(h.id, 'men', -1)}><Minus size={11} /></button>
-                <span>{s.men}</span>
-                <button type="button" className="sb-icon-btn" onClick={() => setCount(h.id, 'men', 1)}><Plus size={11} /></button>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ fontSize: 12 }}>Women</span>
-                <button type="button" className="sb-icon-btn" onClick={() => setCount(h.id, 'women', -1)}><Minus size={11} /></button>
-                <span>{s.women}</span>
-                <button type="button" className="sb-icon-btn" onClick={() => setCount(h.id, 'women', 1)}><Plus size={11} /></button>
-              </div>
+    <div className="sb-theme sb-form-plain-card" style={{ height: '100%', overflow: 'auto', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {content.heading && <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'var(--sb-font-heading)' }}><CalendarDays size={18} /> {content.heading}</h3>}
+      {content.intro && <p className="sb-form-intro">{content.intro}</p>}
+      {holidays.length === 0 ? (
+        <p className="gs-empty">No holidays are open right now.</p>
+      ) : (
+        <>
+          <div>
+            <div className="sb-form-section-heading">Membership Status</div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button type="button" className={`sb-choice-chip${isMember === true ? ' sb-choice-chip-active' : ''}`} onClick={() => setIsMember(true)}>Member</button>
+              <button type="button" className={`sb-choice-chip${isMember === false ? ' sb-choice-chip-active' : ''}`} onClick={() => setIsMember(false)}>Non-Member</button>
             </div>
           </div>
-        );
-      })}
-      {items.length > 0 && (
-        <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 10 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600, fontSize: 13 }}>
-            <span>Total</span><span>{formatCents(totalCents)}</span>
+          <div>
+            <div className="sb-form-section-heading">Choose Your Seats</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {holidays.map((h) => {
+                const s = seats[h.id] || { men: 0, women: 0 };
+                const hasSeats = s.men + s.women > 0;
+                return (
+                  <div key={h.id} className={`sb-seat-card${hasSeats ? ' sb-seat-card-active' : ''}`}>
+                    <h4>{h.name_en}</h4>
+                    {h.description_en && <p className="sb-seat-card-desc">{h.description_en}</p>}
+                    <div className="sb-seat-card-prices">
+                      <span>{formatCents(h.member_price_cents)} / seat (member)</span>
+                      <span>{formatCents(h.non_member_price_cents)} / seat (non-member)</span>
+                    </div>
+                    <div className="sb-seat-steppers">
+                      <div>
+                        <span className="sb-stepper-label">Men's Seats</span>
+                        <div className="sb-stepper-row">
+                          <button type="button" className="sb-stepper-btn" onClick={() => setCount(h.id, 'men', -1)}><Minus size={13} /></button>
+                          <span className="sb-stepper-value">{s.men}</span>
+                          <button type="button" className="sb-stepper-btn" onClick={() => setCount(h.id, 'men', 1)}><Plus size={13} /></button>
+                        </div>
+                      </div>
+                      <div>
+                        <span className="sb-stepper-label">Women's Seats</span>
+                        <div className="sb-stepper-row">
+                          <button type="button" className="sb-stepper-btn" onClick={() => setCount(h.id, 'women', -1)}><Minus size={13} /></button>
+                          <span className="sb-stepper-value">{s.women}</span>
+                          <button type="button" className="sb-stepper-btn" onClick={() => setCount(h.id, 'women', 1)}><Plus size={13} /></button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
-          <input className="sb-input" placeholder="Full name" value={fullName} required onChange={(e) => setFullName(e.target.value)} />
-          <input className="sb-input" placeholder="Phone" value={phone} required onChange={(e) => setPhone(e.target.value)} />
-          <TurnstileWidget onToken={setCaptchaToken} />
-          {error && <p style={{ color: 'var(--danger, #b42318)', fontSize: 12, margin: 0 }}>{error}</p>}
-          <button type="submit" className="sb-button" disabled={busy || captchaToken === undefined} style={{ alignSelf: 'flex-start' }}>
-            {busy ? 'Redirecting…' : `Pay ${formatCents(totalCents)}`}
-          </button>
-        </form>
+          {items.length > 0 && (
+            <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div className="sb-form-section-heading">Your Details</div>
+              <div className="sb-form-grid-2">
+                <input className="sb-input" placeholder="Full name *" value={fullName} required onChange={(e) => setFullName(e.target.value)} />
+                <input className="sb-input" type="tel" placeholder="Phone *" value={phone} required onChange={(e) => setPhone(e.target.value)} />
+              </div>
+              <input className="sb-input" type="email" placeholder="Email (optional)" value={email} onChange={(e) => setEmail(e.target.value)} />
+              <textarea className="sb-textarea" rows={2} placeholder="Notes (optional)" value={notes} onChange={(e) => setNotes(e.target.value)} />
+              {!editable && <TurnstileWidget onToken={setCaptchaToken} />}
+              {error && <p style={{ color: 'var(--danger, #b42318)', fontSize: 12, margin: 0 }}>{error}</p>}
+              <div className="sb-form-footer">
+                <div className="sb-form-footer-total">
+                  <p className="sb-form-total-label">Total Due</p>
+                  <p className="sb-form-total-value">{formatCents(totalCents)}</p>
+                </div>
+                <button type="submit" className="sb-button" disabled={busy || captchaToken === undefined}>
+                  {busy ? 'Redirecting…' : 'Continue to Payment'}
+                </button>
+              </div>
+            </form>
+          )}
+        </>
       )}
     </div>
   );
@@ -303,9 +398,11 @@ export function DynamicFormBlock({ content, editable, subdomain, theme }) {
         </div>
       ))}
       {error && <p style={{ color: 'var(--danger, #b42318)', fontSize: 12, margin: 0 }}>{error}</p>}
-      <button type="submit" className="sb-button" disabled={busy} style={{ alignSelf: content.fullWidthButton ? 'stretch' : 'flex-start' }}>
-        {busy ? 'Submitting…' : (content.submitText || 'Submit')}
-      </button>
+      <div className="sb-form-footer" style={{ justifyContent: content.fullWidthButton ? 'stretch' : 'flex-end', borderTop: content.cardHeader ? '1px solid var(--sb-border, #e5e1d6)' : 'none', paddingTop: content.cardHeader ? 16 : 0 }}>
+        <button type="submit" className="sb-button" disabled={busy} style={{ width: content.fullWidthButton ? '100%' : undefined }}>
+          {busy ? 'Submitting…' : (content.submitText || 'Submit')}
+        </button>
+      </div>
       {content.helperText && <p className="sb-form-helper">{content.helperText}</p>}
     </>
   );
@@ -334,7 +431,7 @@ export function DynamicFormBlock({ content, editable, subdomain, theme }) {
   }
 
   return (
-    <form onSubmit={submit} className={`sb-theme ${formClass}`} style={{ display: 'flex', flexDirection: 'column', gap: 10, height: '100%', overflow: 'auto', padding: 4 }}>
+    <form onSubmit={submit} className={`sb-theme ${formClass}${content.noCard ? '' : ' sb-form-plain-card'}`} style={{ display: 'flex', flexDirection: 'column', gap: 16, height: '100%', overflow: 'auto', boxSizing: 'border-box' }}>
       <h3 style={{ margin: 0, fontFamily: 'var(--sb-font-heading)' }}>{form.title}</h3>
       {fieldsMarkup}
     </form>

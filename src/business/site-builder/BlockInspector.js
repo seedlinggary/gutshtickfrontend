@@ -325,6 +325,10 @@ export default function BlockInspector({ businessId, block, onChange, onClose })
             <option value="underline">Underline</option>
             <option value="soft">Soft</option>
           </select>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, margin: '10px 0 0' }}>
+            <input type="checkbox" checked={!!block.content.noCard} onChange={(e) => updateContent({ noCard: e.target.checked })} />
+            No card background (use when the section around it already provides one)
+          </label>
           <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 6 }}>
             Messages are sent to you as a notification and (if you have an email on file) an email -- there's nothing else to configure.
           </p>
@@ -366,12 +370,31 @@ export default function BlockInspector({ businessId, block, onChange, onClose })
       {(block.type === 'donation_form' || block.type === 'membership_form' || block.type === 'holiday_seats_form') && (
         <div className="gs-field">
           <div className="gs-label">Heading</div>
-          <input className="gs-input" value={block.content.heading || ''} onChange={(e) => updateContent({ heading: e.target.value })} />
+          <input className="gs-input" value={block.content.heading || ''} onChange={(e) => updateContent({ heading: e.target.value })} style={{ marginBottom: 10 }} />
+          <div className="gs-label">Intro text (optional)</div>
+          <textarea className="gs-input" rows={2} value={block.content.intro || ''} onChange={(e) => updateContent({ intro: e.target.value })}
+            placeholder="A line above the form explaining what it's for." />
           <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 6 }}>
             {block.type === 'donation_form' && 'A full donation form -- amount, name, email -- that sends the visitor to your payment processor on submit.'}
             {block.type === 'membership_form' && "A full membership signup form -- tier, name, email -- that sets up a monthly standing order on submit."}
             {block.type === 'holiday_seats_form' && 'Lets visitors pick open holidays, seat counts, and pay for them, same as your dedicated holiday-seats page.'}
           </p>
+          {block.type === 'membership_form' && (
+            <>
+              <div className="gs-label" style={{ marginTop: 10 }}>Membership tiers shown (optional — defaults to Associate/Full)</div>
+              <ItemListEditor
+                items={block.content.tiers}
+                onChange={(tiers) => updateContent({ tiers })}
+                blank={{ id: '', label: '', sub: '' }}
+                addLabel="Add tier"
+                fields={[
+                  { key: 'id', label: 'ID (must be "associate" or "full")', placeholder: 'associate' },
+                  { key: 'label', label: 'Label', placeholder: 'Associate Member' },
+                  { key: 'sub', label: 'Price note (optional)', placeholder: '₪100 / month' },
+                ]}
+              />
+            </>
+          )}
         </div>
       )}
 
@@ -379,10 +402,16 @@ export default function BlockInspector({ businessId, block, onChange, onClose })
         <div className="gs-field">
           <div className="gs-label">Form</div>
           <FormPicker businessId={businessId} value={block.content.formSlug} onChange={(formSlug) => updateContent({ formSlug })} />
-          <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, margin: '12px 0' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, margin: '12px 0 6px' }}>
             <input type="checkbox" checked={!!block.content.cardHeader} onChange={(e) => updateContent({ cardHeader: e.target.checked })} />
             Card with a colored header strip (eyebrow + title + subtitle) above the fields
           </label>
+          {!block.content.cardHeader && (
+            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, marginBottom: 12 }}>
+              <input type="checkbox" checked={!!block.content.noCard} onChange={(e) => updateContent({ noCard: e.target.checked })} />
+              No card background (use when the section around it already provides one)
+            </label>
+          )}
           {block.content.cardHeader && (
             <>
               <div className="gs-label">Header eyebrow (optional)</div>
