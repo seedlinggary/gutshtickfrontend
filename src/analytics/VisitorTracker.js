@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { getCurrentSite } from '../siteMode';
+import { getCurrentSite, getCurrentBusinessSiteSubdomain } from '../siteMode';
 
 const API = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
 const LOCAL_HOSTNAMES = ['localhost', '127.0.0.1', '0.0.0.0'];
@@ -53,6 +53,11 @@ export default function VisitorTracker() {
     // missing/expired token never breaks the beacon.
     const token = localStorage.getItem('cookie');
     const anonId = getOrCreateAnonId();
+    const siteId = getCurrentSite()?.id || 'main';
+    // Every storefront shares the generic 'business-site' id -- the
+    // subdomain is what lets the backend tell one owner's traffic apart
+    // from another's (see visitor.py's beacon()).
+    const subdomain = siteId === 'business-site' ? getCurrentBusinessSiteSubdomain() : null;
 
     fetch(`${API}/analytics/beacon`, {
       method: 'POST',
@@ -63,7 +68,8 @@ export default function VisitorTracker() {
       body: JSON.stringify({
         anon_id: anonId,
         path: location.pathname,
-        site: getCurrentSite()?.id || 'main',
+        site: siteId,
+        ...(subdomain ? { subdomain } : {}),
       }),
     }).catch(() => {
       // Analytics must never break the app -- swallow network errors silently.
