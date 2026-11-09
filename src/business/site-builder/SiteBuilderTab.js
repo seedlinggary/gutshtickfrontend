@@ -1,8 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { Globe, Plus, Pencil, Trash2, Settings as SettingsIcon, Mail, Users, Link2, Check, X as XIcon, Copy } from 'lucide-react';
+import {
+  Globe, Settings as SettingsIcon, Users, Link2, Check, X as XIcon, Copy,
+  FileText, Palette, LayoutTemplate, Sliders, CreditCard, ShoppingBag,
+  CalendarDays, Receipt, ClipboardList, HeartHandshake,
+} from 'lucide-react';
 import apiRequest from '../../ApiRequest';
 import NonprofitOwnerPanel from '../nonprofit/NonprofitOwnerPanel';
-import PageEditor from './PageEditor';
+import WebsitePagesPanel from './WebsitePagesPanel';
+import SiteAiAssistant from './SiteAiAssistant';
 import PaymentsPanel from './PaymentsPanel';
 import ProductsPanel from './ProductsPanel';
 import BookingsPanel from './BookingsPanel';
@@ -11,7 +16,6 @@ import InvoicesPanel from './InvoicesPanel';
 import FormsPanel from './FormsPanel';
 import ThemePanel from './ThemePanel';
 import TemplatesPanel from './TemplatesPanel';
-import { BLOCK_DEFS, newBlockId } from './blocks/blockDefs';
 import './site-builder.css';
 
 function SubdomainEditor({ site, onSave, saving }) {
@@ -176,102 +180,47 @@ function CommunitySharingToggles({ site, onToggle, saving }) {
   );
 }
 
-function NewPageForm({ businessId, onCreated, onCancel }) {
-  const [title, setTitle] = useState('');
-  const [slug, setSlug] = useState('');
-  const [isHome, setIsHome] = useState(false);
-  const [error, setError] = useState('');
-  const [saving, setSaving] = useState(false);
+// Every section this workspace can show -- `module` gates visibility on
+// site.enabled_modules[module] (same flags the old always-stacked panels
+// already checked); no `module` means always visible. Order here is the
+// tab order. 'pages' is deliberately first/default -- it's the thing an
+// owner actually does day to day, unlike Settings/Features which are
+// occasional setup.
+const SECTIONS = [
+  { key: 'pages', label: 'Pages', Icon: FileText },
+  { key: 'theme', label: 'Theme', Icon: Palette },
+  { key: 'templates', label: 'Templates', Icon: LayoutTemplate },
+  { key: 'settings', label: 'Settings', Icon: SettingsIcon },
+  { key: 'features', label: 'Features', Icon: Sliders },
+  { key: 'payments', label: 'Payments', Icon: CreditCard },
+  { key: 'products', label: 'Products', Icon: ShoppingBag, module: 'products' },
+  { key: 'bookings', label: 'Bookings', Icon: CalendarDays, module: 'bookings' },
+  { key: 'crm', label: 'CRM', Icon: Users, module: 'crm' },
+  { key: 'invoices', label: 'Invoices', Icon: Receipt, module: 'invoices' },
+  { key: 'forms', label: 'Forms', Icon: ClipboardList, module: 'custom_forms' },
+  { key: 'nonprofit', label: 'Nonprofit', Icon: HeartHandshake, module: 'nonprofit' },
+];
 
-  const slugify = (s) => s.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-+|-+$)/g, '');
-
-  const submit = (e) => {
-    e.preventDefault();
-    setSaving(true);
-    setError('');
-    apiRequest('POST', { title, slug: slug ? slugify(slug) : slugify(title), is_home: isHome }, `/business/businesses/${businessId}/site-pages`)
-      .then(onCreated)
-      .catch((err) => setError(typeof err === 'string' ? err : 'Could not create page.'))
-      .finally(() => setSaving(false));
-  };
-
-  return (
-    <form onSubmit={submit} className="sb-new-page-form">
-      {error && <p style={{ color: 'var(--danger, #b42318)', fontSize: 13 }}>{error}</p>}
-      <input className="gs-input" placeholder="Page title (e.g. About Us)" value={title} onChange={(e) => setTitle(e.target.value)} required />
-      <input className="gs-input" placeholder="URL slug (optional, e.g. about)" value={slug} onChange={(e) => setSlug(e.target.value)} />
-      <label style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}>
-        <input type="checkbox" checked={isHome} onChange={(e) => setIsHome(e.target.checked)} /> Make this the home page
-      </label>
-      <div style={{ display: 'flex', gap: 8 }}>
-        <button type="submit" className="gs-btn gs-btn-sm" disabled={saving || !title.trim()}>Create</button>
-        <button type="button" className="gs-btn gs-btn-outline gs-btn-sm" onClick={onCancel}>Cancel</button>
-      </div>
-    </form>
-  );
-}
-
-const slugify = (s) => s.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-+|-+$)/g, '');
-
-/** Inline rename of a page's title/slug -- PATCH /site-pages/:id (new;
- * there was previously no way to change a slug at all, ever, after
- * creating the page). Same component shape as NewPageForm above, just
- * pre-filled and PATCHing instead of POSTing. */
-function PageRenameForm({ page, onSaved, onCancel }) {
-  const [title, setTitle] = useState(page.title);
-  const [slug, setSlug] = useState(page.slug);
-  const [error, setError] = useState('');
-  const [saving, setSaving] = useState(false);
-
-  const submit = (e) => {
-    e.preventDefault();
-    const cleanTitle = title.trim();
-    const cleanSlug = slugify(slug);
-    if (!cleanTitle || !cleanSlug) { setError('Title and slug are both required.'); return; }
-    setSaving(true);
-    setError('');
-    apiRequest('PATCH', { title: cleanTitle, slug: cleanSlug }, `/business/site-pages/${page.id}`)
-      .then(onSaved)
-      .catch((err) => setError(typeof err === 'string' ? err : 'Could not save.'))
-      .finally(() => setSaving(false));
-  };
-
-  return (
-    <form onSubmit={submit} className="sb-new-page-form">
-      {error && <p style={{ color: 'var(--danger, #b42318)', fontSize: 13 }}>{error}</p>}
-      <input className="gs-input" placeholder="Page title" value={title} onChange={(e) => setTitle(e.target.value)} required />
-      <input className="gs-input" placeholder="URL slug" value={slug} onChange={(e) => setSlug(e.target.value)} required />
-      <div style={{ display: 'flex', gap: 8 }}>
-        <button type="submit" className="gs-btn gs-btn-sm" disabled={saving}>Save</button>
-        <button type="button" className="gs-btn gs-btn-outline gs-btn-sm" onClick={onCancel}>Cancel</button>
-      </div>
-    </form>
-  );
-}
-
-/** Mounted as BusinessOwnerTools.js's 'site' tab. Settles into one of three
- * states: loading, the settings+pages list, or (while editingPageId is
- * set) the full-bleed PageEditor -- kept as local state here rather than a
- * route so the rest of BusinessOwnerTools' tab chrome (sidebar, header)
- * doesn't have to account for a page editor wanting the whole content
- * area to itself. */
+/** Mounted as BusinessOwnerTools.js's 'site' tab. A small row of section
+ * tabs (the owner's own suggestion for organizing what used to be one
+ * long scroll of always-stacked panels) replaces the old single page;
+ * the AI assistant floats over all of them (SiteAiAssistant.js), since it
+ * can touch multiple pages/the theme at once and isn't tied to any one
+ * section. */
 export default function SiteBuilderTab({ businessId }) {
   const [site, setSite] = useState(null);
   const [pages, setPages] = useState(null);
   const [modules, setModules] = useState({});
   const [error, setError] = useState('');
   const [savingSite, setSavingSite] = useState(false);
-  const [editingPageId, setEditingPageId] = useState(null);
-  const [newPageOpen, setNewPageOpen] = useState(false);
-  const [renamingPageId, setRenamingPageId] = useState(null);
-  // Separate from `error` above -- that one gates the WHOLE tab (used
-  // only for "couldn't load the site at all"), so a recoverable, in-
-  // place failure like a failed page delete must not reuse it, or the
-  // entire Pages list would vanish behind a full-page error box over a
-  // single failed delete.
-  const [pagesError, setPagesError] = useState('');
+  const [activeSection, setActiveSection] = useState('pages');
 
-  const loadPages = () => apiRequest('GET', null, `/business/businesses/${businessId}/site-pages`).then((d) => setPages(d.pages)).catch(() => setPages([]));
+  // The one, shared list of pages -- WebsitePagesPanel (create/duplicate/
+  // delete/rename) and SiteAiAssistant (needs every page's id/slug/title
+  // to know what it can touch) both read it from here instead of each
+  // keeping their own fetch, which would otherwise drift out of sync the
+  // moment one of them changes a page the other doesn't know about yet.
+  const loadPages = () => apiRequest('GET', null, `/business/businesses/${businessId}/site-pages`).then((d) => setPages(d.pages || [])).catch(() => setPages([]));
 
   useEffect(() => {
     apiRequest('GET', null, `/business/businesses/${businessId}/site`).then(setSite).catch(() => setError('Could not load your site.'));
@@ -279,19 +228,8 @@ export default function SiteBuilderTab({ businessId }) {
     apiRequest('GET', null, '/business/site-modules').then((d) => setModules(d.modules)).catch(() => {});
   }, [businessId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (editingPageId) {
-    return (
-      <PageEditor
-        businessId={businessId}
-        pageId={editingPageId}
-        subdomain={site?.subdomain}
-        onClose={() => { setEditingPageId(null); loadPages(); }}
-      />
-    );
-  }
-
   if (error) return <div className="gs-error-box">{error}</div>;
-  if (!site || !pages) return <div className="gs-loading"><div className="gs-spinner" /></div>;
+  if (!site) return <div className="gs-loading"><div className="gs-spinner" /></div>;
 
   const patchSite = (patch) => {
     setSavingSite(true);
@@ -301,235 +239,81 @@ export default function SiteBuilderTab({ businessId }) {
       .finally(() => setSavingSite(false));
   };
 
-  const hasContactPage = pages.some((p) => p.slug === 'contact');
-
-  // A pre-populated page, not just a bare "form" block type sitting
-  // unused in the palette -- this is what "make sure each website has
-  // the option to create a contact page" means concretely: one click
-  // instead of a blank page + manually adding/placing the block.
-  const addContactPage = () => {
-    apiRequest('POST', { title: 'Contact', slug: 'contact', is_home: false }, `/business/businesses/${businessId}/site-pages`)
-      .then((p) => {
-        const formDef = BLOCK_DEFS.form;
-        const sections = [{
-          id: newBlockId('section'),
-          background: { type: 'color', value: 'transparent' },
-          padding: { top: 32, bottom: 32 },
-          blocks: [{
-            id: newBlockId('block'), type: 'form',
-            x: 30, y: 10, w: formDef.defaultSize.w, h: formDef.defaultSize.h,
-            z: 0, content: { ...formDef.defaultContent }, mobileLayout: null,
-          }],
-        }];
-        return apiRequest('PUT', { sections }, `/business/site-pages/${p.id}/draft`).then(() => p);
-      })
-      .then((p) => { loadPages(); setEditingPageId(p.id); })
-      .catch((err) => setError(typeof err === 'string' ? err : 'Could not create the contact page.'));
-  };
-
-  // Building a new page from an existing one's layout -- instead of
-  // starting blank every time -- used to mean reading the source page in
-  // another tab and manually re-placing every block. Composes 3 calls
-  // this file already makes elsewhere (load a page's draft, create a
-  // page, save its draft) -- no new backend endpoint needed. Always
-  // creates a (non-home) page with a unique "<title> Copy[ N]" slug; the
-  // new page starts unpublished regardless of the source's own status, so
-  // duplicating a live page never silently publishes a second copy of it.
-  const duplicatePage = (page) => {
-    setPagesError('');
-    apiRequest('GET', null, `/business/site-pages/${page.id}/draft`)
-      .then(({ sections }) => {
-        const existingSlugs = new Set(pages.map((p) => p.slug));
-        let candidate = `${page.slug}-copy`;
-        let i = 2;
-        while (existingSlugs.has(candidate)) { candidate = `${page.slug}-copy-${i}`; i += 1; }
-        return apiRequest('POST', { title: `${page.title} Copy`, slug: candidate, is_home: false }, `/business/businesses/${businessId}/site-pages`)
-          .then((created) => apiRequest('PUT', { sections }, `/business/site-pages/${created.id}/draft`).then(() => created));
-      })
-      .then((created) => { loadPages(); setEditingPageId(created.id); })
-      .catch((err) => setPagesError(typeof err === 'string' ? err : 'Could not duplicate that page.'));
-  };
-
-  // Creating a page doesn't put it in the nav automatically (nav_links is
-  // its own deliberately-manual list -- an owner may want a page reachable
-  // only by direct link, e.g. a landing page for one ad campaign) -- but
-  // forgetting that extra step is also the single most common "why can't
-  // visitors find my new page" cause. One click here does the same
-  // patchSite({nav_links}) call ChromeInspector's own editor uses.
-  const pagePath = (page) => (page.is_home ? '/' : `/${page.slug}`);
-  const isInNav = (page) => (site.nav_links || []).some((l) => l.path === pagePath(page));
-  const toggleNav = (page) => {
-    const links = site.nav_links || [];
-    const path = pagePath(page);
-    const next = isInNav(page) ? links.filter((l) => l.path !== path) : [...links, { label: page.title, path }];
-    patchSite({ nav_links: next });
-  };
+  const visibleSections = SECTIONS.filter((s) => !s.module || site.enabled_modules?.[s.module]);
+  const activeKey = visibleSections.some((s) => s.key === activeSection) ? activeSection : 'pages';
 
   return (
     <div className="sb-tab">
-      <div className="gs-card" style={{ marginBottom: 20 }}>
-        <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 0 }}><Globe size={18} /> Your site</h3>
-        <SubdomainEditor site={site} saving={savingSite} onSave={(subdomain) => patchSite({ subdomain })} />
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 14 }}>
-          <span style={{ fontSize: 13 }}>Site is <strong>{site.status === 'published' ? 'live' : 'in draft'}</strong></span>
-          <button type="button" className="gs-btn gs-btn-outline gs-btn-sm" disabled={savingSite}
-            onClick={() => patchSite({ status: site.status === 'published' ? 'draft' : 'published' })}>
-            {site.status === 'published' ? 'Take offline' : 'Go live'}
+      <div className="sb-section-tabs">
+        {visibleSections.map(({ key, label, Icon }) => (
+          <button
+            key={key}
+            type="button"
+            className={`sb-section-tab${key === activeKey ? ' active' : ''}`}
+            onClick={() => setActiveSection(key)}
+          >
+            <Icon size={14} /> {label}
           </button>
-        </div>
-        <CommunitySharingToggles site={site} saving={savingSite} onToggle={patchSite} />
-        <DomainPanel businessId={businessId} site={site} onSiteUpdate={setSite} />
+        ))}
       </div>
 
-      <div style={{ marginBottom: 20 }}>
-        <TemplatesPanel businessId={businessId} onApplied={loadPages} />
-      </div>
+      {activeKey === 'pages' && pages && (
+        <WebsitePagesPanel
+          businessId={businessId}
+          subdomain={site.subdomain}
+          site={site}
+          pages={pages}
+          onPagesChanged={loadPages}
+          onNavChange={(nav_links) => patchSite({ nav_links })}
+        />
+      )}
 
-      <div style={{ marginBottom: 20 }}>
-        <ThemePanel businessId={businessId} site={site} onSiteUpdate={setSite} />
-      </div>
+      {activeKey === 'theme' && <ThemePanel businessId={businessId} site={site} onSiteUpdate={setSite} />}
 
-      <div style={{ marginBottom: 20 }}>
-        <PaymentsPanel businessId={businessId} />
-      </div>
+      {activeKey === 'templates' && <TemplatesPanel businessId={businessId} onApplied={loadPages} />}
 
-      <div className="gs-card" style={{ marginBottom: 20 }}>
-        <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 0 }}><SettingsIcon size={18} /> Features</h3>
-        <div className="sb-module-grid">
-          {Object.entries(modules).map(([key, cfg]) => (
-            <label key={key} className="sb-module-toggle">
-              <input type="checkbox" checked={!!site.enabled_modules[key]} disabled={savingSite}
-                onChange={(e) => patchSite({ enabled_modules: { [key]: e.target.checked } })} />
-              {cfg.label}
-            </label>
-          ))}
-        </div>
-      </div>
-
-      {site.enabled_modules.nonprofit && (
-        <div style={{ marginBottom: 20 }}>
-          <h3 style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Users size={18} /> Nonprofit back office</h3>
-          <NonprofitOwnerPanel businessId={businessId} />
+      {activeKey === 'settings' && (
+        <div className="gs-card">
+          <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 0 }}><Globe size={18} /> Your site</h3>
+          <SubdomainEditor site={site} saving={savingSite} onSave={(subdomain) => patchSite({ subdomain })} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 14 }}>
+            <span style={{ fontSize: 13 }}>Site is <strong>{site.status === 'published' ? 'live' : 'in draft'}</strong></span>
+            <button type="button" className="gs-btn gs-btn-outline gs-btn-sm" disabled={savingSite}
+              onClick={() => patchSite({ status: site.status === 'published' ? 'draft' : 'published' })}>
+              {site.status === 'published' ? 'Take offline' : 'Go live'}
+            </button>
+          </div>
+          <CommunitySharingToggles site={site} saving={savingSite} onToggle={patchSite} />
+          <DomainPanel businessId={businessId} site={site} onSiteUpdate={setSite} />
         </div>
       )}
 
-      {site.enabled_modules.products && (
-        <div style={{ marginBottom: 20 }}>
-          <ProductsPanel businessId={businessId} />
+      {activeKey === 'features' && (
+        <div className="gs-card">
+          <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 0 }}><Sliders size={18} /> Features</h3>
+          <div className="sb-module-grid">
+            {Object.entries(modules).map(([key, cfg]) => (
+              <label key={key} className="sb-module-toggle">
+                <input type="checkbox" checked={!!site.enabled_modules[key]} disabled={savingSite}
+                  onChange={(e) => patchSite({ enabled_modules: { [key]: e.target.checked } })} />
+                {cfg.label}
+              </label>
+            ))}
+          </div>
         </div>
       )}
 
-      {site.enabled_modules.bookings && (
-        <div style={{ marginBottom: 20 }}>
-          <BookingsPanel businessId={businessId} />
-        </div>
+      {activeKey === 'payments' && <PaymentsPanel businessId={businessId} />}
+      {activeKey === 'products' && <ProductsPanel businessId={businessId} />}
+      {activeKey === 'bookings' && <BookingsPanel businessId={businessId} />}
+      {activeKey === 'crm' && <CrmPanel businessId={businessId} />}
+      {activeKey === 'invoices' && <InvoicesPanel businessId={businessId} />}
+      {activeKey === 'forms' && <FormsPanel businessId={businessId} />}
+      {activeKey === 'nonprofit' && <NonprofitOwnerPanel businessId={businessId} />}
+
+      {pages && (
+        <SiteAiAssistant businessId={businessId} pages={pages} theme={site.theme} onThemeChange={(theme) => patchSite({ theme })} />
       )}
-
-      {site.enabled_modules.crm && (
-        <div style={{ marginBottom: 20 }}>
-          <CrmPanel businessId={businessId} />
-        </div>
-      )}
-
-      {site.enabled_modules.invoices && (
-        <div style={{ marginBottom: 20 }}>
-          <InvoicesPanel businessId={businessId} />
-        </div>
-      )}
-
-      {site.enabled_modules.custom_forms && (
-        <div style={{ marginBottom: 20 }}>
-          <FormsPanel businessId={businessId} />
-        </div>
-      )}
-
-      <div className="gs-card">
-        {pagesError && <p style={{ color: 'var(--danger, #b42318)', fontSize: 13 }}>{pagesError}</p>}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h3 style={{ margin: 0 }}>Pages</h3>
-          {!newPageOpen && (
-            <div style={{ display: 'flex', gap: 8 }}>
-              {!hasContactPage && (
-                <button type="button" className="gs-btn gs-btn-outline gs-btn-sm" onClick={addContactPage}>
-                  <Mail size={14} /> Add contact page
-                </button>
-              )}
-              <button type="button" className="gs-btn gs-btn-sm" onClick={() => setNewPageOpen(true)}><Plus size={14} /> New page</button>
-            </div>
-          )}
-        </div>
-
-        {newPageOpen && (
-          <NewPageForm
-            businessId={businessId}
-            onCreated={(p) => { setNewPageOpen(false); loadPages(); setEditingPageId(p.id); }}
-            onCancel={() => setNewPageOpen(false)}
-          />
-        )}
-
-        <div className="admin-list" style={{ marginTop: 12 }}>
-          {pages.length === 0 && !newPageOpen && <p className="gs-empty">No pages yet -- add your home page to get started.</p>}
-          {pages.map((p) => (
-            <div key={p.id} className="admin-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-              {renamingPageId === p.id ? (
-                <PageRenameForm
-                  page={p}
-                  onSaved={() => { setRenamingPageId(null); loadPages(); }}
-                  onCancel={() => setRenamingPageId(null)}
-                />
-              ) : (
-              <>
-              <div>
-                <strong>{p.title}</strong>{' '}
-                {p.is_home && <span className="admin-badge approved">Home</span>}
-                <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 4 }}>
-                  /{p.slug} · {p.status === 'published' ? (p.has_draft_changes ? 'Published (unsaved changes)' : 'Published') : 'Draft'}
-                </div>
-              </div>
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-                {/* Not shown for Home -- it's always reachable (it IS the
-                    site), so toggling it into/out of nav_links would be
-                    meaningless. */}
-                {!p.is_home && (
-                  <button type="button" className={`gs-btn gs-btn-sm ${isInNav(p) ? '' : 'gs-btn-outline'}`}
-                    title={isInNav(p) ? 'Remove from your site\'s navigation menu' : 'Add to your site\'s navigation menu'}
-                    onClick={() => toggleNav(p)}>
-                    {isInNav(p) ? 'In menu' : '+ Add to menu'}
-                  </button>
-                )}
-                <button type="button" className="gs-btn gs-btn-outline gs-btn-sm" onClick={() => setEditingPageId(p.id)}>
-                  <Pencil size={13} /> Edit
-                </button>
-                <button type="button" className="gs-btn gs-btn-outline gs-btn-sm" onClick={() => setRenamingPageId(p.id)}>
-                  Rename
-                </button>
-                <button type="button" className="sb-icon-btn" title="Duplicate this page" onClick={() => duplicatePage(p)}>
-                  <Copy size={13} />
-                </button>
-                <button
-                  type="button"
-                  className="sb-icon-btn"
-                  title="Delete"
-                  onClick={() => {
-                    const warning = p.is_home
-                      ? `"${p.title}" is your Home page -- deleting it leaves your site with no home page until you set another one. This can't be undone.`
-                      : `Delete "${p.title}"? This can't be undone.`;
-                    if (!window.confirm(warning)) return;
-                    setPagesError('');
-                    apiRequest('DELETE', null, `/business/site-pages/${p.id}`)
-                      .then(loadPages)
-                      .catch((err) => setPagesError(typeof err === 'string' ? err : 'Could not delete that page -- try again.'));
-                  }}
-                >
-                  <Trash2 size={14} />
-                </button>
-              </div>
-              </>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }

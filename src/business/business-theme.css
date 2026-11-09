@@ -1613,6 +1613,25 @@
 .biz-page.biz-owner-tools { max-width: 1400px; }
 .biz-owner-tools-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
 .biz-owner-tools-view-link { font-size: 13px; }
+.biz-sidebar-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+}
+.biz-sidebar-toggle:hover { color: var(--text); background: var(--surface-deep); }
+/* The groups list (Website/Performance/Grow/...) is a per-device
+   convenience to hide, not something that should ever cost real layout
+   width when the owner doesn't want it -- display:none on the sidebar
+   itself, so .biz-owner-tools-content's flex:1 just takes the freed
+   space with no other change needed. */
+.biz-sidebar-hidden .biz-owner-tools-sidebar { display: none; }
 
 .biz-owner-tools-layout {
   display: flex;

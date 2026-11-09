@@ -5,7 +5,115 @@
    (--accent/--border/--muted/--surface), so it just reads those rather
    than redefining a palette of its own. */
 
-.sb-tab { display: flex; flex-direction: column; gap: 0; }
+.sb-tab { display: flex; flex-direction: column; gap: 18px; position: relative; }
+
+/* ── Section tabs (Pages / Theme / Templates / Settings / ...) ─────── */
+.sb-section-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 2px;
+}
+.sb-section-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 6px 6px 0 0;
+  cursor: pointer;
+}
+.sb-section-tab:hover { background: var(--surface-deep); color: var(--text); }
+.sb-section-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* ── Page tabs (one per page, + to add, × to delete) ────────────────── */
+.sb-pages-tab { display: flex; flex-direction: column; gap: 12px; }
+.sb-page-tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+.sb-page-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+}
+.sb-page-tab.active { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--surface)); }
+.sb-page-tab-badge {
+  margin-left: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+}
+.sb-page-tab-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  color: var(--muted);
+  opacity: 0;
+  transition: opacity 0.1s;
+}
+.sb-page-tab:hover .sb-page-tab-close,
+.sb-page-tab:focus-within .sb-page-tab-close { opacity: 1; }
+.sb-page-tab-close:hover { background: var(--border); color: var(--danger, #b42318); }
+.sb-page-tab-add {
+  color: var(--muted);
+  justify-content: center;
+}
+.sb-page-tab-add:hover { color: var(--accent); border-color: var(--accent); }
+
+.sb-page-actions-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.sb-page-status-note { font-size: 12px; color: var(--muted); margin-left: auto; }
+
+/* ── Floating site-wide AI assistant (SiteAiAssistant.js) ───────────── */
+.sb-ai-float { position: fixed; right: 24px; bottom: 24px; z-index: 50; }
+.sb-ai-float-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22);
+}
+.sb-ai-float-btn:hover { opacity: 0.92; }
+.sb-ai-float-panel {
+  position: absolute;
+  right: 0;
+  bottom: 64px;
+  width: 320px;
+  max-width: calc(100vw - 48px);
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.18);
+}
+.sb-ai-float-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.sb-ai-float-hint { font-size: 12px; color: var(--muted); margin: 0 0 10px; }
+@media (max-width: 600px) {
+  .sb-ai-float { right: 14px; bottom: 14px; }
+  .sb-ai-float-panel { right: -10px; }
+}
 
 .sb-module-grid {
   display: grid;

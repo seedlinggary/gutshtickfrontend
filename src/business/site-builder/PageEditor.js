@@ -1,12 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, Save, UploadCloud, EyeOff, Monitor, Pencil, Check, X, Search, Undo2, Redo2 } from 'lucide-react';
+import { Save, UploadCloud, EyeOff, Monitor, Pencil, Check, X, Search, Undo2, Redo2 } from 'lucide-react';
 import apiRequest from '../../ApiRequest';
 import Canvas from './Canvas';
 import BlockInspector from './BlockInspector';
 import ChromeInspector from './ChromeInspector';
 import SeoInspector from './SeoInspector';
 import { NavPreview, FooterPreview } from './ChromePreview';
-import AiAssistantPanel from './AiAssistantPanel';
 import DevicePreviewModal from './DevicePreviewModal';
 import useHistoryState from './useHistoryState';
 import { themeToCssVars, DEFAULT_THEME } from './theme';
@@ -60,7 +59,7 @@ function PageRenameControl({ page, onRenamed }) {
   );
 }
 
-export default function PageEditor({ businessId, pageId, subdomain, onClose }) {
+export default function PageEditor({ businessId, pageId, subdomain }) {
   const [page, setPage] = useState(null);
   const [sections, setSections, sectionsHistory] = useHistoryState([]);
   const [selected, setSelected] = useState({ sectionId: null, blockId: null });
@@ -178,7 +177,6 @@ export default function PageEditor({ businessId, pageId, subdomain, onClose }) {
   return (
     <div className="sb-editor">
       <div className="sb-editor-toolbar">
-        <button type="button" className="gs-btn gs-btn-outline gs-btn-sm" onClick={onClose}><ArrowLeft size={14} /> Back to pages</button>
         <PageRenameControl page={page} onRenamed={setPage} />
         <div style={{ display: 'flex', gap: 2, marginLeft: 10 }}>
           <button type="button" className="sb-icon-btn" title="Undo (Ctrl+Z)" disabled={!sectionsHistory.canUndo} onClick={sectionsHistory.undo}><Undo2 size={15} /></button>
@@ -207,13 +205,6 @@ export default function PageEditor({ businessId, pageId, subdomain, onClose }) {
       </div>
 
       {error && <div className="gs-error-box">{error}</div>}
-
-      <AiAssistantPanel
-        sections={sections}
-        onSectionsChange={setSections}
-        theme={effectiveTheme}
-        onThemeChange={(newTheme) => patchSite({ theme: newTheme })}
-      />
 
       <div className={`sb-editor-body${(selectedBlock || chromeSelected) ? ' sb-body-inspector-open' : ''}`}>
         <div className="sb-editor-canvas-wrap sb-theme" style={themeToCssVars(effectiveTheme)}>

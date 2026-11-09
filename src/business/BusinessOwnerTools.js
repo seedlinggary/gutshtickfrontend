@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import {
   LineChart, TrendingUp, Megaphone, Printer, Rocket, Inbox, HelpCircle,
   Ticket, Gem, Gift, PartyPopper, Wrench, ArrowRight, Pencil, Clock,
-  Check, Circle, Star, Briefcase, Tag, CheckCircle2, Globe,
+  Check, Circle, Star, Briefcase, Tag, CheckCircle2, Globe, Menu,
 } from 'lucide-react';
 import apiRequest from '../ApiRequest';
 import { isSuperAdmin } from '../auth';
@@ -547,6 +547,23 @@ export default function BusinessOwnerTools() {
       return 'insights';
     }
   });
+  // Purely a per-device UI convenience (more room for the content pane on
+  // a smaller screen, or just a preference) -- localStorage, not server
+  // state, same reasoning every other UI-only toggle in this app uses it.
+  const [sidebarHidden, setSidebarHidden] = useState(() => {
+    try {
+      return localStorage.getItem('biz_tools_sidebar_hidden') === 'true';
+    } catch (_) {
+      return false;
+    }
+  });
+  const toggleSidebar = () => {
+    setSidebarHidden((cur) => {
+      const next = !cur;
+      try { localStorage.setItem('biz_tools_sidebar_hidden', String(next)); } catch (_) { /* ignore */ }
+      return next;
+    });
+  };
 
   useEffect(() => {
     apiRequest('GET', null, `/business/businesses/${idOrSlug}`).then(setBusiness).catch(setError);
@@ -575,14 +592,19 @@ export default function BusinessOwnerTools() {
   return (
     <div className="biz-page biz-owner-tools">
       <div className="biz-owner-tools-header">
-        <h1 className="biz-page-title" style={{ display: 'flex', alignItems: 'center', gap: 10 }}><Wrench size={26} /> {business.name}</h1>
+        <h1 className="biz-page-title" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <button type="button" className="biz-sidebar-toggle" title={sidebarHidden ? 'Show menu' : 'Hide menu'} onClick={toggleSidebar}>
+            <Menu size={18} />
+          </button>
+          <Wrench size={26} /> {business.name}
+        </h1>
         <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
           <Link to={`/business/${business.slug}/edit`} className="biz-owner-tools-view-link" style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><Pencil size={13} /> Edit business info</Link>
           <Link to={`/business/${business.slug}`} className="biz-owner-tools-view-link" style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>View public profile <ArrowRight size={13} /></Link>
         </div>
       </div>
 
-      <div className="biz-owner-tools-layout">
+      <div className={`biz-owner-tools-layout${sidebarHidden ? ' biz-sidebar-hidden' : ''}`}>
         <nav className="biz-owner-tools-sidebar">
           {groups.map((group) => (
             <div key={group.key} className="biz-owner-tools-group">
