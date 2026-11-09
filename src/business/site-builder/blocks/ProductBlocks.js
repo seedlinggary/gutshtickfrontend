@@ -148,9 +148,9 @@ export function ProductDetailBody({ content, subdomain, businessId, editable }) 
   if (!product) return <div className="gs-loading" style={{ height: '100%' }}><div className="gs-spinner" /></div>;
 
   return (
-    <div style={{ display: 'flex', gap: 16, width: '100%', height: '100%', overflow: 'auto' }}>
-      {product.images?.[0] && <img src={product.images[0]} alt={product.name} style={{ width: '45%', objectFit: 'cover', borderRadius: 10 }} />}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 10 }}>
+    <div className="sb-product-detail">
+      {product.images?.[0] && <img src={product.images[0]} alt={product.name} className="sb-product-detail-image" />}
+      <div className="sb-product-detail-body">
         <h2 style={{ margin: 0 }}>{product.name}</h2>
         <PriceDisplay product={product} size={18} />
         {product.description && <p style={{ color: 'var(--muted)' }}>{product.description}</p>}
