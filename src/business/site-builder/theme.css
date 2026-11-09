@@ -225,6 +225,48 @@
 .sb-navbar-minimal { justify-content: center; }
 .sb-navbar-minimal .sb-navbar-links { display: none; }
 
+/* Mobile hamburger collapse -- shared by every nav style except "minimal"
+   (which already hides its links entirely, nothing to collapse). Below
+   this, every navStyle/.sb-navbar-links combination previously had
+   nowhere to go but wrap inline next to the brand/cart/CTA, which fell
+   apart with anything past 2-3 links (confirmed live on real storefronts --
+   see BusinessSiteNavbar.js). The toggle button is hidden above the
+   breakpoint so desktop is completely unaffected. */
+.sb-navbar-toggle {
+  display: none;
+  align-items: center;
+  background: none;
+  border: none;
+  padding: 4px;
+  color: var(--sb-text, #2B2118);
+  cursor: pointer;
+}
+@media (max-width: 720px) {
+  .sb-navbar-toggle { display: inline-flex; order: 4; margin-left: auto; }
+  .sb-navbar-brand { order: 1; }
+  .sb-navbar-cart { order: 2; }
+  .sb-navbar-cta { order: 3; margin-left: 0; }
+  .sb-navbar:not(.sb-navbar-minimal) .sb-navbar-links {
+    display: none;
+    order: 10;
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--sb-border, #E3D5C0);
+  }
+  .sb-navbar-links.sb-navbar-links-open { display: flex; }
+}
+
+/* DevicePreviewModal.js's "Mobile" preview forces this collapsed look
+   unconditionally (its narrow frame is a styled div, not a real narrow
+   viewport, so the @media rule above never fires in there) -- these two
+   classes are its own, never applied by the real public navbar. */
+.sb-navbar-links.sb-navbar-links-collapsed { display: none; }
+.sb-navbar-toggle.sb-navbar-toggle-static { display: inline-flex; }
+
 /* Sidebar nav style -- a fixed vertical rail instead of a top bar. Only
    the body offset is conditional (sb-layout-with-sidebar); the sidebar
    itself collapses back to a normal top bar under the same breakpoint
@@ -316,6 +358,22 @@ body.sb-layout-with-sidebar .main-content { padding-left: 220px; }
   margin: 2px 0 2px 14px;
   padding: 0;
   background: none;
+}
+
+/* Once the links list above is a full-width collapsed menu, a flyout
+   dropdown positioned absolute/top:100% would float off to one side
+   instead of nesting under its parent link -- lay it out inline like the
+   sidebar style already does. Declared after the base .sb-navbar-dropdown
+   rule above (same specificity either way) so this wins on mobile. */
+@media (max-width: 720px) {
+  .sb-navbar-dropdown {
+    position: static;
+    box-shadow: none;
+    border: none;
+    margin: 4px 0 0 14px;
+    padding: 0;
+    background: none;
+  }
 }
 
 /* ── Footer ───────────────────────────────────────────────────────────── */

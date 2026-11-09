@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { ShoppingCart, ChevronDown, Phone } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
+import { ShoppingCart, ChevronDown, Phone, Menu, X } from 'lucide-react';
 import { getCurrentBusinessSiteSubdomain } from '../../siteMode';
 import { cartItemCount, subscribeCart } from './cart';
 import useSiteChrome from './useSiteChrome';
@@ -52,17 +52,31 @@ function NavItem({ link, isOpen, onToggle }) {
  */
 export default function BusinessSiteNavbar() {
   const subdomain = getCurrentBusinessSiteSubdomain();
+  const location = useLocation();
   const chrome = useSiteChrome(subdomain);
   const [count, setCount] = useState(() => (subdomain ? cartItemCount(subdomain) : 0));
   // Touch-fallback open state for dropdown submenus -- index into navLinks,
   // or null. Desktop/mouse never touches this (CSS :hover handles it for
   // free); only used when a touch device taps a dropdown's chevron.
   const [openDropdown, setOpenDropdown] = useState(null);
+  // Below the sb-navbar's own 720px breakpoint, the links list is a
+  // collapsed hamburger menu instead of inline links -- real businesses
+  // (Altmax, KTY) hit this live: with no collapse at all, every nav style
+  // but "minimal" just let the links wrap next to the brand/cart/CTA on a
+  // phone, which reflowed into an unreadable mess once there were more
+  // than 2-3 of them. See theme.css's matching @media (max-width: 720px)
+  // block for the actual collapse/reveal rules.
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
     if (!subdomain) return undefined;
     return subscribeCart(() => setCount(cartItemCount(subdomain)));
   }, [subdomain]);
+
+  // Closes the mobile menu on every navigation -- without this, clicking a
+  // link inside the open menu would leave it open over the new page (the
+  // nav itself never unmounts between routes).
+  useEffect(() => { setMobileOpen(false); }, [location.pathname]);
 
   const theme = { ...DEFAULT_THEME, ...(chrome?.theme || {}) };
 
@@ -78,7 +92,19 @@ export default function BusinessSiteNavbar() {
   const navLinks = chrome?.nav_links || [];
   const isSplit = theme.navStyle === 'split';
   const navClass = `sb-navbar sb-navbar-${theme.navStyle}${theme.navStyle === 'side' ? ' sb-navbar-side' : ''}${theme.navUppercase ? ' sb-navbar-uppercase' : ''}`;
-  const toggle = (i) => setOpenDropdown((cur) => (cur === i ? null : i));
+  const toggleDropdown = (i) => setOpenDropdown((cur) => (cur === i ? null : i));
+  const linksClass = `sb-navbar-links${mobileOpen ? ' sb-navbar-links-open' : ''}`;
+  const mobileToggle = theme.navStyle !== 'minimal' && navLinks.length > 0 && (
+    <button
+      type="button"
+      className="sb-navbar-toggle"
+      aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+      aria-expanded={mobileOpen}
+      onClick={() => setMobileOpen((o) => !o)}
+    >
+      {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+    </button>
+  );
 
   const brand = <Link to="/" className="sb-navbar-brand">{chrome?.name || 'Loading…'}</Link>;
   const cart = count > 0 && (
@@ -115,13 +141,14 @@ export default function BusinessSiteNavbar() {
       <>
         {announcement}
         <nav className={navClass}>
-          <ul className="sb-navbar-links sb-navbar-links-left">
-            {left.map((link, i) => <NavItem key={i} link={link} isOpen={openDropdown === i} onToggle={() => toggle(i)} />)}
+          <ul className={`${linksClass} sb-navbar-links-left`}>
+            {left.map((link, i) => <NavItem key={i} link={link} isOpen={openDropdown === i} onToggle={() => toggleDropdown(i)} />)}
           </ul>
           {brand}
-          <ul className="sb-navbar-links sb-navbar-links-right">
-            {right.map((link, i) => <NavItem key={mid + i} link={link} isOpen={openDropdown === mid + i} onToggle={() => toggle(mid + i)} />)}
+          <ul className={`${linksClass} sb-navbar-links-right`}>
+            {right.map((link, i) => <NavItem key={mid + i} link={link} isOpen={openDropdown === mid + i} onToggle={() => toggleDropdown(mid + i)} />)}
           </ul>
+          {mobileToggle}
           {cart}
           {navCta}
         </nav>
@@ -134,9 +161,10 @@ export default function BusinessSiteNavbar() {
       {announcement}
       <nav className={navClass}>
         {brand}
+        {mobileToggle}
         {theme.navStyle !== 'minimal' && (
-          <ul className="sb-navbar-links">
-            {navLinks.map((link, i) => <NavItem key={i} link={link} isOpen={openDropdown === i} onToggle={() => toggle(i)} />)}
+          <ul className={linksClass}>
+            {navLinks.map((link, i) => <NavItem key={i} link={link} isOpen={openDropdown === i} onToggle={() => toggleDropdown(i)} />)}
           </ul>
         )}
         {cart}

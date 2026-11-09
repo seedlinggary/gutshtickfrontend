@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { X, Monitor, Smartphone, ChevronDown } from 'lucide-react';
+import { X, Monitor, Smartphone, ChevronDown, Menu } from 'lucide-react';
 import PublicSiteRenderer from './PublicSiteRenderer';
 import { themeToCssVars } from './theme';
 import './theme.css';
@@ -44,23 +44,39 @@ function PreviewNavItem({ link }) {
  * needs its own render straight from the props PageEditor.js already has
  * in state. Markup/classes match the real ones exactly so this looks like
  * what a visitor will actually see. */
-function PreviewNavbar({ theme, navLinks, businessName }) {
+function PreviewNavbar({ theme, navLinks, businessName, mode }) {
   const links = navLinks || [];
   const isSplit = theme.navStyle === 'split';
   const navClass = `sb-navbar sb-navbar-${theme.navStyle}${theme.navStyle === 'side' ? ' sb-navbar-side' : ''}`;
   const brand = <span className="sb-navbar-brand">{businessName || 'Your Business'}</span>;
+  // theme.css's collapse rule is a real @media (max-width: 720px) query,
+  // which never fires in here -- this modal is rendered inside a normal
+  // desktop-width browser tab and only narrows a styled wrapper div, it
+  // doesn't actually shrink the viewport (see PublicSiteRenderer's own
+  // `mode` prop for the identical reason/fix on the page content itself).
+  // So the mobile tree is rendered explicitly here instead of relying on
+  // that breakpoint, closed by default since that's what a visitor sees
+  // first -- this is a static stand-in, not the interactive real navbar.
+  const mobile = mode === 'mobile' && theme.navStyle !== 'minimal' && links.length > 0;
+  const linksClass = `sb-navbar-links${mobile ? ' sb-navbar-links-collapsed' : ''}`;
+  const mobileToggle = mobile && (
+    <button type="button" className="sb-navbar-toggle sb-navbar-toggle-static" tabIndex={-1} aria-hidden="true">
+      <Menu size={20} />
+    </button>
+  );
 
   if (isSplit && theme.navStyle !== 'minimal') {
     const mid = Math.ceil(links.length / 2);
     return (
       <nav className={navClass}>
-        <ul className="sb-navbar-links sb-navbar-links-left">
+        <ul className={`${linksClass} sb-navbar-links-left`}>
           {links.slice(0, mid).map((link, i) => <PreviewNavItem key={i} link={link} />)}
         </ul>
         {brand}
-        <ul className="sb-navbar-links sb-navbar-links-right">
+        <ul className={`${linksClass} sb-navbar-links-right`}>
           {links.slice(mid).map((link, i) => <PreviewNavItem key={i} link={link} />)}
         </ul>
+        {mobileToggle}
       </nav>
     );
   }
@@ -68,8 +84,9 @@ function PreviewNavbar({ theme, navLinks, businessName }) {
   return (
     <nav className={navClass}>
       {brand}
+      {mobileToggle}
       {theme.navStyle !== 'minimal' && (
-        <ul className="sb-navbar-links">
+        <ul className={linksClass}>
           {links.map((link, i) => <PreviewNavItem key={i} link={link} />)}
         </ul>
       )}
@@ -131,7 +148,7 @@ export default function DevicePreviewModal({ sections, subdomain, businessId, th
             className={`sb-preview-frame sb-preview-frame-${mode} sb-theme`}
             style={themeToCssVars(theme)}
           >
-            <PreviewNavbar theme={theme} navLinks={navLinks} businessName={businessName} />
+            <PreviewNavbar theme={theme} navLinks={navLinks} businessName={businessName} mode={mode} />
             <PublicSiteRenderer sections={sections} subdomain={subdomain} businessId={businessId} mode={mode} enabledModules={enabledModules} />
             <PreviewFooter theme={theme} footerText={footerText} footerLinks={footerLinks} businessName={businessName} />
           </div>
