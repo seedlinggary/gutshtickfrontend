@@ -326,7 +326,10 @@ export default function Canvas({ sections, onChange, selected, onSelect, subdoma
                     onSelect(section.id, block.id);
                   }}
                 >
-                  <div className="sb-block-body">
+                  <div
+                    className="sb-block-body"
+                    style={block.style?.bg ? { background: block.style.bg, borderRadius: block.style.radius || 0, padding: block.style.padding || 0, boxSizing: 'border-box' } : undefined}
+                  >
                     <BlockRenderer block={block} editable subdomain={subdomain} businessId={businessId} theme={theme} />
                   </div>
                   {isSelected && (

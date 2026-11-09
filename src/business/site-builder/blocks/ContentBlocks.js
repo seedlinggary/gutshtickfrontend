@@ -25,6 +25,15 @@ function FeatureIcon({ name, size = 22, style }) {
   return <Cmp size={size} style={style} />;
 }
 
+/** content.headingSize/headingColor are the shared override every block
+ * below exposes for its own `.sb-faq-heading` element (same inspector
+ * control, see BlockInspector.js's HeadingSizeColorControls) -- one
+ * helper instead of repeating the same two optional inline-style keys at
+ * each of this file's 7 heading render sites. */
+function headingStyle(content) {
+  return { fontSize: content.headingSize || undefined, color: content.headingColor || undefined };
+}
+
 /** Collapsible question/answer list -- the one structured-content shape
  * that kept coming up (every services business has an FAQ page) with no
  * block equivalent before this: a plain text block loses the collapse
@@ -39,7 +48,7 @@ export function FaqAccordionBlock({ content, editable }) {
 
   return (
     <div className={`sb-faq${content.dark ? ' sb-content-dark' : ''}`} style={{ height: '100%', overflow: 'auto' }}>
-      {content.heading && <h3 className="sb-faq-heading">{content.heading}</h3>}
+      {content.heading && <h3 className="sb-faq-heading" style={headingStyle(content)}>{content.heading}</h3>}
       {items.length === 0 && editable && (
         <p style={{ color: 'var(--sb-muted)', fontSize: 13 }}>No questions yet -- add some in the inspector.</p>
       )}
@@ -98,8 +107,8 @@ export function FeatureGridBlock({ content }) {
   const cardStyle = content.cardStyle || 'card';
   return (
     <div className={content.dark ? 'sb-content-dark' : ''} style={{ height: '100%', overflow: 'auto' }}>
-      {content.heading && <h3 className="sb-faq-heading">{content.heading}</h3>}
-      <div className={`sb-feature-grid sb-feature-grid-${cardStyle}`}>
+      {content.heading && <h3 className="sb-faq-heading" style={headingStyle(content)}>{content.heading}</h3>}
+      <div className={`sb-feature-grid sb-feature-grid-${cardStyle}${content.columns ? ` sb-grid-cols-${content.columns}` : ''}`}>
         {items.map((item, i) => {
           if (cardStyle === 'row') {
             return (
@@ -236,7 +245,7 @@ export function ServiceListBlock({ content }) {
   const items = content.items || [];
   return (
     <div className={content.dark ? 'sb-content-dark' : ''} style={{ height: '100%', overflow: 'auto' }}>
-      {content.heading && <h3 className="sb-faq-heading">{content.heading}</h3>}
+      {content.heading && <h3 className="sb-faq-heading" style={headingStyle(content)}>{content.heading}</h3>}
       <div className="sb-service-list">
         {items.map((item, i) => (
           <CardWrap key={i} href={item.href} className="sb-service-card">
@@ -274,7 +283,7 @@ export function TestimonialGridBlock({ content }) {
   if (cardStyle === 'quote') {
     return (
       <div className={content.dark ? 'sb-content-dark' : ''} style={{ height: '100%', overflow: 'auto' }}>
-        {content.heading && <h3 className="sb-faq-heading">{content.heading}</h3>}
+        {content.heading && <h3 className="sb-faq-heading" style={headingStyle(content)}>{content.heading}</h3>}
         {items.map((item, i) => (
           <figure key={i} className="sb-testimonial-pullquote">
             <blockquote>“{item.quote}”</blockquote>
@@ -286,8 +295,8 @@ export function TestimonialGridBlock({ content }) {
   }
   return (
     <div className={content.dark ? 'sb-content-dark' : ''} style={{ height: '100%', overflow: 'auto' }}>
-      {content.heading && <h3 className="sb-faq-heading">{content.heading}</h3>}
-      <div className="sb-testimonial-grid">
+      {content.heading && <h3 className="sb-faq-heading" style={headingStyle(content)}>{content.heading}</h3>}
+      <div className={`sb-testimonial-grid${content.columns ? ` sb-grid-cols-${content.columns}` : ''}`}>
         {items.map((item, i) => (
           <div key={i} className="sb-testimonial-card">
             <Quote size={20} className="sb-testimonial-quote-icon" />
@@ -346,14 +355,14 @@ export function LogoStripBlock({ content, editable }) {
   if (items.length === 0) {
     return (
       <div className={content.dark ? 'sb-content-dark' : ''} style={{ height: '100%', overflow: 'auto' }}>
-        {content.heading && <h3 className="sb-faq-heading">{content.heading}</h3>}
+        {content.heading && <h3 className="sb-faq-heading" style={headingStyle(content)}>{content.heading}</h3>}
         {editable && <p style={{ fontSize: 12, color: 'var(--sb-muted)' }}>No logos yet -- add some in the inspector.</p>}
       </div>
     );
   }
   return (
     <div className={content.dark ? 'sb-content-dark' : ''} style={{ height: '100%', overflow: 'auto' }}>
-      {content.heading && <h3 className="sb-faq-heading" style={{ textAlign: 'center' }}>{content.heading}</h3>}
+      {content.heading && <h3 className="sb-faq-heading" style={{ ...headingStyle(content), textAlign: 'center' }}>{content.heading}</h3>}
       <div className="sb-logo-strip">
         {items.map((item, i) => {
           const img = item.src

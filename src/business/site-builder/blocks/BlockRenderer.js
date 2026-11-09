@@ -71,6 +71,7 @@ function ButtonBody({ content, editable, theme }) {
   const btnStyle = {
     width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
     borderRadius: content.buttonStyle ? (BUTTON_RADIUS[effectiveStyle] || BUTTON_RADIUS.rounded) : undefined,
+    color: content.textColor || undefined,
   };
   const btn = <span className={btnClass} style={btnStyle}>{content.text || 'Click here'}</span>;
   if (editable || !content.href) return <div style={style}>{btn}</div>;

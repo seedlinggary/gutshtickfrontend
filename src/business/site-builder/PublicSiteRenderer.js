@@ -25,6 +25,16 @@ import './public-site.css';
  * app's own desktop browser window would otherwise always show the
  * desktop tree no matter which one the owner asked to look at.
  */
+// block.style's optional {bg, radius, padding} -- see BlockInspector.js's
+// generic "Background" panel, which works on any block type since it's
+// just a backdrop behind whatever the block itself draws. Applied the
+// same way here (both trees) and in Canvas.js's editable render, so the
+// owner never sees a different result in the editor than a visitor does.
+function blockStyle(style) {
+  if (!style?.bg) return undefined;
+  return { background: style.bg, borderRadius: style.radius || 0, padding: style.padding || 0, boxSizing: 'border-box' };
+}
+
 export default function PublicSiteRenderer({ sections, subdomain, businessId, theme, mode = 'auto', enabledModules }) {
   return (
     <div className="ps-page">
@@ -43,7 +53,7 @@ export default function PublicSiteRenderer({ sections, subdomain, businessId, th
             {mode !== 'mobile' && (
               <div className="ps-section-desktop" style={{ height: `${section.height || DEFAULT_SECTION_HEIGHT}px`, display: mode === 'desktop' ? 'block' : undefined }}>
                 {(section.blocks || []).map((block) => (
-                  <div key={block.id} className="ps-block" style={{ left: `${block.x}%`, top: `${block.y}%`, width: `${block.w}%`, height: `${block.h}%` }}>
+                  <div key={block.id} className="ps-block" style={{ left: `${block.x}%`, top: `${block.y}%`, width: `${block.w}%`, height: `${block.h}%`, ...blockStyle(block.style) }}>
                     <BlockRenderer block={block} subdomain={subdomain} businessId={businessId} theme={theme} enabledModules={enabledModules} />
                   </div>
                 ))}
@@ -56,7 +66,7 @@ export default function PublicSiteRenderer({ sections, subdomain, businessId, th
                   // gallery blocks keep a sensible presence in flow layout,
                   // never a cap that could clip a text block whose real
                   // content needs more room than its desktop box did.
-                  <div key={block.id} className="ps-block-mobile" style={{ minHeight: `${Math.round((block.h / 100) * 320)}px` }}>
+                  <div key={block.id} className="ps-block-mobile" style={{ minHeight: `${Math.round((block.h / 100) * 320)}px`, ...blockStyle(block.style) }}>
                     <BlockRenderer block={block} subdomain={subdomain} businessId={businessId} theme={theme} enabledModules={enabledModules} />
                   </div>
                 ))}

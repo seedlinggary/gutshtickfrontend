@@ -514,6 +514,18 @@ body.sb-layout-with-sidebar .main-content { padding-left: 220px; }
 .sb-feature-grid {
   display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;
 }
+/* Explicit column-count override (BlockInspector.js's "Layout" picker,
+   content.columns) for feature_grid and testimonial_grid -- scoped to
+   desktop only. The default auto-fit/minmax above already collapses
+   responsively on its own at any width, so a forced count is only ever
+   applied ABOVE the site's own 720px mobile breakpoint; below it, every
+   sb-grid-cols-* block falls back to that same auto-fit behavior instead
+   of squeezing a fixed column count into a phone-width block. */
+@media (min-width: 721px) {
+  .sb-grid-cols-2 { grid-template-columns: repeat(2, 1fr) !important; }
+  .sb-grid-cols-3 { grid-template-columns: repeat(3, 1fr) !important; }
+  .sb-grid-cols-4 { grid-template-columns: repeat(4, 1fr) !important; }
+}
 .sb-feature-card {
   background: var(--sb-surface); border: 1px solid var(--sb-border, #e5e1d6);
   border-radius: var(--sb-button-radius, 10px); padding: 16px;

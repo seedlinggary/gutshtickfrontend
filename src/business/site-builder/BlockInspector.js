@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { X, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Minus, Plus as PlusIcon, Trash2 } from 'lucide-react';
+import { X, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Minus, Plus as PlusIcon, Trash2, Undo2, Redo2 } from 'lucide-react';
 import UploadFile from '../../Uploadfile';
 import apiRequest from '../../ApiRequest';
 import { BLOCK_DEFS, moduleLabelFor } from './blocks/blockDefs';
 import { ICON_NAMES } from './blocks/ContentBlocks';
+import { CONTACT_DEFAULT_EXTRA_FIELDS } from './blocks/ContactFormBlock';
 
 const NUDGE_STEP = 5; // percent per tap
 
@@ -146,6 +147,55 @@ function clampNumber(v) {
   return Math.min(100, Math.max(0, n));
 }
 
+/** Shared by every content block that renders an optional heading through
+ * the same `.sb-faq-heading` element (faq_accordion, feature_grid,
+ * testimonial_grid, service_list, logo_strip) -- one control instead of
+ * five copies, and it stays in sync if a 6th block adopts the same
+ * heading convention later. */
+function HeadingSizeColorControls({ content, updateContent }) {
+  if (!content.heading) return null;
+  return (
+    <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 12 }}>
+      <label style={{ fontSize: 12, color: 'var(--muted)', display: 'flex', flexDirection: 'column', gap: 4 }}>
+        Heading size
+        <input className="gs-input" type="number" min={13} max={48} style={{ width: 70 }}
+          value={content.headingSize || 22} onChange={(e) => updateContent({ headingSize: Number(e.target.value) || 22 })} />
+      </label>
+      <label style={{ fontSize: 12, color: 'var(--muted)', display: 'flex', flexDirection: 'column', gap: 4 }}>
+        Heading color
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+          <input type="color" value={content.headingColor || '#2b2118'} onChange={(e) => updateContent({ headingColor: e.target.value })}
+            style={{ width: 36, height: 30, padding: 0, border: '1px solid var(--border)', borderRadius: 6 }} />
+          {content.headingColor && (
+            <button type="button" className="sb-icon-btn" title="Use site default" onClick={() => updateContent({ headingColor: null })}><X size={11} /></button>
+          )}
+        </div>
+      </label>
+    </div>
+  );
+}
+
+/** Desktop-only column-count override for the grid-based repeating blocks
+ * (feature_grid, testimonial_grid) -- "Auto" (default) keeps the existing
+ * responsive auto-fit/minmax behavior (already collapses on its own at
+ * any width, including mobile); picking a specific count applies ONLY
+ * above the site's own 720px mobile breakpoint (see the sb-grid-cols-*
+ * classes in theme.css), so forcing e.g. 4 columns on desktop can never
+ * reintroduce the squeezed-on-a-phone problem a fixed inline style would. */
+function GridColumnsControl({ value, onChange }) {
+  return (
+    <div className="gs-field">
+      <div className="gs-label">Layout (desktop)</div>
+      <select className="gs-select" value={value || 'auto'} onChange={(e) => onChange(e.target.value === 'auto' ? null : Number(e.target.value))}>
+        <option value="auto">Auto (fits as many as the width allows)</option>
+        <option value="2">2 columns</option>
+        <option value="3">3 columns</option>
+        <option value="4">4 columns</option>
+      </select>
+    </div>
+  );
+}
+
 /** Shared "repeating item" list editor for the 3 new structured-content
  * block types below -- each item is a fixed set of fields (declared by
  * the caller via `fields`), rendered as a small card with a remove
@@ -202,6 +252,11 @@ function ItemListEditor({ items, onChange, fields, blank, addLabel }) {
                 <select className="gs-select" value={item[f.key] || ''} onChange={(e) => updateItem(i, { [f.key]: e.target.value })}>
                   {f.options.map((o) => <option key={o} value={o}>{o}</option>)}
                 </select>
+              ) : f.type === 'checkbox' ? (
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12 }}>
+                  <input type="checkbox" checked={!!item[f.key]} onChange={(e) => updateItem(i, { [f.key]: e.target.checked })} />
+                  {f.checkboxLabel || f.label}
+                </label>
               ) : (
                 <input className="gs-input" value={item[f.key] || ''} placeholder={f.placeholder}
                   onChange={(e) => updateItem(i, { [f.key]: e.target.value })} />
@@ -222,11 +277,12 @@ function ItemListEditor({ items, onChange, fields, blank, addLabel }) {
  * it here. Keeping editing out of the canvas itself avoids building
  * contentEditable-in-place editing (fragile, hard to keep consistent with
  * the public renderer) for not much UX benefit over a side panel. */
-export default function BlockInspector({ businessId, block, onChange, onClose }) {
+export default function BlockInspector({ businessId, block, onChange, onClose, history }) {
   if (!block) return null;
   const def = BLOCK_DEFS[block.type];
   const update = (patch) => onChange({ ...block, ...patch });
   const updateContent = (patch) => update({ content: { ...block.content, ...patch } });
+  const updateStyle = (patch) => update({ style: { ...block.style, ...patch } });
 
   const uploadToUrl = (filename, cb) => {
     apiRequest('GET', null, `/business/upload-url/${filename}`).then(({ url }) => cb(url));
@@ -236,7 +292,19 @@ export default function BlockInspector({ businessId, block, onChange, onClose })
     <div className="sb-inspector">
       <div className="sb-inspector-header">
         <strong>{def?.label || block.type}</strong>
-        <button type="button" className="sb-icon-btn" onClick={onClose}><X size={14} /></button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          {/* Same undo/redo this page already has in its top toolbar --
+              mirrored here too since editing a block's settings is exactly
+              when a "whoops, undo that" moment tends to happen, and this
+              panel can cover the toolbar above it on a small screen. */}
+          {history && (
+            <>
+              <button type="button" className="sb-icon-btn" title="Undo (Ctrl+Z)" disabled={!history.canUndo} onClick={history.undo}><Undo2 size={14} /></button>
+              <button type="button" className="sb-icon-btn" title="Redo (Ctrl+Shift+Z)" disabled={!history.canRedo} onClick={history.redo}><Redo2 size={14} /></button>
+            </>
+          )}
+          <button type="button" className="sb-icon-btn" onClick={onClose}><X size={14} /></button>
+        </div>
       </div>
 
       {block.type === 'text' && (
@@ -310,6 +378,16 @@ export default function BlockInspector({ businessId, block, onChange, onClose })
               <option value="outline">Outline</option>
             </select>
           </div>
+          <div className="gs-field">
+            <div className="gs-label">Text color</div>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <input type="color" value={block.content.textColor || '#ffffff'} onChange={(e) => updateContent({ textColor: e.target.value })}
+                style={{ width: 40, height: 32, padding: 0, border: '1px solid var(--border)', borderRadius: 6 }} />
+              {block.content.textColor && (
+                <button type="button" className="sb-icon-btn" onClick={() => updateContent({ textColor: null })}>Use site default</button>
+              )}
+            </div>
+          </div>
         </>
       )}
 
@@ -331,13 +409,32 @@ export default function BlockInspector({ businessId, block, onChange, onClose })
             <option value="underline">Underline</option>
             <option value="soft">Soft</option>
           </select>
-          <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, margin: '10px 0 0' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, margin: '10px 0 0 0' }}>
             <input type="checkbox" checked={!!block.content.noCard} onChange={(e) => updateContent({ noCard: e.target.checked })} />
             No card background (use when the section around it already provides one)
           </label>
-          <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 6 }}>
-            Messages are sent to you as a notification and (if you have an email on file) an email -- there's nothing else to configure.
+          <p style={{ fontSize: 12, color: 'var(--muted)', margin: '10px 0 6px' }}>
+            Name and email are always required (there's no way to reply otherwise). Everything below is yours to edit --
+            add as many extra fields as you want, and mark any of them optional. Every answer is included in the
+            notification and email you get.
           </p>
+          <ItemListEditor
+            items={block.content.fields || CONTACT_DEFAULT_EXTRA_FIELDS}
+            // ItemListEditor's own "Add" just spreads `blank` (a static
+            // object shared across every click), so a freshly-added field
+            // has no `key` yet -- ContactFormBlock.js keys both its inputs
+            // and its answer state by field.key, so every field needs one
+            // of its own. Assigned here, once, the first time a field is
+            // saved without one; already-keyed fields pass through untouched.
+            onChange={(fields) => updateContent({ fields: fields.map((f, i) => (f.key ? f : { ...f, key: `field-${Date.now().toString(36)}-${i}` })) })}
+            blank={{ label: '', type: 'text', required: false }}
+            addLabel="Add field"
+            fields={[
+              { key: 'label', label: 'Field label', placeholder: 'Phone number' },
+              { key: 'type', label: 'Type', type: 'select', options: ['text', 'email', 'tel', 'textarea'] },
+              { key: 'required', label: '', checkboxLabel: 'Required', type: 'checkbox' },
+            ]}
+          />
         </div>
       )}
 
@@ -448,6 +545,7 @@ export default function BlockInspector({ businessId, block, onChange, onClose })
         <div className="gs-field">
           <div className="gs-label">Heading (optional)</div>
           <input className="gs-input" value={block.content.heading || ''} onChange={(e) => updateContent({ heading: e.target.value })} style={{ marginBottom: 12 }} />
+          <HeadingSizeColorControls content={block.content} updateContent={updateContent} />
           <DarkBackgroundToggle content={block.content} updateContent={updateContent} />
           <div className="gs-label">Questions</div>
           <ItemListEditor
@@ -467,6 +565,7 @@ export default function BlockInspector({ businessId, block, onChange, onClose })
         <div className="gs-field">
           <div className="gs-label">Heading (optional)</div>
           <input className="gs-input" value={block.content.heading || ''} onChange={(e) => updateContent({ heading: e.target.value })} style={{ marginBottom: 12 }} />
+          <HeadingSizeColorControls content={block.content} updateContent={updateContent} />
           <div className="gs-label">Card style</div>
           <select className="gs-select" value={block.content.cardStyle || 'card'} onChange={(e) => updateContent({ cardStyle: e.target.value })} style={{ marginBottom: 12 }}>
             <option value="card">Bordered card (icon, title, description)</option>
@@ -476,6 +575,7 @@ export default function BlockInspector({ businessId, block, onChange, onClose })
             <option value="stat">Stat (a big number + small label, no icon or border)</option>
             <option value="panel">Panel (a simple bordered box: heading + text, no icon)</option>
           </select>
+          <GridColumnsControl value={block.content.columns} onChange={(columns) => updateContent({ columns })} />
           <DarkBackgroundToggle content={block.content} updateContent={updateContent} />
           <div className="gs-label">Items</div>
           <ItemListEditor
@@ -522,11 +622,15 @@ export default function BlockInspector({ businessId, block, onChange, onClose })
         <div className="gs-field">
           <div className="gs-label">Heading (optional)</div>
           <input className="gs-input" value={block.content.heading || ''} onChange={(e) => updateContent({ heading: e.target.value })} style={{ marginBottom: 12 }} />
+          <HeadingSizeColorControls content={block.content} updateContent={updateContent} />
           <div className="gs-label">Style</div>
           <select className="gs-select" value={block.content.cardStyle || 'card'} onChange={(e) => updateContent({ cardStyle: e.target.value })} style={{ marginBottom: 12 }}>
             <option value="card">Cards (boxed, with a quote icon)</option>
             <option value="quote">Pull-quote (one large centered quote, no card)</option>
           </select>
+          {(block.content.cardStyle || 'card') === 'card' && (
+            <GridColumnsControl value={block.content.columns} onChange={(columns) => updateContent({ columns })} />
+          )}
           <DarkBackgroundToggle content={block.content} updateContent={updateContent} />
           <div className="gs-label">Testimonials</div>
           <ItemListEditor
@@ -547,6 +651,7 @@ export default function BlockInspector({ businessId, block, onChange, onClose })
         <div className="gs-field">
           <div className="gs-label">Heading (optional)</div>
           <input className="gs-input" value={block.content.heading || ''} onChange={(e) => updateContent({ heading: e.target.value })} style={{ marginBottom: 12 }} />
+          <HeadingSizeColorControls content={block.content} updateContent={updateContent} />
           <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, marginBottom: 12 }}>
             <input type="checkbox" checked={block.content.numbered !== false} onChange={(e) => updateContent({ numbered: e.target.checked })} />
             Show numbered index (01, 02, …)
@@ -573,6 +678,7 @@ export default function BlockInspector({ businessId, block, onChange, onClose })
         <div className="gs-field">
           <div className="gs-label">Heading (optional)</div>
           <input className="gs-input" value={block.content.heading || ''} onChange={(e) => updateContent({ heading: e.target.value })} placeholder="As Featured In" style={{ marginBottom: 10 }} />
+          <HeadingSizeColorControls content={block.content} updateContent={updateContent} />
           <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, marginBottom: 12 }}>
             <input type="checkbox" checked={block.content.grayscale !== false} onChange={(e) => updateContent({ grayscale: e.target.checked })} />
             Grayscale logos (color on hover)
@@ -640,6 +746,44 @@ export default function BlockInspector({ businessId, block, onChange, onClose })
         <p style={{ fontSize: 12, color: 'var(--muted)' }}>
           This block goes live once "{moduleLabelFor(def.requiresModule)}" is turned on in your site's Features.
         </p>
+      )}
+
+      {block.type !== 'spacer' && (
+        <>
+          <hr style={{ margin: '16px 0', border: 0, borderTop: '1px solid var(--border, #e5e1d6)' }} />
+          <div className="gs-field">
+            {/* Generic, works on any block -- a panel/backdrop behind the
+                block's own content, independent of whatever that content
+                already draws (a plain text/button/FAQ block has no
+                background of its own at all; a card-style block like
+                feature_grid still shows it through the gaps between
+                cards). Applied on the same wrapper div in Canvas.js
+                (editable) and PublicSiteRenderer.js (both the desktop and
+                mobile trees) -- see block.style there. */}
+            <div className="gs-label">Background</div>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
+              <input type="color" value={block.style?.bg || '#ffffff'} onChange={(e) => updateStyle({ bg: e.target.value })}
+                style={{ width: 40, height: 32, padding: 0, border: '1px solid var(--border)', borderRadius: 6 }} />
+              {block.style?.bg && (
+                <button type="button" className="sb-icon-btn" onClick={() => updateStyle({ bg: null })}>None</button>
+              )}
+            </div>
+            {block.style?.bg && (
+              <div style={{ display: 'flex', gap: 10 }}>
+                <label style={{ fontSize: 12, color: 'var(--muted)', display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  Corner radius
+                  <input className="gs-input" type="number" min={0} max={48} style={{ width: 70 }}
+                    value={block.style?.radius ?? 0} onChange={(e) => updateStyle({ radius: Number(e.target.value) || 0 })} />
+                </label>
+                <label style={{ fontSize: 12, color: 'var(--muted)', display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  Inner padding
+                  <input className="gs-input" type="number" min={0} max={64} style={{ width: 70 }}
+                    value={block.style?.padding ?? 0} onChange={(e) => updateStyle({ padding: Number(e.target.value) || 0 })} />
+                </label>
+              </div>
+            )}
+          </div>
+        </>
       )}
 
       <hr style={{ margin: '16px 0', border: 0, borderTop: '1px solid var(--border, #e5e1d6)' }} />

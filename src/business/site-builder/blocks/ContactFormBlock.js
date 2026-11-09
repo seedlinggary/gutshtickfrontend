@@ -3,6 +3,28 @@ import { Send, Check } from 'lucide-react';
 import apiRequest from '../../../ApiRequest';
 import { DEFAULT_THEME } from '../theme';
 
+// The fields every Contact form block starts with -- the exact 3 inputs
+// this block always had before content.fields existed, so a block saved
+// before this change (content.fields absent) renders and submits exactly
+// as it always did. `fixed: true` (name/email) marks a field the backend
+// structurally requires and can't be removed or made optional, since
+// there's no way to notify "someone" or reply to no address -- every
+// other field (message, and anything the owner adds in the inspector) is
+// a free-form, independently optional line past that. See
+// BlockInspector.js's own editor for this list, and business_site_public.py's
+// submit_site_contact for the matching server-side shape.
+export const CONTACT_FIXED_FIELDS = [
+  { key: 'name', label: 'Your name', type: 'text', required: true, fixed: true },
+  { key: 'email', label: 'Your email', type: 'email', required: true, fixed: true },
+];
+export const CONTACT_DEFAULT_EXTRA_FIELDS = [
+  { key: 'message', label: 'Message', type: 'textarea', required: true },
+];
+
+function blankValues(fields) {
+  return Object.fromEntries(fields.map((f) => [f.key, '']));
+}
+
 /**
  * The only block type with real interactive behavior worth telling apart
  * between edit and public mode -- in the canvas it's a static preview (so
@@ -19,7 +41,10 @@ export default function ContactFormBlock({ content, editable, subdomain, theme }
   // never visibly changed anything, on this form or any other.
   const effectiveStyle = content.formStyle || (theme || DEFAULT_THEME).formStyle || 'boxed';
   const formClass = effectiveStyle !== 'boxed' ? `sb-form-${effectiveStyle}` : '';
-  const [form, setForm] = useState({ name: '', email: '', message: '' });
+  const extraFields = content.fields || CONTACT_DEFAULT_EXTRA_FIELDS;
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [values, setValues] = useState(() => blankValues(extraFields));
   const [state, setState] = useState('idle'); // idle | sending | sent | error
   const [error, setError] = useState('');
 
@@ -28,7 +53,10 @@ export default function ContactFormBlock({ content, editable, subdomain, theme }
     if (editable || state === 'sending') return;
     setState('sending');
     setError('');
-    apiRequest('POST', form, `/business-site/public/${subdomain}/contact`)
+    const extra = extraFields
+      .filter((f) => (values[f.key] || '').trim())
+      .map((f) => ({ label: f.label, value: values[f.key].trim() }));
+    apiRequest('POST', { name, email, extra }, `/business-site/public/${subdomain}/contact`)
       .then(() => setState('sent'))
       .catch((err) => { setState('error'); setError(typeof err === 'string' ? err : 'Could not send -- try again.'); });
   };
@@ -59,11 +87,18 @@ export default function ContactFormBlock({ content, editable, subdomain, theme }
     <form onSubmit={submit} className={`${formClass}${cardClass}`} style={{ display: 'flex', flexDirection: 'column', gap: 16, height: '100%', overflow: 'auto', boxSizing: 'border-box' }}>
       {content.heading && <h3 style={{ margin: 0, color: headingColor, fontFamily: 'var(--sb-font-heading)' }}>{content.heading}</h3>}
       <input className="sb-input" placeholder="Your name" required disabled={editable}
-        value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+        value={name} onChange={(e) => setName(e.target.value)} />
       <input className="sb-input" type="email" placeholder="Your email" required disabled={editable}
-        value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-      <textarea className="sb-textarea" placeholder="Message" required disabled={editable} rows={4}
-        value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} />
+        value={email} onChange={(e) => setEmail(e.target.value)} />
+      {extraFields.map((f) => (
+        f.type === 'textarea' ? (
+          <textarea key={f.key} className="sb-textarea" placeholder={f.label} required={f.required} disabled={editable} rows={4}
+            value={values[f.key] || ''} onChange={(e) => setValues((v) => ({ ...v, [f.key]: e.target.value }))} />
+        ) : (
+          <input key={f.key} className="sb-input" type={f.type || 'text'} placeholder={`${f.label}${f.required ? '' : ' (optional)'}`} required={f.required} disabled={editable}
+            value={values[f.key] || ''} onChange={(e) => setValues((v) => ({ ...v, [f.key]: e.target.value }))} />
+        )
+      ))}
       {error && <p style={{ color: 'var(--danger, #b42318)', fontSize: 12, margin: 0 }}>{error}</p>}
       <div className="sb-form-footer">
         <button type="submit" className="sb-button" disabled={editable || state === 'sending'}>

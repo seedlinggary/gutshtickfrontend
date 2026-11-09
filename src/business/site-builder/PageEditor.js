@@ -257,6 +257,7 @@ export default function PageEditor({ businessId, pageId, subdomain, onClose }) {
                   ...s, blocks: s.blocks.map((b) => (b.id === updatedBlock.id ? updatedBlock : b)),
                 })))}
                 onClose={() => setSelected({ sectionId: null, blockId: null })}
+                history={sectionsHistory}
               />
             ) : chromeSelected === 'seo' ? (
               <SeoInspector
