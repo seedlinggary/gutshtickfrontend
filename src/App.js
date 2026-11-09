@@ -298,11 +298,26 @@ function App() {
                 </>
               )}
 
-              {/* ── Shared across both sites ── */}
-              <Route path="/about" element={<About />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/disclaimer" element={<Disclaimer />} />
-              <Route path="/content-guidelines" element={<ContentGuidelines />} />
+              {/* ── Shared across every REGISTERED site (main, Estates,
+                  Money, Torah, Business/Community) -- but NOT a business-
+                  site storefront, whose own page builder can name any of
+                  its owner-authored pages "about"/"contact"/etc. (the
+                  one-click "Add contact page" feature even defaults to
+                  exactly that slug, see WebsitePagesPanel.js). React
+                  Router ranks a literal path like "/about" above the
+                  storefront's own "/:slug" catch-all regardless of
+                  declaration order, so without this gate these 4 routes
+                  would always win and the owner's own page could never be
+                  reached -- confirmed live: a business's own "About" page,
+                  always showing Gut Shtick's corporate About page instead. */}
+              {site?.id !== 'business-site' && (
+                <>
+                  <Route path="/about" element={<About />} />
+                  <Route path="/contact" element={<Contact />} />
+                  <Route path="/disclaimer" element={<Disclaimer />} />
+                  <Route path="/content-guidelines" element={<ContentGuidelines />} />
+                </>
+              )}
               <Route path="/signin" element={<SignIn />} />
               <Route path="/signup" element={<SignUp />} />
               <Route path="/signup/:paymentcanceled" element={<SignUp />} />
