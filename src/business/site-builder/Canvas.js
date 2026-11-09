@@ -311,7 +311,12 @@ export default function Canvas({ sections, onChange, selected, onSelect, subdoma
             </button>
           </div>
 
-          <div className="sb-section-body" style={{ height: `${section.height || DEFAULT_SECTION_HEIGHT}px` }}>
+          {/* aspect-ratio, not a fixed height -- matches PublicSiteRenderer.js's
+              own .ps-section-desktop fix: a fixed px height here made the box
+              relatively taller (and any full-bleed image more cropped on its
+              sides) whenever the editor rendered narrower than the 1100px
+              reference, which happens any time the inspector sidebar is open. */}
+          <div className="sb-section-body" style={{ aspectRatio: `1100 / ${section.height || DEFAULT_SECTION_HEIGHT}` }}>
             {section.blocks.map((block) => {
               const isSelected = !!(selected && selected.sectionId === section.id && selected.blockId === block.id);
               return (

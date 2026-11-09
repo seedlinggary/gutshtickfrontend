@@ -51,7 +51,16 @@ export default function PublicSiteRenderer({ sections, subdomain, businessId, th
             }}
           >
             {mode !== 'mobile' && (
-              <div className="ps-section-desktop" style={{ height: `${section.height || DEFAULT_SECTION_HEIGHT}px`, display: mode === 'desktop' ? 'block' : undefined }}>
+              // aspect-ratio, not a fixed height -- a fixed px height paired
+              // with 100%-wide percentage blocks (e.g. a full-bleed photo)
+              // meant the box got relatively TALLER as the viewport narrowed
+              // below the 1100px reference width (anywhere from 721-1099px,
+              // a completely normal laptop/desktop window size, not just a
+              // narrow phone), so an object-fit:cover image cropped more and
+              // more off its left/right sides the narrower the real window
+              // was. Locking the box to the same ratio it has at the 1100px
+              // reference keeps that crop identical at every desktop width.
+              <div className="ps-section-desktop" style={{ aspectRatio: `1100 / ${section.height || DEFAULT_SECTION_HEIGHT}`, display: mode === 'desktop' ? 'block' : undefined }}>
                 {(section.blocks || []).map((block) => (
                   <div key={block.id} className="ps-block" style={{ left: `${block.x}%`, top: `${block.y}%`, width: `${block.w}%`, height: `${block.h}%`, ...blockStyle(block.style) }}>
                     <BlockRenderer block={block} subdomain={subdomain} businessId={businessId} theme={theme} enabledModules={enabledModules} />
