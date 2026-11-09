@@ -138,7 +138,21 @@
   z-index: 3;
 }
 
-.sb-section-body { position: relative; width: 100%; min-height: 120px; }
+/* Capped to match PublicSiteRenderer.js's own .ps-section-desktop
+   (public-site.css) exactly -- without this, the editor had no upper
+   bound at all, so on a wide monitor with the inspector closed (the
+   canvas then gets the FULL window width instead of the ~320px-
+   narrower width it has while a block's selected and the inspector is
+   open) a section could render far wider here than it ever will for a
+   real visitor. Every block's x/y/w/h is a % of THIS box, with a FIXED
+   pixel height (section.height) -- so a block sized/positioned to look
+   right at the real, capped width looked disproportionately wide (and,
+   for an image using object-fit:cover, cropped very differently) once
+   the editor let it render uncapped. Confirmed live: KTY's home page
+   hero image only overlapped the text below it here, in the editor,
+   specifically once the inspector was closed and the canvas exceeded
+   1100px -- the published page was never actually affected. */
+.sb-section-body { position: relative; width: 100%; max-width: 1100px; margin: 0 auto; min-height: 120px; }
 
 .sb-section-resize-handle {
   height: 10px;
