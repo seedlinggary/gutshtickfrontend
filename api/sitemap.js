@@ -113,7 +113,8 @@ async function moneyEntries(origin) {
   const areas = (a && a.areas) || [];
   return [
     ...[
-      { path: '/', changefreq: 'weekly', priority: '1.0' },
+      { path: '/', changefreq: 'daily', priority: '1.0' },
+      { path: '/calculators', changefreq: 'monthly', priority: '0.6' },
       { path: '/investing', changefreq: 'weekly', priority: '0.6' },
       { path: '/budgeting', changefreq: 'monthly', priority: '0.6' },
       { path: '/learn', changefreq: 'monthly', priority: '0.6' },

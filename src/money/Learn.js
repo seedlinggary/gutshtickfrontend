@@ -43,7 +43,7 @@ export default function Learn() {
           <p>A <strong>stock</strong> is a small ownership share in one company -- its value rises and falls with that company's prospects, which makes a single stock risky on its own. A <strong>bond</strong> is a loan you make to a company or government in exchange for regular interest payments, generally steadier but with lower long-term returns than stocks. An <strong>index fund</strong> pools money to buy a whole basket of stocks or bonds at once (e.g. "the S&amp;P 500"), spreading your risk across hundreds of companies instead of betting on one -- this diversification is why index funds are a common default recommendation for long-term investors who don't want to pick individual stocks.</p>
           <h3>Retirement accounts (US)</h3>
           <p>A <strong>401(k)</strong> is an employer-sponsored account, often with an employer match (effectively free money up to a limit -- a common piece of advice is to contribute at least enough to get the full match before anything else). An <strong>IRA</strong> (Individual Retirement Account) is opened on your own, independent of an employer. Both come in traditional (contributions reduce your taxable income now, withdrawals are taxed later) and Roth (contributions are taxed now, withdrawals in retirement are tax-free) versions. For 2026, the IRS set the 401(k) employee contribution limit at $24,500/year ($32,500 if you're 50+), and the IRA limit at $7,500/year ($8,600 if you're 50+) -- these are adjusted most years, so check the current IRS figures before planning around them.</p>
-          <p>Use the <Link to="/investing">Investing page</Link> to look up real quotes and charts for specific tickers, and the <Link to="/">Retirement calculator</Link> to project what consistent contributions could grow into.</p>
+          <p>Use the <Link to="/investing">Investing page</Link> to look up real quotes and charts for specific tickers, and the <Link to="/calculators">Retirement calculator</Link> to project what consistent contributions could grow into.</p>
           <Sources items={[
             { label: 'IRS reveals new 401(k), IRA contribution limits for 2026 (InvestmentNews)', url: 'https://www.investmentnews.com/retirement-planning/irs-reveals-new-401k-ira-contribution-limits-for-2026/263029' },
             { label: '401(k) and IRAs: 2026 Contribution Limits (Vision Retirement)', url: 'https://www.visionretirement.com/401k-and-ira-contribution-limits' },
@@ -76,8 +76,8 @@ export default function Learn() {
             further retirement saving becomes optional rather than necessary.
           </p>
           <p>
-            Use the <Link to="/">FIRE Number calculator</Link> to find your own number from the 4% rule,
-            and the <Link to="/">Coast FIRE calculator</Link> to see whether you've already reached it or
+            Use the <Link to="/calculators">FIRE Number calculator</Link> to find your own number from the 4% rule,
+            and the <Link to="/calculators">Coast FIRE calculator</Link> to see whether you've already reached it or
             how much more you'd need as a lump sum today.
           </p>
           <Sources items={[
@@ -95,7 +95,7 @@ export default function Learn() {
           <p>Mathematically optimal -- the debt costing you the most in interest gets paid off first, which minimizes the total interest you'll pay over time.</p>
           <h3>Snowball: smallest balance first</h3>
           <p>Pays off the smallest balance first regardless of its interest rate, to get a quick win and build momentum -- can cost a bit more in total interest than avalanche, but the early payoffs can make it easier to actually stick with the plan.</p>
-          <div className="fin-guide-note">Run your own numbers on the <Link to="/">Debt Payoff calculator</Link> to see exactly how much a given payment amount costs you in interest and how long it takes.</div>
+          <div className="fin-guide-note">Run your own numbers on the <Link to="/calculators">Debt Payoff calculator</Link> to see exactly how much a given payment amount costs you in interest and how long it takes.</div>
           <Sources items={[
             { label: 'Debt snowball method vs. debt avalanche: What\'s the difference? (Fox Business)', url: 'https://www.foxbusiness.com/fox-money/personal-loans/debt-snowball-method-vs-debt-avalanche' },
             { label: 'Debt snowball vs. avalanche: which payoff method works best (Chase)', url: 'https://www.chase.com/personal/banking/education/basics/debt-snowball-vs-avalanche' },
@@ -131,7 +131,7 @@ export default function Learn() {
           <p>Israel uses a <strong>marginal bracket system</strong> just like the US does: each bracket's rate only applies to the slice of income inside it, not your whole salary. For 2026-2027 (frozen, not adjusted for inflation during this period), the annual brackets are 10% up to ₪84,120, 14% up to ₪120,720, 20% up to ₪228,000, 31% up to ₪301,200, 35% up to ₪560,280, then 47% above that -- plus a 3% surtax ("mas yisuf") on income over ₪721,560/year, pushing the effective top rate to 50% for very high earners.</p>
           <h3>Tax credit points (nekudot zikui)</h3>
           <p>Before you pay a shekel of calculated tax, it gets reduced by your <strong>credit points</strong> -- each one worth ₪242/month (₪2,904/year) in 2026. Every resident starts with a base amount (2.25 points for men, 2.75 for women), with extra points for children, single parents, new immigrants (for their first 54 months on a declining schedule), discharged soldiers, and more. Unlike a US tax deduction, points reduce the tax bill itself, not your taxable income -- and if your calculated tax is lower than your points are worth, it just drops to zero rather than paying you the difference (with a few specific exceptions).</p>
-          <div className="fin-guide-note">Run your own numbers -- gross salary in, net pay out, with the full breakdown -- on the <strong>Israel Net Salary</strong> calculator on the <Link to="/">Calculators page</Link>.</div>
+          <div className="fin-guide-note">Run your own numbers -- gross salary in, net pay out, with the full breakdown -- on the <strong>Israel Net Salary</strong> calculator on the <Link to="/calculators">Calculators page</Link>.</div>
           <Sources items={[
             { label: 'Taxes in Israel 2026: brackets, credit points, refunds (Din-AI)', url: 'https://din-ai.co.il/legal-guide/en/taxes' },
             { label: 'Net Salary Calculator Israel 2026 (Expatriation.io)', url: 'https://app.expatriation.io/net-salary/israel' },
@@ -194,7 +194,7 @@ export default function Learn() {
           <span className="fin-guide-kicker">Investment taxes</span>
           <h2>What you owe when you sell</h2>
           <p>Capital gains on securities (stocks, ETFs, mutual funds) are taxed at a flat <strong>25%</strong> for individuals, or <strong>30%</strong> if you held 10% or more of the company ("substantial shareholder"). Dividends are generally taxed the same way. There's one major exception: a <strong>foreign (non-Israeli) tax resident</strong> selling securities listed on the TASE is usually exempt from Israeli capital gains tax entirely -- except on REITs and short-term government bonds -- though a withholding-exemption certificate from the Tax Authority is needed beforehand to avoid tax being withheld automatically at the sale. Real estate uses a completely different set of taxes, covered next.</p>
-          <div className="fin-guide-note">Estimate the tax on a specific sale with the <strong>Israel Investment Tax</strong> calculator on the <Link to="/">Calculators page</Link>.</div>
+          <div className="fin-guide-note">Estimate the tax on a specific sale with the <strong>Israel Investment Tax</strong> calculator on the <Link to="/calculators">Calculators page</Link>.</div>
           <Sources items={[
             { label: 'Doing Business in Israel (Harris Consulting & Tax)', url: 'https://hcat.co/doing-business-in-israel/' },
           ]} />
@@ -207,7 +207,7 @@ export default function Learn() {
           <p>When you sell real estate, the <strong>gain</strong> (sale price minus purchase price, roughly -- a real calculation also adjusts for inflation and deducts documented improvement costs) is taxed as <strong>mas shevach</strong>, not regular capital gains tax. Most people selling their own home never pay it at all, thanks to the <strong>sole qualifying-residence exemption</strong>: if the property is your only home in Israel, you've owned it 18+ months, and you haven't used this exemption on a different sale in the prior 18 months, the gain is fully exempt up to a sale price of <strong>₪5,008,000</strong> (2026). Sell above that ceiling and the exemption still applies, just proportionally -- the share of the gain attributable to the value under the ceiling stays exempt, and only the rest is taxed at up to 25%. An investment property, a second home, or a sale that doesn't meet those conditions is taxed on the full real gain instead (at up to 25%, with a more favorable linear calculation for any part of the gain that built up before 2014).</p>
           <h3>Buying: mas rechisha (purchase tax)</h3>
           <p>Buyers pay a separate bracketed <strong>purchase tax</strong>, and which bracket table applies depends entirely on whether this is your only home. A <strong>sole/only-home</strong> purchase gets a 0% band on roughly the first ₪1.98M, then climbing rates (3.5%, 5%, 8%, 10%) on the value above that. An <strong>additional or investment property</strong> -- including a non-resident's only Israeli home -- skips the 0% band entirely and starts at a flat <strong>8%</strong> from the first shekel, rising to 10% above roughly ₪6.06M. This is exactly why timing matters if you're selling one home to buy another: buying the new place before closing the sale on the old one can mean paying the much higher "additional dwelling" rate, even though you'll only own two homes for a short overlap.</p>
-          <div className="fin-guide-note">Run a specific sale or purchase through the <strong>Israel Property Tax</strong> calculator on the <Link to="/">Calculators page</Link> -- it covers both mas shevach and mas rechisha, with the sole-residence exemption and the additional-dwelling rate built in.</div>
+          <div className="fin-guide-note">Run a specific sale or purchase through the <strong>Israel Property Tax</strong> calculator on the <Link to="/calculators">Calculators page</Link> -- it covers both mas shevach and mas rechisha, with the sole-residence exemption and the additional-dwelling rate built in.</div>
           <Sources items={[
             { label: 'Mas Shevach Israel 2026 - Capital Gains Tax Guide (New Homes Israel)', url: 'https://newhomesisrael.com/en/blog/mas-shevach-capital-gains' },
             { label: 'מס רכישה 2026: מדרגות דירה יחידה מול דירה נוספת (Bizportal)', url: 'https://www.bizportal.co.il/realestates/news/article/20038028' },

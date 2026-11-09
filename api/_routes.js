@@ -12,7 +12,7 @@
 
 const SITE_OWNED_PREFIXES = {
   business: ['/business', '/communities', '/community', '/activities', '/deals', '/minyanim', '/my-businesses', '/my-deals', '/vendor-board'],
-  estates: ['/listings', '/group-buy', '/my-listings', '/my-group-buys', '/calculators', '/areas'],
+  estates: ['/listings', '/group-buy', '/my-listings', '/my-group-buys', '/areas'],
   money: ['/investing', '/budgeting', '/tachlis'],
   torah: ['/posts', '/zmanim', '/sources', '/prayers', '/sheets', '/my-posts'],
   main: ['/feed', '/post', '/hock', '/CreateShtick', '/today'],
@@ -26,14 +26,16 @@ const UNIVERSAL_PREFIXES = [
   '/signin', '/signup', '/forgotpassword', '/profile', '/admin', '/superadmin', '/games', '/alerts', '/my-feed',
 ];
 
-// Owned by more than one site (Estates AND Money both have /learn) -- on
-// any OTHER site, there's no single correct redirect target between the
-// listed owners, so these are deliberately excluded from auto-redirect and
-// just 404 there, same as any other unrecognized path. But on a host that
-// IS one of the listed owners, the path is completely real and must serve
-// normally -- confirmed live by this file's own end-to-end test catching
-// gutmoney.com/learn (Money's own real route) 404ing before this fix.
-const AMBIGUOUS_PREFIXES = { '/learn': ['estates', 'money'] };
+// Owned by more than one site (Estates AND Money both have /learn, and now
+// both have /calculators too -- Money's own moved here once Job Board took
+// over its homepage) -- on any OTHER site, there's no single correct
+// redirect target between the listed owners, so these are deliberately
+// excluded from auto-redirect and just 404 there, same as any other
+// unrecognized path. But on a host that IS one of the listed owners, the
+// path is completely real and must serve normally -- confirmed live by this
+// file's own end-to-end test catching gutmoney.com/learn (Money's own real
+// route) 404ing before this fix.
+const AMBIGUOUS_PREFIXES = { '/learn': ['estates', 'money'], '/calculators': ['estates', 'money'] };
 
 function pathStartsWithAny(path, prefixes) {
   return prefixes.some((p) => path === p || path.startsWith(`${p}/`));

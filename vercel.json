@@ -29,6 +29,8 @@
     { "source": "/areas/:slug", "has": [{ "type": "host", "value": "gutestates.com" }], "destination": "/api/render?kind=estates_area&slug=:slug" },
     { "source": "/areas/:slug", "has": [{ "type": "host", "value": "www.gutestates.com" }], "destination": "/api/render?kind=estates_area&slug=:slug" },
 
+    { "source": "/calculators", "has": [{ "type": "host", "value": "gutmoney.com" }], "destination": "/api/static-meta?route=money_calculators" },
+    { "source": "/calculators", "has": [{ "type": "host", "value": "www.gutmoney.com" }], "destination": "/api/static-meta?route=money_calculators" },
     { "source": "/investing", "has": [{ "type": "host", "value": "gutmoney.com" }], "destination": "/api/static-meta?route=money_investing" },
     { "source": "/investing", "has": [{ "type": "host", "value": "www.gutmoney.com" }], "destination": "/api/static-meta?route=money_investing" },
     { "source": "/budgeting", "has": [{ "type": "host", "value": "gutmoney.com" }], "destination": "/api/static-meta?route=money_budgeting" },

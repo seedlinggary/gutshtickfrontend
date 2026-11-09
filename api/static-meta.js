@@ -100,10 +100,13 @@ const PAGES = {
   },
 
   // ── Gut Money ───────────────────────────────────────────────────────────
+  // Job Board is the homepage (Calculators moved to its own /calculators
+  // path) -- money_home and money_tachlis intentionally share the same
+  // copy, since '/' and '/tachlis' render the identical component.
   money_home: {
     siteName: 'Gut Money',
-    title: 'Gut Money — Budgeting, Investing & Retirement Calculators',
-    description: 'Free calculators for compound interest, retirement, debt payoff, a savings goal, your FIRE number and Coast FIRE -- plus real stock quotes, a budgeting tool, and a jobs board.',
+    title: 'Job Board — Jobs & Resumes | Gut Money',
+    description: 'Post or browse job openings and resumes -- a straightforward classifieds board. Plus free calculators for compound interest, retirement, debt payoff and more, real stock quotes, and a budgeting tool.',
     path: '/',
   },
   money_tachlis: {
@@ -111,6 +114,12 @@ const PAGES = {
     title: 'Job Board — Jobs & Resumes | Gut Money',
     description: 'Post or browse job openings and resumes -- a straightforward classifieds board.',
     path: '/tachlis',
+  },
+  money_calculators: {
+    siteName: 'Gut Money',
+    title: 'Budgeting, Investing & Retirement Calculators | Gut Money',
+    description: 'Free calculators for compound interest, retirement, debt payoff, a savings goal, your FIRE number and Coast FIRE.',
+    path: '/calculators',
   },
   money_investing: {
     siteName: 'Gut Money',

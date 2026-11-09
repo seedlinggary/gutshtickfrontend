@@ -22,7 +22,8 @@ const TachlisGuestManage = lazy(() => import('./TachlisGuestManage'));
  * -- every existing bookmark/deep-link to /tachlis/post/:id keeps working
  * once it resolves against Money's own hostname instead. */
 export default [
-  { path: '/', element: <Calculators /> },
+  { path: '/', element: <Tachlis /> },
+  { path: '/calculators', element: <Calculators /> },
   { path: '/investing', element: <Investing /> },
   { path: '/budgeting', element: <Budgeting /> },
   { path: '/learn', element: <Learn /> },

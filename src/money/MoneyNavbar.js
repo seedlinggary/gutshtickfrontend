@@ -48,7 +48,7 @@ export default function MoneyNavbar() {
         </button>
         <div className={`navbar-collapse${mobileOpen ? ' show' : ''}`}>
           <ul className="navbar-nav navbar-nav-start">
-            <li className="nav-item"><button className="nav-link" onClick={() => go('/')}><Calculator size={15} /> Calculators</button></li>
+            <li className="nav-item"><button className="nav-link" onClick={() => go('/calculators')}><Calculator size={15} /> Calculators</button></li>
             <li className="nav-item"><button className="nav-link" onClick={() => go('/investing')}><LineChart size={15} /> Investing</button></li>
             <li className="nav-item"><button className="nav-link" onClick={() => go('/budgeting')}><PiggyBank size={15} /> Budgeting</button></li>
             <li className="nav-item"><button className="nav-link" onClick={() => go('/learn')}><BookOpen size={15} /> Learn</button></li>
