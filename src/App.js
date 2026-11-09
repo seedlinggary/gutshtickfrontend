@@ -30,6 +30,7 @@ import MobileTabBar from './MobileTabBar';
 import Footer from './Footer';
 import ScrollToTop from './ScrollToTop';
 import VisitorTracker from './analytics/VisitorTracker';
+import VercelAnalytics from './analytics/VercelAnalytics';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Disclaimer from './Disclaimer';
 import ContentGuidelines from './ContentGuidelines';
@@ -192,6 +193,7 @@ function App() {
       <div className="App page-wrapper">
         <ScrollToTop />
         <VisitorTracker />
+        <VercelAnalytics />
         <SsoBootstrap />
         <SiteBanner />
         {/* One shared instance for every site, pinned to the corner instead
