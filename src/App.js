@@ -2,18 +2,49 @@ import './App.css';
 import React, { lazy, Suspense, useEffect } from 'react';
 import { Wrench, Hourglass } from 'lucide-react';
 
-class GameErrorBoundary extends React.Component {
+// Wraps EVERY route (see <Routes> below), not just games -- the old name/
+// copy ("Game Loading… This game is still being set up") was written back
+// when this only wrapped game routes, but it fires for any render error on
+// any page (confirmed: a superadmin/random-page report of this exact text,
+// no game involved).
+//
+// The actual most common trigger isn't a real bug at all: a lazy-loaded
+// route chunk (every route above is `lazy(() => import(...))`) 404s after
+// a new deploy ships new hashed filenames -- a tab that's been open since
+// before that deploy is still holding yesterday's index.html, which points
+// at chunk files that no longer exist. That's exactly "sometimes, random
+// pages, and reloading fixes it": a reload fetches today's index.html with
+// today's filenames and just works. So instead of a dead-end message,
+// auto-reload once when the error looks like that (componentDidCatch,
+// matched against the handful of phrasings browsers/Vite actually throw
+// for a failed dynamic import). A sessionStorage guard, timestamped rather
+// than one-shot, stops a genuinely broken deploy from reload-looping
+// forever while still allowing a real recovery for a later, unrelated
+// incident in the same tab.
+const CHUNK_ERROR_RE = /dynamically imported module|Failed to fetch|Loading chunk|ChunkLoadError/i;
+const CHUNK_RELOAD_GUARD_KEY = 'gs_chunk_reload_at';
+const CHUNK_RELOAD_GUARD_MS = 10000;
+
+class PageErrorBoundary extends React.Component {
   constructor(props) { super(props); this.state = { error: null }; }
   static getDerivedStateFromError(error) { return { error }; }
+  componentDidCatch(error) {
+    if (!CHUNK_ERROR_RE.test(String(error?.message || ''))) return;
+    const last = Number(sessionStorage.getItem(CHUNK_RELOAD_GUARD_KEY) || 0);
+    if (Date.now() - last > CHUNK_RELOAD_GUARD_MS) {
+      sessionStorage.setItem(CHUNK_RELOAD_GUARD_KEY, Date.now().toString());
+      window.location.reload();
+    }
+  }
   render() {
     if (this.state.error) {
       return (
         <div className="game-page" style={{ textAlign: 'center', paddingTop: 60 }}>
           <div className="gs-empty-icon"><Wrench size={26} /></div>
-          <h2>Game Loading…</h2>
-          <p style={{ color: 'var(--muted)' }}>This game is still being set up. Check back soon!</p>
-          <button className="gs-btn gs-btn-outline" onClick={() => window.location.href = '/games'} style={{ marginTop: 16 }}>
-            ← Back to Arcade
+          <h2>Something went wrong loading this page</h2>
+          <p style={{ color: 'var(--muted)' }}>This can happen right after a site update -- reloading usually fixes it.</p>
+          <button className="gs-btn gs-btn-outline" onClick={() => window.location.reload()} style={{ marginTop: 16 }}>
+            Reload page
           </button>
         </div>
       );
@@ -224,7 +255,7 @@ function App() {
             space when a top-banner ad is actually loaded, so pages don't
             carry permanent dead space when there's no ad to show there. */}
         <main className={`main-content${bannerAds.top ? ' has-top-ad' : ''}`}>
-          <GameErrorBoundary>
+          <PageErrorBoundary>
           <Suspense fallback={<GameFallback />}>
             <Routes>
               {site ? (
@@ -387,7 +418,7 @@ function App() {
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
-          </GameErrorBoundary>
+          </PageErrorBoundary>
         </main>
         {/* A business-owner storefront ('business-site') renders its OWN
             theme-driven SiteFooter.js inside each page body already (see

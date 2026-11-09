@@ -1,10 +1,11 @@
 import React from 'react';
 
-/** Generic, reusable error boundary -- unlike App.js's GameErrorBoundary
- * (which is games-flavored and wraps the whole route tree), this is meant
- * to wrap one section of a page so a failure there shows an honest message
- * plus the real error (so it's actually diagnosable) instead of a
- * confusing top-level fallback meant for a different part of the site.
+/** Generic, reusable error boundary -- unlike App.js's PageErrorBoundary
+ * (which wraps the whole route tree and auto-reloads on a stale deploy
+ * chunk, see its own comment), this is meant to wrap one section of a
+ * page so a failure there shows an honest message plus the real error
+ * (so it's actually diagnosable) instead of a confusing top-level
+ * fallback meant for a different part of the site.
  *
  * Usage: <ErrorBoundary fallback={(error, retry) => <div>...</div>}>...
  * `fallback` is optional -- a reasonable default is rendered without it. */
