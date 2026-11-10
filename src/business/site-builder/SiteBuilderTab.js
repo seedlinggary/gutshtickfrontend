@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
   Globe, Settings as SettingsIcon, Users, Link2, Check, X as XIcon, Copy,
   FileText, Palette, LayoutTemplate, Sliders, CreditCard, ShoppingBag,
-  CalendarDays, Receipt, ClipboardList, HeartHandshake,
+  CalendarDays, Receipt, ClipboardList, HeartHandshake, Sparkles,
 } from 'lucide-react';
 import apiRequest from '../../ApiRequest';
 import NonprofitOwnerPanel from '../nonprofit/NonprofitOwnerPanel';
@@ -16,6 +16,7 @@ import InvoicesPanel from './InvoicesPanel';
 import FormsPanel from './FormsPanel';
 import ThemePanel from './ThemePanel';
 import TemplatesPanel from './TemplatesPanel';
+import WebsiteSetupWizard from './WebsiteSetupWizard';
 import './site-builder.css';
 
 function SubdomainEditor({ site, onSave, saving }) {
@@ -49,7 +50,7 @@ function SubdomainEditor({ site, onSave, saving }) {
  *    still a manual step today (same category of one-time infra setup as
  *    the wildcard subdomain base domain itself), not something this panel
  *    can trigger on its own. */
-function DomainPanel({ businessId, site, onSiteUpdate }) {
+export function DomainPanel({ businessId, site, onSiteUpdate }) {
   const [domain, setDomain] = useState('');
   const [saving, setSaving] = useState(false);
   const [verifying, setVerifying] = useState(false);
@@ -214,6 +215,7 @@ export default function SiteBuilderTab({ businessId }) {
   const [error, setError] = useState('');
   const [savingSite, setSavingSite] = useState(false);
   const [activeSection, setActiveSection] = useState('pages');
+  const [showWizard, setShowWizard] = useState(false);
 
   // The one, shared list of pages -- WebsitePagesPanel (create/duplicate/
   // delete/rename) and SiteAiAssistant (needs every page's id/slug/title
@@ -241,9 +243,14 @@ export default function SiteBuilderTab({ businessId }) {
 
   const visibleSections = SECTIONS.filter((s) => !s.module || site.enabled_modules?.[s.module]);
   const activeKey = visibleSections.some((s) => s.key === activeSection) ? activeSection : 'pages';
+  const wizardVisible = showWizard || !site.setup_wizard_dismissed;
 
   return (
     <div className="sb-tab">
+      {wizardVisible && (
+        <WebsiteSetupWizard businessId={businessId} site={site} onSiteUpdate={setSite} onClose={() => setShowWizard(false)} />
+      )}
+
       <div className="sb-section-tabs">
         {visibleSections.map(({ key, label, Icon }) => (
           <button
@@ -255,6 +262,11 @@ export default function SiteBuilderTab({ businessId }) {
             <Icon size={14} /> {label}
           </button>
         ))}
+        {!wizardVisible && (
+          <button type="button" className="sb-section-tab" onClick={() => setShowWizard(true)}>
+            <Sparkles size={14} /> Setup
+          </button>
+        )}
       </div>
 
       {activeKey === 'pages' && pages && (

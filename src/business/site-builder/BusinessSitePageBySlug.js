@@ -29,6 +29,13 @@ export default function BusinessSitePageBySlug({ subdomain }) {
     if (page?.page?.seo_title || page?.page?.title) document.title = page.page.seo_title || page.page.title;
   }, [page]);
 
+  useEffect(() => {
+    if (!page?.favicon_url) return;
+    let link = document.querySelector("link[rel='icon']");
+    if (!link) { link = document.createElement('link'); link.rel = 'icon'; document.head.appendChild(link); }
+    link.href = page.favicon_url;
+  }, [page]);
+
   if (state === 'loading') {
     return (
       <div className="gs-loading" style={{ minHeight: '60vh' }}>

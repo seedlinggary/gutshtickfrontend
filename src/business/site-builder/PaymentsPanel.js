@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { CreditCard, Check, ExternalLink } from 'lucide-react';
+import { CreditCard, Check, ExternalLink, ChevronDown } from 'lucide-react';
 import apiRequest from '../../ApiRequest';
 
 /** Reads the one-time ?payments=connected|error&message=... the Stripe
@@ -27,6 +27,9 @@ export default function PaymentsPanel({ businessId }) {
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
   const [connecting, setConnecting] = useState(false);
+  const [showManual, setShowManual] = useState(false);
+  const [manualId, setManualId] = useState('');
+  const [manualBusy, setManualBusy] = useState(false);
   const banner = useOauthReturnBanner();
 
   const load = () => apiRequest('GET', null, `/business/businesses/${businessId}/payments/status`).then(setData).catch(() => setError('Could not load payment status.'));
@@ -38,6 +41,17 @@ export default function PaymentsPanel({ businessId }) {
     apiRequest('POST', {}, `/business/businesses/${businessId}/payments/connect/start`)
       .then(({ authorize_url }) => { window.location.href = authorize_url; })
       .catch((err) => { setError(typeof err === 'string' ? err : 'Could not start that connection.'); setConnecting(false); });
+  };
+
+  const manualConnect = () => {
+    const trimmed = manualId.trim();
+    if (!trimmed) return;
+    setManualBusy(true);
+    setError('');
+    apiRequest('POST', { account_id: trimmed }, `/business/businesses/${businessId}/payments/connect/manual`)
+      .then(() => { setManualId(''); setShowManual(false); load(); })
+      .catch((err) => setError(typeof err === 'string' ? err : 'Could not connect that account.'))
+      .finally(() => setManualBusy(false));
   };
 
   const disconnect = () => {
@@ -74,6 +88,18 @@ export default function PaymentsPanel({ businessId }) {
           <button type="button" className="gs-btn" disabled={connecting} onClick={connect}>
             <ExternalLink size={14} /> Connect Stripe
           </button>
+
+          <button type="button" className="sb-icon-btn" style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 4, fontSize: 12 }}
+            onClick={() => setShowManual((s) => !s)}>
+            <ChevronDown size={12} style={{ transform: showManual ? 'rotate(180deg)' : 'none' }} />
+            Already have a Stripe account ID?
+          </button>
+          {showManual && (
+            <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
+              <input className="gs-input" placeholder="acct_..." value={manualId} onChange={(e) => setManualId(e.target.value)} style={{ maxWidth: 260 }} />
+              <button type="button" className="gs-btn gs-btn-sm" disabled={manualBusy || !manualId.trim()} onClick={manualConnect}>Connect</button>
+            </div>
+          )}
         </>
       )}
 

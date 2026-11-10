@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Palette, Plus, Trash2, RotateCcw, ChevronDown } from 'lucide-react';
 import apiRequest from '../../ApiRequest';
+import UploadFile from '../../Uploadfile';
 import { THEME_PALETTES, FONT_PAIRINGS } from './theme';
 
 /** This panel grew one section at a time (colors, fonts, buttons, forms,
@@ -243,6 +244,18 @@ export default function ThemePanel({ businessId, site, onSiteUpdate }) {
     <div className="gs-card">
       <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 0 }}><Palette size={18} /> Look &amp; feel</h3>
       {error && <p style={{ color: 'var(--danger, #b42318)', fontSize: 13 }}>{error}</p>}
+
+      <div className="gs-field" style={{ marginBottom: 14 }}>
+        <div className="gs-label">Browser tab icon (favicon)</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          {site.favicon_url && <img src={site.favicon_url} alt="" style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid var(--border, #e5e1d6)' }} />}
+          <UploadFile apiextension="/business/upload" setInvestors={(filename) =>
+            apiRequest('GET', null, `/business/upload-url/${filename}`).then(({ url }) => patchChrome({ favicon_url: url }))} />
+          {site.favicon_url && (
+            <button type="button" className="sb-icon-btn" onClick={() => patchChrome({ favicon_url: null })}><RotateCcw size={12} /></button>
+          )}
+        </div>
+      </div>
 
       <Section title="Colors" defaultOpen>
         <div className="gs-field">

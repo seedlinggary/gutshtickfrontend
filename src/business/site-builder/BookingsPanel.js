@@ -1,6 +1,88 @@
 import React, { useEffect, useState } from 'react';
-import { CalendarClock, Plus, Trash2, ClipboardList, Clock } from 'lucide-react';
+import { CalendarClock, Plus, Trash2, ClipboardList, Clock, Check, ExternalLink } from 'lucide-react';
 import apiRequest from '../../ApiRequest';
+
+/** Mirrors PaymentsPanel.js's own useOauthReturnBanner -- reads the
+ * one-time ?calendar=connected|error&message=... the Google OAuth
+ * callback redirect lands with (see routes/calendar.py's
+ * _frontend_return_url), shown once, not persisted. */
+function useOauthReturnBanner() {
+  const [banner, setBanner] = useState(null);
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const calendar = params.get('calendar');
+    if (calendar) {
+      setBanner({ ok: calendar === 'connected', message: params.get('message') });
+      params.delete('calendar');
+      params.delete('message');
+      params.delete('tab');
+      const next = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ''}`;
+      window.history.replaceState({}, '', next);
+    }
+  }, []);
+  return banner;
+}
+
+export function GoogleCalendarSection({ businessId }) {
+  const [data, setData] = useState(null);
+  const [error, setError] = useState('');
+  const [connecting, setConnecting] = useState(false);
+  const banner = useOauthReturnBanner();
+
+  const load = () => apiRequest('GET', null, `/business/businesses/${businessId}/calendar/status`).then(setData).catch(() => setError('Could not load calendar status.'));
+  useEffect(() => { load(); }, [businessId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const connect = () => {
+    setConnecting(true);
+    apiRequest('POST', {}, `/business/businesses/${businessId}/calendar/connect/start`)
+      .then(({ authorize_url }) => { window.location.href = authorize_url; })
+      .catch((err) => { setError(typeof err === 'string' ? err : 'Could not start that connection.'); setConnecting(false); });
+  };
+
+  const disconnect = () => {
+    if (!window.confirm('Disconnect Google Calendar? New bookings will stop syncing to it.')) return;
+    setError('');
+    apiRequest('DELETE', null, `/business/businesses/${businessId}/calendar/disconnect`).then(load).catch((err) => setError(typeof err === 'string' ? err : 'Could not disconnect -- try again.'));
+  };
+
+  if (!data) return null;
+  const account = data.account;
+  const isActive = account?.status === 'active';
+
+  return (
+    <div style={{ marginBottom: 18, paddingBottom: 14, borderBottom: '1px solid var(--border, #e5e1d6)' }}>
+      <h4 className="biz-section-title" style={{ marginTop: 0 }}>Google Calendar</h4>
+      {banner && (
+        <p style={{ fontSize: 13, color: banner.ok ? 'var(--accent)' : 'var(--danger, #b42318)' }}>
+          {banner.ok ? 'Google Calendar connected.' : (banner.message || 'Could not connect Google Calendar.')}
+        </p>
+      )}
+      {error && <p style={{ color: 'var(--danger, #b42318)', fontSize: 13 }}>{error}</p>}
+
+      {!data.google_configured && <p className="gs-empty">Google isn't configured on this deployment yet -- check back soon.</p>}
+
+      {data.google_configured && !isActive && (
+        <>
+          <p style={{ color: 'var(--muted)', fontSize: 13 }}>
+            Connect your Google Calendar so every booking automatically appears on it, and times you've already blocked off there won't be offered to customers.
+          </p>
+          <button type="button" className="gs-btn gs-btn-sm" disabled={connecting} onClick={connect}>
+            <ExternalLink size={14} /> Connect Google Calendar
+          </button>
+        </>
+      )}
+
+      {isActive && (
+        <>
+          <p style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--accent)', fontSize: 13 }}>
+            <Check size={16} /> Connected{account.account_email ? ` as ${account.account_email}` : ''}
+          </p>
+          <button type="button" className="gs-btn gs-btn-outline gs-btn-sm" onClick={disconnect}>Disconnect</button>
+        </>
+      )}
+    </div>
+  );
+}
 
 const WEEKDAY_LABELS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
@@ -171,6 +253,10 @@ export default function BookingsPanel({ businessId }) {
       </div>
 
       {showAppointments && <div style={{ marginTop: 14 }}><AppointmentsSection businessId={businessId} /></div>}
+
+      <div style={{ marginTop: 14 }}>
+        <GoogleCalendarSection businessId={businessId} />
+      </div>
 
       <div style={{ marginTop: 14 }}>
         <ServiceTypesSection businessId={businessId} services={services} onReload={loadServices} />

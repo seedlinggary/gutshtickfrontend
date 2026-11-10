@@ -39,6 +39,13 @@ export default function BusinessSitePublic({ subdomain }) {
     if (site?.name) document.title = homePage?.page?.seo_title || site.name;
   }, [site, homePage]);
 
+  useEffect(() => {
+    if (!site?.favicon_url) return;
+    let link = document.querySelector("link[rel='icon']");
+    if (!link) { link = document.createElement('link'); link.rel = 'icon'; document.head.appendChild(link); }
+    link.href = site.favicon_url;
+  }, [site]);
+
   let body;
   if (state === 'loading') {
     body = (
