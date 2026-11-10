@@ -257,7 +257,13 @@
     padding-top: 16px;
     border-top: 1px solid var(--sb-border, #E3D5C0);
   }
-  .sb-navbar-links.sb-navbar-links-open { display: flex; }
+  /* Must match (or beat) the specificity of the "closed" rule right
+     above -- .sb-navbar-links.sb-navbar-links-open alone has fewer
+     classes than .sb-navbar:not(.sb-navbar-minimal) .sb-navbar-links, so
+     "display: none" always won even with the -open class added: the
+     toggle button's icon flipped (plain React state, unaffected by CSS)
+     but the list itself never actually appeared. Confirmed live on KTY. */
+  .sb-navbar:not(.sb-navbar-minimal) .sb-navbar-links.sb-navbar-links-open { display: flex; }
 }
 
 /* DevicePreviewModal.js's "Mobile" preview forces this collapsed look
