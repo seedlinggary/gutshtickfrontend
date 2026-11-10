@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { MessageCircleQuestion, X, Send, Loader2 } from 'lucide-react';
 import apiRequest from '../ApiRequest';
 import { crossSiteNavigate } from '../CrossSiteLink';
@@ -72,7 +72,19 @@ function ResultCard({ type, item }) {
  * on every site. Conversation history is kept in sessionStorage only --
  * resets per-tab, never sent anywhere except back to /askgut/chat as
  * context for the next turn (see backend/askgut/routes/chat.py). */
+// The site builder's own SiteAiAssistant.js is already a floating "ask AI
+// to change this" widget scoped to the website workspace -- having this
+// general, cross-site Ask GUT bubble show up at the same time there reads
+// as two unrelated assistants competing for the same click, not one
+// consistent AI feature. Hidden only on that one tab; every other business
+// tools tab (and the rest of the site) keeps it.
+function isWebsiteWorkspace(pathname, search) {
+  if (!/^\/business\/[^/]+\/tools\/?$/.test(pathname)) return false;
+  return new URLSearchParams(search).get('tab') === 'site';
+}
+
 export default function AskGutWidget() {
+  const location = useLocation();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState(() => {
     try {
@@ -117,6 +129,8 @@ export default function AskGutWidget() {
       setSending(false);
     }
   };
+
+  if (isWebsiteWorkspace(location.pathname, location.search)) return null;
 
   return (
     <div className="askgut-wrap" data-no-translate>

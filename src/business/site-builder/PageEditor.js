@@ -130,6 +130,26 @@ export default function PageEditor({ businessId, pageId, subdomain }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pageId]);
 
+  // SiteAiAssistant.js dispatches this after it saves new drafts for one
+  // or more pages (same "custom window event instead of prop-drilling"
+  // convention ProductBlocks.js uses for ProductsPanel->canvas updates).
+  // Pulls the AI's new sections in as one more history step (sectionsHistory
+  // .set, not .reset) specifically so Ctrl+Z still has the pre-AI version to
+  // go back to -- a full reset here would wipe that out, which is exactly
+  // what force-remounting this component used to do before this listener
+  // existed.
+  useEffect(() => {
+    const onAiUpdated = (e) => {
+      if (!e.detail?.pageIds?.includes(pageId)) return;
+      apiRequest('GET', null, `/business/site-pages/${pageId}/draft`)
+        .then((data) => { setPage(data.page); sectionsHistory.set(data.sections || [], { commit: true }); })
+        .catch(() => {});
+    };
+    window.addEventListener('gs-site-ai-updated', onAiUpdated);
+    return () => window.removeEventListener('gs-site-ai-updated', onAiUpdated);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pageId]);
+
   // Ctrl/Cmd+Z to undo, Ctrl/Cmd+Shift+Z or Ctrl/Cmd+Y to redo -- skipped
   // while focus is inside a text input/textarea (the inspector's own
   // fields) so this doesn't fight the browser's native text-undo there.

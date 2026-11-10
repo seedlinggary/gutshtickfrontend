@@ -84,19 +84,18 @@ function PageRenameForm({ page, onSaved, onCancel }) {
  * PageEditor.js, just re-keyed per page so switching tabs cleanly remounts
  * it (reusing its own existing load-on-mount effect, no new plumbing).
  *
- * Listens for 'gs-site-ai-updated' (dispatched by SiteAiAssistant.js after
- * it saves new drafts for one or more pages -- same "custom window event
- * instead of prop-drilling" convention ProductBlocks.js already uses for
- * ProductsPanel->canvas updates) so a page the AI just rewrote refreshes
- * immediately if it happens to be the one currently open, instead of
- * silently showing stale content until a manual reload.
+ * PageEditor.js itself listens for 'gs-site-ai-updated' (dispatched by
+ * SiteAiAssistant.js after it saves new drafts for one or more pages) and
+ * pulls the AI's new sections into its own undo history as one more step
+ * -- this used to be handled here by force-remounting PageEditor, which
+ * refreshed the content but silently wiped its undo/redo stack in the
+ * process (Ctrl+Z had nothing to go back to right after an AI edit).
  */
 export default function WebsitePagesPanel({ businessId, subdomain, site, pages, onPagesChanged, onNavChange }) {
   const [activePageId, setActivePageId] = useState(null);
   const [newPageOpen, setNewPageOpen] = useState(false);
   const [renamingPageId, setRenamingPageId] = useState(null);
   const [pagesError, setPagesError] = useState('');
-  const [remountNonce, setRemountNonce] = useState(0);
   // Which page a just-finished create/duplicate should land on --
   // onPagesChanged (the parent's loadPages) takes no args and just
   // re-fetches the list, so the page to select once that new list
@@ -118,14 +117,6 @@ export default function WebsitePagesPanel({ businessId, subdomain, site, pages, 
       return (pages.find((p) => p.is_home) || pages[0] || {}).id ?? null;
     });
   }, [pages]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    const onAiUpdated = (e) => {
-      if (e.detail?.pageIds?.includes(activePageId)) setRemountNonce((n) => n + 1);
-    };
-    window.addEventListener('gs-site-ai-updated', onAiUpdated);
-    return () => window.removeEventListener('gs-site-ai-updated', onAiUpdated);
-  }, [activePageId]);
 
   const reload = (preferPageId) => { setPendingActiveId(preferPageId); onPagesChanged(); };
 
@@ -269,7 +260,7 @@ export default function WebsitePagesPanel({ businessId, subdomain, site, pages, 
             </div>
           )}
 
-          <PageEditor key={`${activePage.id}-${remountNonce}`} businessId={businessId} pageId={activePage.id} subdomain={subdomain} />
+          <PageEditor key={activePage.id} businessId={businessId} pageId={activePage.id} subdomain={subdomain} />
         </>
       )}
     </div>
