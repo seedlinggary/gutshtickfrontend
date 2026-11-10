@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { CalendarDays, Plus, Pencil, Users } from 'lucide-react';
+import { CalendarDays, Plus, Pencil, Users, Trash2 } from 'lucide-react';
 import nonprofitApiRequest from '../nonprofitApi';
 import '../nonprofit.css';
 
@@ -7,25 +7,54 @@ function formatCents(cents) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'ILS' }).format((cents || 0) / 100);
 }
 
+// Owner-named price tiers (e.g. "Member"/"Non-Member", or "Adult"/"Child"
+// for a non-seating event) -- any number, not a fixed pair. A visitor
+// picks a seat count per active tier (see the public holiday-seats page);
+// archiving one hides it from new signups without losing what it meant
+// on past ones (NonprofitSignup.seat_breakdown stores tier ids).
+function TierEditor({ tiers, onChange }) {
+  const update = (i, patch) => onChange(tiers.map((t, idx) => (idx === i ? { ...t, ...patch } : t)));
+  const archive = (i) => onChange(tiers.map((t, idx) => (idx === i ? { ...t, archived: true } : t)));
+  const add = () => onChange([...tiers, { label: '', price_cents: '' }]);
+
+  return (
+    <div>
+      <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 4 }}>Price tiers</div>
+      {tiers.map((t, i) => !t.archived && (
+        <div key={t.id || `new-${i}`} style={{ display: 'flex', gap: 8, marginBottom: 6 }}>
+          <input className="gs-input" placeholder="Tier name (e.g. Member)" value={t.label}
+            onChange={(e) => update(i, { label: e.target.value })} style={{ flex: '2 1 160px' }} />
+          <input className="gs-input" type="number" step="0.01" min="0" placeholder="Price (₪)"
+            value={t.price_cents === '' ? '' : (t.price_cents / 100)}
+            onChange={(e) => update(i, { price_cents: Math.round(Number(e.target.value) * 100) })}
+            style={{ flex: '1 1 100px' }} />
+          {tiers.filter((x) => !x.archived).length > 1 && (
+            <button type="button" className="sb-icon-btn" title="Remove tier" onClick={() => archive(i)}><Trash2 size={13} /></button>
+          )}
+        </div>
+      ))}
+      <button type="button" className="gs-btn gs-btn-outline gs-btn-sm" onClick={add}><Plus size={13} /> Add tier</button>
+    </div>
+  );
+}
+
 function HolidayForm({ businessId, holiday, onSaved, onCancel }) {
   const [slug, setSlug] = useState(holiday?.slug || '');
   const [nameEn, setNameEn] = useState(holiday?.name_en || '');
-  const [memberPrice, setMemberPrice] = useState(holiday ? (holiday.member_price_cents / 100).toFixed(2) : '');
-  const [nonMemberPrice, setNonMemberPrice] = useState(holiday ? (holiday.non_member_price_cents / 100).toFixed(2) : '');
+  const [tiers, setTiers] = useState(holiday?.tiers?.length ? holiday.tiers : [{ label: 'Member', price_cents: '' }, { label: 'Non-Member', price_cents: '' }]);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
   const submit = (e) => {
     e.preventDefault();
-    const memberCents = Math.round(Number(memberPrice) * 100);
-    const nonMemberCents = Math.round(Number(nonMemberPrice) * 100);
-    if (!slug.trim() || !nameEn.trim() || !memberCents || !nonMemberCents) {
-      setError('Slug, name, and both prices are required.');
+    const active = tiers.filter((t) => !t.archived);
+    if (!slug.trim() || !nameEn.trim() || active.length === 0 || active.some((t) => !t.label.trim() || !t.price_cents)) {
+      setError('Slug, name, and every tier\'s name and price are required.');
       return;
     }
     setSaving(true);
     setError('');
-    const body = { slug: slug.trim(), name_en: nameEn.trim(), member_price_cents: memberCents, non_member_price_cents: nonMemberCents };
+    const body = { slug: slug.trim(), name_en: nameEn.trim(), tiers };
     const req = holiday
       ? nonprofitApiRequest('PATCH', body, `/nonprofit/holidays/${holiday.id}`)
       : nonprofitApiRequest('POST', body, `/nonprofit/businesses/${businessId}/holidays`);
@@ -37,10 +66,7 @@ function HolidayForm({ businessId, holiday, onSaved, onCancel }) {
       {error && <p style={{ color: 'var(--danger, #b42318)', fontSize: 13 }}>{error}</p>}
       <input className="gs-input" placeholder="Slug (e.g. rosh-hashana-5787)" value={slug} onChange={(e) => setSlug(e.target.value)} required />
       <input className="gs-input" placeholder="Name" value={nameEn} onChange={(e) => setNameEn(e.target.value)} required />
-      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-        <input className="gs-input" type="number" step="0.01" min="0" placeholder="Member price (₪)" value={memberPrice} onChange={(e) => setMemberPrice(e.target.value)} style={{ flex: '1 1 160px' }} required />
-        <input className="gs-input" type="number" step="0.01" min="0" placeholder="Non-member price (₪)" value={nonMemberPrice} onChange={(e) => setNonMemberPrice(e.target.value)} style={{ flex: '1 1 160px' }} required />
-      </div>
+      <TierEditor tiers={tiers} onChange={setTiers} />
       <div style={{ display: 'flex', gap: 8 }}>
         <button type="submit" className="gs-btn gs-btn-sm" disabled={saving}>Save</button>
         <button type="button" className="gs-btn gs-btn-outline gs-btn-sm" onClick={onCancel}>Cancel</button>
@@ -102,7 +128,7 @@ export default function NonprofitHolidaysPage({ businessId, onOpenItem }) {
               </button>
             </div>
             <div style={{ fontSize: 13, color: 'var(--muted)' }}>
-              Member {formatCents(holiday.member_price_cents)} · Non-member {formatCents(holiday.non_member_price_cents)}
+              {holiday.tiers.filter((t) => !t.archived).map((t) => `${t.label} ${formatCents(t.price_cents)}`).join(' · ') || 'No tiers yet'}
             </div>
             <div className="admin-card-meta">
               {total_seats} seats · {paid_count} paid · {pending_count} pending · {formatCents(paid_revenue_cents)} collected

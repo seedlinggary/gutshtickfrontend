@@ -13,8 +13,9 @@ function formatCents(cents) {
 // see NonprofitDonatePage.js's own comment for why this standalone page
 // needed the same fix independently.
 export default function NonprofitMembershipPage({ subdomain }) {
-  const [prices, setPrices] = useState(null);
-  const [tier, setTier] = useState('associate');
+  const [tiers, setTiers] = useState(null);
+  const [isOpen, setIsOpen] = useState(true);
+  const [tier, setTier] = useState(null);
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -25,12 +26,12 @@ export default function NonprofitMembershipPage({ subdomain }) {
   const [captchaToken, setCaptchaToken] = useState(undefined);
 
   useEffect(() => {
-    // No dedicated public pricing endpoint -- the amount is resolved
-    // authoritatively server-side at submit time anyway, so this is
-    // purely informational; fall back to the ported system's own
-    // defaults if it can't be reached pre-submit.
-    setPrices({ associate: 10000, full: 20000 });
-  }, []);
+    apiRequest('GET', null, `/nonprofit/public/${subdomain}/membership-tiers`).then((d) => {
+      setTiers(d.tiers);
+      setIsOpen(d.is_open);
+      if (d.tiers.length) setTier(d.tiers[0].id);
+    }).catch(() => setTiers([]));
+  }, [subdomain]);
 
   const submit = (e) => {
     e.preventDefault();
@@ -43,7 +44,9 @@ export default function NonprofitMembershipPage({ subdomain }) {
       .catch((err) => { setError(typeof err === 'string' ? err : 'Could not start your membership -- try again.'); setBusy(false); });
   };
 
-  if (!prices) return <div className="gs-loading"><div className="gs-spinner" /></div>;
+  if (!tiers) return <div className="gs-loading"><div className="gs-spinner" /></div>;
+
+  const selected = tiers.find((t) => t.id === tier);
 
   return (
     <div className="sb-theme">
@@ -51,14 +54,17 @@ export default function NonprofitMembershipPage({ subdomain }) {
         <h1 style={{ display: 'flex', alignItems: 'center', gap: 10, fontFamily: 'var(--sb-font-heading)', marginBottom: 20 }}>
           <Repeat size={24} /> Become a member
         </h1>
+        {!isOpen || tiers.length === 0 ? (
+          <p className="gs-empty">Online membership signup is not open right now -- please check back later.</p>
+        ) : (
         <form onSubmit={submit} className="sb-form-plain-card" style={{ display: 'flex', flexDirection: 'column', gap: 16, boxSizing: 'border-box' }}>
           <div>
             <div className="sb-form-section-heading">Choose Your Membership</div>
             <div className="sb-form-grid-2">
-              {['associate', 'full'].map((t) => (
-                <button key={t} type="button" className={`sb-choice-card${tier === t ? ' sb-choice-card-active' : ''}`} onClick={() => setTier(t)}>
-                  <p className="sb-choice-card-title">{t === 'associate' ? 'Associate Member' : 'Full Member'}</p>
-                  <p className="sb-choice-card-sub">{formatCents(prices[t])} / month</p>
+              {tiers.map((t) => (
+                <button key={t.id} type="button" className={`sb-choice-card${tier === t.id ? ' sb-choice-card-active' : ''}`} onClick={() => setTier(t.id)}>
+                  <p className="sb-choice-card-title">{t.label}</p>
+                  <p className="sb-choice-card-sub">{formatCents(t.monthly_cents)} / month</p>
                 </button>
               ))}
             </div>
@@ -71,19 +77,22 @@ export default function NonprofitMembershipPage({ subdomain }) {
             <input className="sb-input" placeholder="City" value={city} onChange={(e) => setCity(e.target.value)} />
           </div>
 
-          <p className="sb-form-intro">
-            This sets up a monthly standing order -- you'll continue to be charged {formatCents(prices[tier])} every month until you cancel.
-          </p>
+          {selected && (
+            <p className="sb-form-intro">
+              This sets up a monthly standing order -- you'll continue to be charged {formatCents(selected.monthly_cents)} every month until you cancel.
+            </p>
+          )}
 
           <TurnstileWidget onToken={setCaptchaToken} />
           {error && <p style={{ color: 'var(--danger, #b42318)', fontSize: 13, margin: 0 }}>{error}</p>}
 
           <div className="sb-form-footer">
-            <button type="submit" className="sb-button" disabled={busy || captchaToken === undefined}>
+            <button type="submit" className="sb-button" disabled={busy || !tier || captchaToken === undefined}>
               {busy ? 'Redirecting to payment…' : 'Continue to Payment'}
             </button>
           </div>
         </form>
+        )}
       </div>
       <SiteFooter subdomain={subdomain} />
     </div>

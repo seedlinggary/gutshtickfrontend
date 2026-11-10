@@ -203,7 +203,7 @@ function RecordCard({ record, subdomain }) {
       {record.holidays && record.holidays.length > 0 && (
         <ul style={{ fontSize: 12, color: 'var(--muted)', margin: '6px 0 0', paddingLeft: 18 }}>
           {record.holidays.map((h, i) => (
-            <li key={i}>{h.name_en} -- {h.men_seats + h.women_seats} seat(s) ({formatCents(h.total_cents)})</li>
+            <li key={i}>{h.name_en} -- {Object.values(h.seats || {}).reduce((a, b) => a + b, 0)} seat(s) ({formatCents(h.total_cents)})</li>
           ))}
         </ul>
       )}

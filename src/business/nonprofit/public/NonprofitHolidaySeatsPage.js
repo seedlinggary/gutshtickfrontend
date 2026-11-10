@@ -16,8 +16,7 @@ function formatCents(cents) {
 // points to when it never embeds the block on a built page at all.
 export default function NonprofitHolidaySeatsPage({ subdomain }) {
   const [holidays, setHolidays] = useState(null);
-  const [seats, setSeats] = useState({}); // holidayId -> {men, women}
-  const [isMember, setIsMember] = useState(null);
+  const [seats, setSeats] = useState({}); // holidayId -> {tierId: count}
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
@@ -30,34 +29,38 @@ export default function NonprofitHolidaySeatsPage({ subdomain }) {
     apiRequest('GET', null, `/nonprofit/public/${subdomain}/holidays`).then((d) => setHolidays(d.holidays)).catch(() => setHolidays([]));
   }, [subdomain]);
 
-  const setCount = (holidayId, key, delta) => {
+  const setCount = (holidayId, tierId, delta) => {
     setSeats((cur) => {
-      const current = cur[holidayId] || { men: 0, women: 0 };
-      const next = Math.max(0, current[key] + delta);
-      return { ...cur, [holidayId]: { ...current, [key]: next } };
+      const current = cur[holidayId] || {};
+      const next = Math.max(0, (current[tierId] || 0) + delta);
+      return { ...cur, [holidayId]: { ...current, [tierId]: next } };
     });
   };
 
   const { items, totalCents } = useMemo(() => {
-    if (!holidays || isMember === null) return { items: [], totalCents: 0 };
+    if (!holidays) return { items: [], totalCents: 0 };
     let total = 0;
     const list = [];
     for (const h of holidays) {
-      const s = seats[h.id];
-      if (!s || s.men + s.women <= 0) continue;
-      const price = isMember ? h.member_price_cents : h.non_member_price_cents;
-      total += price * (s.men + s.women);
-      list.push({ holiday_id: h.id, men_seats: s.men, women_seats: s.women });
+      const s = seats[h.id] || {};
+      const tiersById = {};
+      h.tiers.forEach((t) => { tiersById[t.id] = t; });
+      const activeSeats = Object.fromEntries(Object.entries(s).filter(([, count]) => count > 0));
+      if (Object.keys(activeSeats).length === 0) continue;
+      for (const [tierId, count] of Object.entries(activeSeats)) {
+        total += (tiersById[tierId]?.price_cents || 0) * count;
+      }
+      list.push({ holiday_id: h.id, seats: activeSeats });
     }
     return { items: list, totalCents: total };
-  }, [holidays, seats, isMember]);
+  }, [holidays, seats]);
 
   const submit = (e) => {
     e.preventDefault();
     setBusy(true);
     setError('');
     apiRequest('POST', {
-      full_name: fullName, phone, email, is_member: isMember, notes, items, captcha_token: captchaToken || undefined,
+      full_name: fullName, phone, email, notes, items, captcha_token: captchaToken || undefined,
     }, `/nonprofit/public/${subdomain}/holiday-seats`)
       .then((data) => { window.location.href = data.payment_url; })
       .catch((err) => { setError(typeof err === 'string' ? err : 'Could not start checkout -- try again.'); setBusy(false); });
@@ -78,44 +81,29 @@ export default function NonprofitHolidaySeatsPage({ subdomain }) {
           ) : (
             <>
               <div>
-                <div className="sb-form-section-heading">Membership Status</div>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <button type="button" className={`sb-choice-chip${isMember === true ? ' sb-choice-chip-active' : ''}`} onClick={() => setIsMember(true)}>Member</button>
-                  <button type="button" className={`sb-choice-chip${isMember === false ? ' sb-choice-chip-active' : ''}`} onClick={() => setIsMember(false)}>Non-Member</button>
-                </div>
-              </div>
-
-              <div>
                 <div className="sb-form-section-heading">Choose Your Seats</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   {holidays.map((h) => {
-                    const s = seats[h.id] || { men: 0, women: 0 };
-                    const hasSeats = s.men + s.women > 0;
+                    const s = seats[h.id] || {};
+                    const hasSeats = Object.values(s).some((c) => c > 0);
                     return (
                       <div key={h.id} className={`sb-seat-card${hasSeats ? ' sb-seat-card-active' : ''}`}>
                         <h4>{h.name_en}</h4>
                         {h.description_en && <p className="sb-seat-card-desc">{h.description_en}</p>}
                         <div className="sb-seat-card-prices">
-                          <span>{formatCents(h.member_price_cents)} / seat (member)</span>
-                          <span>{formatCents(h.non_member_price_cents)} / seat (non-member)</span>
+                          {h.tiers.map((t) => <span key={t.id}>{formatCents(t.price_cents)} / seat ({t.label})</span>)}
                         </div>
                         <div className="sb-seat-steppers">
-                          <div>
-                            <span className="sb-stepper-label">Men's Seats</span>
-                            <div className="sb-stepper-row">
-                              <button type="button" className="sb-stepper-btn" onClick={() => setCount(h.id, 'men', -1)}><Minus size={13} /></button>
-                              <span className="sb-stepper-value">{s.men}</span>
-                              <button type="button" className="sb-stepper-btn" onClick={() => setCount(h.id, 'men', 1)}><Plus size={13} /></button>
+                          {h.tiers.map((t) => (
+                            <div key={t.id}>
+                              <span className="sb-stepper-label">{t.label}</span>
+                              <div className="sb-stepper-row">
+                                <button type="button" className="sb-stepper-btn" onClick={() => setCount(h.id, t.id, -1)}><Minus size={13} /></button>
+                                <span className="sb-stepper-value">{s[t.id] || 0}</span>
+                                <button type="button" className="sb-stepper-btn" onClick={() => setCount(h.id, t.id, 1)}><Plus size={13} /></button>
+                              </div>
                             </div>
-                          </div>
-                          <div>
-                            <span className="sb-stepper-label">Women's Seats</span>
-                            <div className="sb-stepper-row">
-                              <button type="button" className="sb-stepper-btn" onClick={() => setCount(h.id, 'women', -1)}><Minus size={13} /></button>
-                              <span className="sb-stepper-value">{s.women}</span>
-                              <button type="button" className="sb-stepper-btn" onClick={() => setCount(h.id, 'women', 1)}><Plus size={13} /></button>
-                            </div>
-                          </div>
+                          ))}
                         </div>
                       </div>
                     );

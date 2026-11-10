@@ -9,16 +9,21 @@ function formatCents(cents) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'ILS' }).format((cents || 0) / 100);
 }
 
-function MembershipEditForm({ membership, onSaved, onCancel }) {
+function MembershipEditForm({ businessId, membership, onSaved, onCancel }) {
   const [fullName, setFullName] = useState(membership.full_name || '');
   const [email, setEmail] = useState(membership.email || '');
   const [phone, setPhone] = useState(membership.phone || '');
   const [address, setAddress] = useState(membership.address || '');
   const [city, setCity] = useState(membership.city || '');
-  const [tier, setTier] = useState(membership.tier || 'associate');
+  const [tier, setTier] = useState(membership.tier || '');
+  const [tiers, setTiers] = useState([]);
   const [monthly, setMonthly] = useState((membership.monthly_cents / 100).toFixed(2));
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    nonprofitApiRequest('GET', null, `/nonprofit/businesses/${businessId}/membership-tiers`).then((d) => setTiers(d.tiers)).catch(() => setTiers([]));
+  }, [businessId]);
 
   const submit = (e) => {
     e.preventDefault();
@@ -53,10 +58,10 @@ function MembershipEditForm({ membership, onSaved, onCancel }) {
         <input className="gs-input" placeholder="City" value={city} onChange={(e) => setCity(e.target.value)} style={{ flex: '1 1 120px' }} />
       </div>
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-        <select className="gs-select" value={tier} onChange={(e) => setTier(e.target.value)} style={{ flex: '1 1 140px' }}>
-          <option value="associate">Associate</option>
-          <option value="full">Full</option>
-        </select>
+        <input className="gs-input" list="membership-tier-ids" placeholder="Tier" value={tier} onChange={(e) => setTier(e.target.value)} style={{ flex: '1 1 140px' }} required />
+        <datalist id="membership-tier-ids">
+          {tiers.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
+        </datalist>
         <input className="gs-input" type="number" step="0.01" min="0.01" placeholder="Monthly (ILS)" value={monthly} onChange={(e) => setMonthly(e.target.value)} style={{ flex: '1 1 140px' }} required />
       </div>
       <p style={{ fontSize: 12, color: 'var(--muted)', margin: 0 }}>
@@ -197,7 +202,7 @@ export default function NonprofitMembershipDetailPage({ businessId, staff, membe
         </div>
 
         {editing && (
-          <MembershipEditForm membership={m} onSaved={() => { setEditing(false); load(); }} onCancel={() => setEditing(false)} />
+          <MembershipEditForm businessId={businessId} membership={m} onSaved={() => { setEditing(false); load(); }} onCancel={() => setEditing(false)} />
         )}
       </div>
 

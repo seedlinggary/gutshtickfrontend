@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Save, Plus, Trash2, Shield, Copy, Check, KeyRound } from 'lucide-react';
+import { Save, Plus, Trash2, Shield, Copy, Check, KeyRound, Heart } from 'lucide-react';
 import nonprofitApiRequest from '../nonprofitApi';
 
 function CopyableField({ value }) {
@@ -97,40 +97,96 @@ function PaymentConfigCard({ businessId, staff }) {
   );
 }
 
-function MembershipPricesCard({ businessId, staff }) {
-  const [prices, setPrices] = useState(null);
+function MembershipTiersCard({ businessId, staff }) {
+  const [tiers, setTiers] = useState(null);
+  const [isOpen, setIsOpen] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
 
-  useEffect(() => {
-    nonprofitApiRequest('GET', null, `/nonprofit/businesses/${businessId}/membership-prices`).then(setPrices);
-  }, [businessId]);
+  const load = () => nonprofitApiRequest('GET', null, `/nonprofit/businesses/${businessId}/membership-tiers`)
+    .then((d) => { setTiers(d.tiers); setIsOpen(d.is_open); });
+  useEffect(() => { load(); }, [businessId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (!prices) return null;
+  if (!tiers) return null;
   if (staff.role !== 'superadmin') return null;
+
+  const update = (i, patch) => setTiers(tiers.map((t, idx) => (idx === i ? { ...t, ...patch } : t)));
+  const archive = (i) => setTiers(tiers.map((t, idx) => (idx === i ? { ...t, archived: true } : t)));
+  const add = () => setTiers([...tiers, { label: '', monthly_cents: '' }]);
 
   const save = (e) => {
     e.preventDefault();
+    const active = tiers.filter((t) => !t.archived);
+    if (active.length === 0 || active.some((t) => !t.label.trim() || !t.monthly_cents)) {
+      setError('Every tier needs a name and a monthly price.');
+      return;
+    }
     setSaving(true);
-    nonprofitApiRequest('PATCH', prices, `/nonprofit/businesses/${businessId}/membership-prices`).then(setPrices).finally(() => setSaving(false));
+    setError('');
+    nonprofitApiRequest('PATCH', { tiers, is_open: isOpen }, `/nonprofit/businesses/${businessId}/membership-tiers`)
+      .then((d) => { setTiers(d.tiers); setIsOpen(d.is_open); })
+      .catch((err) => setError(typeof err === 'string' ? err : 'Could not save.'))
+      .finally(() => setSaving(false));
   };
 
   return (
     <form onSubmit={save} className="gs-card" style={{ marginBottom: 20 }}>
-      <h3 style={{ marginTop: 0 }}>Membership pricing</h3>
-      <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
-        <div className="gs-field">
-          <div className="gs-label">Associate (₪/month)</div>
-          <input className="gs-input" type="number" step="0.01" value={(prices.associate / 100).toFixed(2)}
-            onChange={(e) => setPrices({ ...prices, associate: Math.round(Number(e.target.value) * 100) })} />
+      <h3 style={{ marginTop: 0 }}>Membership tiers</h3>
+      <p style={{ fontSize: 13, color: 'var(--muted)' }}>
+        Define any number of tiers (e.g. Member, Associate Member, Non-Member) -- visitors pick one when they sign up online.
+      </p>
+      {error && <p style={{ color: 'var(--danger, #b42318)', fontSize: 13 }}>{error}</p>}
+      {tiers.map((t, i) => !t.archived && (
+        <div key={t.id || `new-${i}`} style={{ display: 'flex', gap: 8, marginBottom: 8, alignItems: 'center' }}>
+          <input className="gs-input" placeholder="Tier name" value={t.label}
+            onChange={(e) => update(i, { label: e.target.value })} style={{ flex: '2 1 180px' }} />
+          <input className="gs-input" type="number" step="0.01" min="0" placeholder="₪/month"
+            value={t.monthly_cents === '' ? '' : (t.monthly_cents / 100)}
+            onChange={(e) => update(i, { monthly_cents: Math.round(Number(e.target.value) * 100) })}
+            style={{ flex: '1 1 100px' }} />
+          {tiers.filter((x) => !x.archived).length > 1 && (
+            <button type="button" className="sb-icon-btn" title="Remove tier" onClick={() => archive(i)}><Trash2 size={14} /></button>
+          )}
         </div>
-        <div className="gs-field">
-          <div className="gs-label">Full (₪/month)</div>
-          <input className="gs-input" type="number" step="0.01" value={(prices.full / 100).toFixed(2)}
-            onChange={(e) => setPrices({ ...prices, full: Math.round(Number(e.target.value) * 100) })} />
-        </div>
-      </div>
-      <button type="submit" className="gs-btn gs-btn-sm" disabled={saving} style={{ marginTop: 10 }}><Save size={14} /> Save</button>
+      ))}
+      <button type="button" className="gs-btn gs-btn-outline gs-btn-sm" onClick={add} style={{ marginBottom: 14 }}><Plus size={13} /> Add tier</button>
+
+      <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, marginBottom: 10 }}>
+        <input type="checkbox" checked={isOpen} onChange={(e) => setIsOpen(e.target.checked)} />
+        Open for new members online
+      </label>
+
+      <button type="submit" className="gs-btn gs-btn-sm" disabled={saving}><Save size={14} /> Save</button>
     </form>
+  );
+}
+
+function DonationsOpenCard({ businessId, staff }) {
+  const [isOpen, setIsOpen] = useState(null);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    nonprofitApiRequest('GET', null, `/nonprofit/businesses/${businessId}/donate-open`).then((d) => setIsOpen(d.is_open));
+  }, [businessId]);
+
+  if (staff.role !== 'superadmin') return null;
+  if (isOpen === null) return null;
+
+  const toggle = (next) => {
+    setSaving(true);
+    nonprofitApiRequest('PATCH', { is_open: next }, `/nonprofit/businesses/${businessId}/donate-open`)
+      .then((d) => setIsOpen(d.is_open))
+      .finally(() => setSaving(false));
+  };
+
+  return (
+    <div className="gs-card" style={{ marginBottom: 20 }}>
+      <h3 style={{ marginTop: 0, display: 'flex', alignItems: 'center', gap: 8 }}><Heart size={18} /> Donations</h3>
+      <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+        <input type="checkbox" checked={isOpen} disabled={saving} onChange={(e) => toggle(e.target.checked)} />
+        Open for online donations
+      </label>
+    </div>
   );
 }
 
@@ -245,7 +301,8 @@ export default function NonprofitSettingsPage({ businessId, staff, isOwnerView }
     <div>
       <h2 style={{ marginTop: 0 }}>Settings</h2>
       <PaymentConfigCard businessId={businessId} staff={staff} />
-      <MembershipPricesCard businessId={businessId} staff={staff} />
+      <MembershipTiersCard businessId={businessId} staff={staff} />
+      <DonationsOpenCard businessId={businessId} staff={staff} />
       <StaffManagementCard businessId={businessId} staff={staff} />
       {/* isOwnerView's staff identity is auto-provisioned with a random
           password nobody knows (see nonprofit_staff.py's

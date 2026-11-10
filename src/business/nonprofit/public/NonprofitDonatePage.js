@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { HandCoins } from 'lucide-react';
 import apiRequest from '../../../ApiRequest';
 import SiteFooter from '../../site-builder/SiteFooter';
@@ -14,6 +14,7 @@ const SUGGESTED_AMOUNTS = [50, 100, 250, 500];
 // embed the block anywhere (nav links straight to this fixed page
 // instead) got none of that fix.
 export default function NonprofitDonatePage({ subdomain }) {
+  const [isOpen, setIsOpen] = useState(null);
   const [amount, setAmount] = useState(100);
   const [customAmount, setCustomAmount] = useState('');
   const [fullName, setFullName] = useState('');
@@ -25,6 +26,10 @@ export default function NonprofitDonatePage({ subdomain }) {
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [captchaToken, setCaptchaToken] = useState(undefined);
+
+  useEffect(() => {
+    apiRequest('GET', null, `/nonprofit/public/${subdomain}/donate-status`).then((d) => setIsOpen(d.is_open)).catch(() => setIsOpen(true));
+  }, [subdomain]);
 
   const finalAmount = customAmount ? Number(customAmount) : amount;
 
@@ -40,12 +45,17 @@ export default function NonprofitDonatePage({ subdomain }) {
       .catch((err) => { setError(typeof err === 'string' ? err : 'Could not start your donation -- try again.'); setBusy(false); });
   };
 
+  if (isOpen === null) return <div className="gs-loading"><div className="gs-spinner" /></div>;
+
   return (
     <div className="sb-theme">
       <div style={{ maxWidth: 560, margin: '0 auto', padding: '32px 24px' }}>
         <h1 style={{ display: 'flex', alignItems: 'center', gap: 10, fontFamily: 'var(--sb-font-heading)', marginBottom: 20 }}>
           <HandCoins size={24} /> Make a donation
         </h1>
+        {!isOpen ? (
+          <p className="gs-empty">Online donations are not open right now -- please check back later.</p>
+        ) : (
         <form onSubmit={submit} className="sb-form-plain-card" style={{ display: 'flex', flexDirection: 'column', gap: 16, boxSizing: 'border-box' }}>
           <div>
             <div className="sb-form-section-heading">Amount</div>
@@ -78,6 +88,7 @@ export default function NonprofitDonatePage({ subdomain }) {
             </button>
           </div>
         </form>
+        )}
       </div>
       <SiteFooter subdomain={subdomain} />
     </div>

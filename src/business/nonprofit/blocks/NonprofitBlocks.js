@@ -28,6 +28,7 @@ function formatCents(cents) {
 const SUGGESTED_AMOUNTS = [50, 100, 250, 500];
 
 export function DonationFormBlock({ content, editable, subdomain }) {
+  const [isOpen, setIsOpen] = useState(true);
   const [amount, setAmount] = useState(100);
   const [customAmount, setCustomAmount] = useState('');
   const [fullName, setFullName] = useState('');
@@ -39,6 +40,11 @@ export function DonationFormBlock({ content, editable, subdomain }) {
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [captchaToken, setCaptchaToken] = useState(undefined);
+
+  useEffect(() => {
+    if (editable || !subdomain) return;
+    apiRequest('GET', null, `/nonprofit/public/${subdomain}/donate-status`).then((d) => setIsOpen(d.is_open)).catch(() => {});
+  }, [editable, subdomain]);
 
   const finalAmount = customAmount ? Number(customAmount) : amount;
 
@@ -63,6 +69,15 @@ export function DonationFormBlock({ content, editable, subdomain }) {
   // phone/address/city/purpose fields the backend already accepts and
   // stores (NonprofitDonation has all four columns) but this block never
   // actually collected.
+  if (!editable && !isOpen) {
+    return (
+      <div className="sb-theme sb-form-plain-card" style={{ height: '100%', boxSizing: 'border-box' }}>
+        {content.heading && <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'var(--sb-font-heading)' }}><HandCoins size={18} /> {content.heading}</h3>}
+        <p className="gs-empty">Online donations are not open right now.</p>
+      </div>
+    );
+  }
+
   return (
     <form onSubmit={submit} className="sb-theme sb-form-plain-card" style={{ display: 'flex', flexDirection: 'column', gap: 16, height: '100%', overflow: 'auto', boxSizing: 'border-box' }}>
       {content.heading && <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'var(--sb-font-heading)' }}><HandCoins size={18} /> {content.heading}</h3>}
@@ -99,13 +114,10 @@ export function DonationFormBlock({ content, editable, subdomain }) {
   );
 }
 
-const DEFAULT_MEMBERSHIP_TIERS = [
-  { id: 'associate', label: 'Associate Member' },
-  { id: 'full', label: 'Full Member' },
-];
-
 export function MembershipFormBlock({ content, editable, subdomain }) {
-  const [tier, setTier] = useState('associate');
+  const [tiers, setTiers] = useState(editable ? [] : null);
+  const [isOpen, setIsOpen] = useState(true);
+  const [tier, setTier] = useState(null);
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -114,6 +126,15 @@ export function MembershipFormBlock({ content, editable, subdomain }) {
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [captchaToken, setCaptchaToken] = useState(undefined);
+
+  useEffect(() => {
+    if (editable || !subdomain) return;
+    apiRequest('GET', null, `/nonprofit/public/${subdomain}/membership-tiers`).then((d) => {
+      setTiers(d.tiers);
+      setIsOpen(d.is_open);
+      if (d.tiers.length) setTier(d.tiers[0].id);
+    }).catch(() => setTiers([]));
+  }, [editable, subdomain]);
 
   const submit = (e) => {
     e.preventDefault();
@@ -126,14 +147,23 @@ export function MembershipFormBlock({ content, editable, subdomain }) {
       .catch((err) => { setError(typeof err === 'string' ? err : 'Could not start -- try again.'); setBusy(false); });
   };
 
-  // Tiers are picked from big labeled cards (content.tiers, with an
-  // optional sub-line the owner can use for a price note) instead of two
-  // tiny gs-btn pills with no price/description at all -- same
-  // real-business comparison as DonationFormBlock above. Actual pricing
-  // stays server-side (set in the owner's Membership settings, not
-  // exposed on this public form), so the sub-line is owner-authored text,
-  // never a fetched/guessed number.
-  const tiers = content.tiers?.length ? content.tiers : DEFAULT_MEMBERSHIP_TIERS;
+  if (editable) {
+    return (
+      <div className="sb-theme sb-form-plain-card" style={{ height: '100%', overflow: 'auto', boxSizing: 'border-box' }}>
+        {content.heading && <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'var(--sb-font-heading)' }}><Repeat size={18} /> {content.heading}</h3>}
+        <p style={{ fontSize: 12, color: 'var(--sb-muted, #8a7a68)' }}>Visitors will pick a membership tier (set in Settings → Membership tiers) here.</p>
+      </div>
+    );
+  }
+  if (tiers === null) return <div className="gs-loading" style={{ height: '100%' }}><div className="gs-spinner" /></div>;
+  if (!isOpen || tiers.length === 0) {
+    return (
+      <div className="sb-theme sb-form-plain-card" style={{ height: '100%', boxSizing: 'border-box' }}>
+        {content.heading && <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'var(--sb-font-heading)' }}><Repeat size={18} /> {content.heading}</h3>}
+        <p className="gs-empty">Online membership signup is not open right now.</p>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={submit} className="sb-theme sb-form-plain-card" style={{ display: 'flex', flexDirection: 'column', gap: 16, height: '100%', overflow: 'auto', boxSizing: 'border-box' }}>
@@ -146,7 +176,7 @@ export function MembershipFormBlock({ content, editable, subdomain }) {
             <button key={t.id} type="button" disabled={editable} className={`sb-choice-card${tier === t.id ? ' sb-choice-card-active' : ''}`}
               onClick={() => setTier(t.id)}>
               <p className="sb-choice-card-title">{t.label}</p>
-              {t.sub && <p className="sb-choice-card-sub">{t.sub}</p>}
+              <p className="sb-choice-card-sub">{formatCents(t.monthly_cents)} / month</p>
             </button>
           ))}
         </div>
@@ -161,7 +191,7 @@ export function MembershipFormBlock({ content, editable, subdomain }) {
       {!editable && <TurnstileWidget onToken={setCaptchaToken} />}
       {error && <p style={{ color: 'var(--danger, #b42318)', fontSize: 12, margin: 0 }}>{error}</p>}
       <div className="sb-form-footer">
-        <button type="submit" className="sb-button" disabled={editable || busy || captchaToken === undefined}>
+        <button type="submit" className="sb-button" disabled={editable || busy || !tier || captchaToken === undefined}>
           {busy ? 'Redirecting…' : 'Continue to Payment'}
         </button>
       </div>
@@ -171,8 +201,7 @@ export function MembershipFormBlock({ content, editable, subdomain }) {
 
 export function HolidaySeatsFormBlock({ content, editable, subdomain }) {
   const [holidays, setHolidays] = useState(editable ? [] : null);
-  const [seats, setSeats] = useState({});
-  const [isMember, setIsMember] = useState(null);
+  const [seats, setSeats] = useState({}); // holidayId -> {tierId: count}
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
@@ -186,34 +215,38 @@ export function HolidaySeatsFormBlock({ content, editable, subdomain }) {
     apiRequest('GET', null, `/nonprofit/public/${subdomain}/holidays`).then((d) => setHolidays(d.holidays)).catch(() => setHolidays([]));
   }, [editable, subdomain]);
 
-  const setCount = (holidayId, key, delta) => {
+  const setCount = (holidayId, tierId, delta) => {
     setSeats((cur) => {
-      const current = cur[holidayId] || { men: 0, women: 0 };
-      const next = Math.max(0, current[key] + delta);
-      return { ...cur, [holidayId]: { ...current, [key]: next } };
+      const current = cur[holidayId] || {};
+      const next = Math.max(0, (current[tierId] || 0) + delta);
+      return { ...cur, [holidayId]: { ...current, [tierId]: next } };
     });
   };
 
   const { items, totalCents } = useMemo(() => {
-    if (!holidays || isMember === null) return { items: [], totalCents: 0 };
+    if (!holidays) return { items: [], totalCents: 0 };
     let total = 0;
     const list = [];
     for (const h of holidays) {
-      const s = seats[h.id];
-      if (!s || s.men + s.women <= 0) continue;
-      const price = isMember ? h.member_price_cents : h.non_member_price_cents;
-      total += price * (s.men + s.women);
-      list.push({ holiday_id: h.id, men_seats: s.men, women_seats: s.women });
+      const s = seats[h.id] || {};
+      const tiersById = {};
+      h.tiers.forEach((t) => { tiersById[t.id] = t; });
+      const activeSeats = Object.fromEntries(Object.entries(s).filter(([, count]) => count > 0));
+      if (Object.keys(activeSeats).length === 0) continue;
+      for (const [tierId, count] of Object.entries(activeSeats)) {
+        total += (tiersById[tierId]?.price_cents || 0) * count;
+      }
+      list.push({ holiday_id: h.id, seats: activeSeats });
     }
     return { items: list, totalCents: total };
-  }, [holidays, seats, isMember]);
+  }, [holidays, seats]);
 
   const submit = (e) => {
     e.preventDefault();
     if (editable) return;
     setBusy(true);
     setError('');
-    apiRequest('POST', { full_name: fullName, phone, email, is_member: isMember, notes, items, captcha_token: captchaToken || undefined },
+    apiRequest('POST', { full_name: fullName, phone, email, notes, items, captcha_token: captchaToken || undefined },
       `/nonprofit/public/${subdomain}/holiday-seats`)
       .then((data) => { window.location.href = data.payment_url; })
       .catch((err) => { setError(typeof err === 'string' ? err : 'Could not start checkout -- try again.'); setBusy(false); });
@@ -229,13 +262,10 @@ export function HolidaySeatsFormBlock({ content, editable, subdomain }) {
   }
   if (holidays === null) return <div className="gs-loading" style={{ height: '100%' }}><div className="gs-spinner" /></div>;
 
-  // Rebuilt against a real business's actual seat-signup form: each
-  // holiday gets its own card (title, description, BOTH member/non-
-  // member prices shown together, and a labeled stepper per seat type)
-  // instead of a bare strong/div with no card, no description, and only
-  // whichever single price matched the current member toggle -- plus the
-  // email/notes fields the backend (NonprofitBill) already stores but
-  // this block never collected.
+  // Each holiday gets its own card (title, description, every active
+  // tier's price shown together, and a labeled stepper per tier) --
+  // plus the email/notes fields the backend (NonprofitBill) already
+  // stores but this block never collected.
   return (
     <div className="sb-theme sb-form-plain-card" style={{ height: '100%', overflow: 'auto', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: 16 }}>
       {content.heading && <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'var(--sb-font-heading)' }}><CalendarDays size={18} /> {content.heading}</h3>}
@@ -245,43 +275,29 @@ export function HolidaySeatsFormBlock({ content, editable, subdomain }) {
       ) : (
         <>
           <div>
-            <div className="sb-form-section-heading">Membership Status</div>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button type="button" className={`sb-choice-chip${isMember === true ? ' sb-choice-chip-active' : ''}`} onClick={() => setIsMember(true)}>Member</button>
-              <button type="button" className={`sb-choice-chip${isMember === false ? ' sb-choice-chip-active' : ''}`} onClick={() => setIsMember(false)}>Non-Member</button>
-            </div>
-          </div>
-          <div>
             <div className="sb-form-section-heading">Choose Your Seats</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {holidays.map((h) => {
-                const s = seats[h.id] || { men: 0, women: 0 };
-                const hasSeats = s.men + s.women > 0;
+                const s = seats[h.id] || {};
+                const hasSeats = Object.values(s).some((c) => c > 0);
                 return (
                   <div key={h.id} className={`sb-seat-card${hasSeats ? ' sb-seat-card-active' : ''}`}>
                     <h4>{h.name_en}</h4>
                     {h.description_en && <p className="sb-seat-card-desc">{h.description_en}</p>}
                     <div className="sb-seat-card-prices">
-                      <span>{formatCents(h.member_price_cents)} / seat (member)</span>
-                      <span>{formatCents(h.non_member_price_cents)} / seat (non-member)</span>
+                      {h.tiers.map((t) => <span key={t.id}>{formatCents(t.price_cents)} / seat ({t.label})</span>)}
                     </div>
                     <div className="sb-seat-steppers">
-                      <div>
-                        <span className="sb-stepper-label">Men's Seats</span>
-                        <div className="sb-stepper-row">
-                          <button type="button" className="sb-stepper-btn" onClick={() => setCount(h.id, 'men', -1)}><Minus size={13} /></button>
-                          <span className="sb-stepper-value">{s.men}</span>
-                          <button type="button" className="sb-stepper-btn" onClick={() => setCount(h.id, 'men', 1)}><Plus size={13} /></button>
+                      {h.tiers.map((t) => (
+                        <div key={t.id}>
+                          <span className="sb-stepper-label">{t.label}</span>
+                          <div className="sb-stepper-row">
+                            <button type="button" className="sb-stepper-btn" onClick={() => setCount(h.id, t.id, -1)}><Minus size={13} /></button>
+                            <span className="sb-stepper-value">{s[t.id] || 0}</span>
+                            <button type="button" className="sb-stepper-btn" onClick={() => setCount(h.id, t.id, 1)}><Plus size={13} /></button>
+                          </div>
                         </div>
-                      </div>
-                      <div>
-                        <span className="sb-stepper-label">Women's Seats</span>
-                        <div className="sb-stepper-row">
-                          <button type="button" className="sb-stepper-btn" onClick={() => setCount(h.id, 'women', -1)}><Minus size={13} /></button>
-                          <span className="sb-stepper-value">{s.women}</span>
-                          <button type="button" className="sb-stepper-btn" onClick={() => setCount(h.id, 'women', 1)}><Plus size={13} /></button>
-                        </div>
-                      </div>
+                      ))}
                     </div>
                   </div>
                 );
