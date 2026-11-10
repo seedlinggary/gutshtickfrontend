@@ -213,6 +213,8 @@ export default function ThemePanel({ businessId, site, onSiteUpdate }) {
   const [catalog, setCatalog] = useState(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [resetting, setResetting] = useState(false);
+  const [resetResult, setResetResult] = useState(null);
 
   useEffect(() => {
     apiRequest('GET', null, '/business/site-themes').then(setCatalog).catch(() => {});
@@ -227,6 +229,16 @@ export default function ThemePanel({ businessId, site, onSiteUpdate }) {
       .then(onSiteUpdate)
       .catch((err) => setError(typeof err === 'string' ? err : 'Could not save -- try again.'))
       .finally(() => setSaving(false));
+  };
+
+  const resetSectionColors = () => {
+    if (!window.confirm("Reset every page's section background colors to track this theme? This only touches drafts -- publish each page afterward to make it live.")) return;
+    setResetting(true);
+    setResetResult(null);
+    apiRequest('POST', {}, `/business/businesses/${businessId}/site/reset-section-colors`)
+      .then((d) => setResetResult(d))
+      .catch((err) => setError(typeof err === 'string' ? err : 'Could not reset colors -- try again.'))
+      .finally(() => setResetting(false));
   };
 
   const patchChrome = (patch) => {
@@ -277,6 +289,22 @@ export default function ThemePanel({ businessId, site, onSiteUpdate }) {
               <button type="button" className="sb-icon-btn" onClick={() => patchTheme({ headingColor: null })}><RotateCcw size={12} /></button>
             )}
           </div>
+        </div>
+        <div className="gs-field" style={{ marginTop: 14 }}>
+          <div className="gs-label">Section colors not changing with the scheme above?</div>
+          <p style={{ fontSize: 12, color: 'var(--muted)', margin: '2px 0 8px' }}>
+            A template (or a manually-picked solid section color) locks that section's background to a fixed color. This resets every page's sections back to tracking whichever scheme you pick above, the same way buttons already do.
+          </p>
+          <button type="button" className="gs-btn gs-btn-outline gs-btn-sm" disabled={resetting} onClick={resetSectionColors}>
+            {resetting ? 'Resetting…' : 'Reset section colors to theme'}
+          </button>
+          {resetResult && (
+            <p style={{ fontSize: 12, color: 'var(--accent)', marginTop: 6 }}>
+              {resetResult.sections_changed === 0
+                ? 'Nothing to reset -- every section already tracks the theme.'
+                : `Updated ${resetResult.sections_changed} section(s) across ${resetResult.pages_changed} page(s) -- review and Publish each page to make it live.`}
+            </p>
+          )}
         </div>
       </Section>
 
