@@ -274,6 +274,7 @@ export default function SiteBuilderTab({ businessId }) {
           businessId={businessId}
           subdomain={site.subdomain}
           site={site}
+          onSiteUpdate={setSite}
           pages={pages}
           onPagesChanged={loadPages}
           onNavChange={(nav_links) => patchSite({ nav_links })}

@@ -59,7 +59,7 @@ function PageRenameControl({ page, onRenamed }) {
   );
 }
 
-export default function PageEditor({ businessId, pageId, subdomain }) {
+export default function PageEditor({ businessId, pageId, subdomain, site, onSiteUpdate }) {
   const [page, setPage] = useState(null);
   const [sections, setSections, sectionsHistory] = useHistoryState([]);
   const [selected, setSelected] = useState({ sectionId: null, blockId: null });
@@ -71,25 +71,17 @@ export default function PageEditor({ businessId, pageId, subdomain }) {
   const [error, setError] = useState('');
   const [savedAt, setSavedAt] = useState(null);
   const [previewOpen, setPreviewOpen] = useState(false);
-  // The site's own theme/nav_links/footer_text/footer_links/name/logo, read
-  // straight from the OWNER-authenticated GET /business/businesses/:id/site
-  // -- the same endpoint SiteBuilderTab/ThemePanel already use, and already
-  // proven to both save and read back correctly. This used to come from
-  // useSiteChrome(subdomain), which hits the PUBLIC by-subdomain lookup --
-  // that endpoint only ever serves a *published* site (404 otherwise, by
-  // design: a stranger shouldn't be able to tell "draft" apart from
-  // "doesn't exist"). Every site starts in Draft, so while building, that
-  // 404 meant this preview's theme/nav/footer never loaded at all, and any
-  // change made via ChromeInspector below -- even though the PATCH itself
-  // genuinely saved -- never showed up here, looking exactly like "doesn't
-  // save." Fetching owner-side instead removes that gate entirely for the
-  // person who's actually allowed to see their own in-progress site.
-  const [site, setSite] = useState(null);
+  // The site's own theme/nav_links/footer_text/footer_links/name/logo --
+  // passed down from SiteBuilderTab (the one place that fetches it) as
+  // `site`/`onSiteUpdate` instead of this component fetching its own
+  // separate copy. It used to: that second copy only ever synced back up
+  // with ThemePanel/SiteAiAssistant's changes when this component
+  // happened to fully remount (switching pages, reopening the tab), which
+  // is exactly why a theme-only AI edit or a ThemePanel change didn't
+  // show up here immediately -- two independent `site` states, kept in
+  // sync only by accident. One shared state fixes that for every source
+  // of a site-level change, not just the one that prompted this.
   const inspectorRef = useRef(null);
-
-  useEffect(() => {
-    apiRequest('GET', null, `/business/businesses/${businessId}/site`).then(setSite).catch(() => {});
-  }, [businessId]);
 
   const effectiveTheme = { ...DEFAULT_THEME, ...(site?.theme) };
   const effectiveNavLinks = site?.nav_links ?? [];
@@ -107,19 +99,15 @@ export default function PageEditor({ businessId, pageId, subdomain }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selected.blockId, chromeSelected]);
 
-  // One generic site-level PATCH used by the AI assistant's theme changes,
-  // the chrome preview's navbar/footer settings, and anything else at this
-  // level -- patch is a subset of {theme, nav_links, footer_text,
-  // footer_links}. Updates local `site` state from the PATCH response
-  // itself (same pattern ThemePanel/SiteBuilderTab already use), instead of
-  // a separate speculative local override -- one source of truth, and it's
-  // the server's own merged result (the backend already merges theme
-  // patches onto the existing one, so a lone buttonStyle change can't wipe
-  // out palette/fontPairing -- re-deriving that merge logic a second time
-  // here would be redundant and could drift out of sync with it).
+  // One generic site-level PATCH used by the chrome preview's navbar/
+  // footer settings and anything else at this level -- patch is a subset
+  // of {theme, nav_links, footer_text, footer_links}. Reports the PATCH
+  // response up through onSiteUpdate (the server's own merged result,
+  // same as ThemePanel/SiteBuilderTab already do) instead of keeping a
+  // separate local copy -- see the `site` prop's own comment above.
   const patchSite = (patch) => {
     apiRequest('PATCH', patch, `/business/businesses/${businessId}/site`)
-      .then((d) => { setSite(d); setError(''); })
+      .then((d) => { onSiteUpdate(d); setError(''); })
       .catch((err) => setError(typeof err === 'string' ? err : 'Could not save -- try again.'));
   };
 
@@ -133,16 +121,16 @@ export default function PageEditor({ businessId, pageId, subdomain }) {
   // SiteAiAssistant.js dispatches this after it saves new drafts for one
   // or more pages (same "custom window event instead of prop-drilling"
   // convention ProductBlocks.js uses for ProductsPanel->canvas updates).
-  // Pulls the AI's new sections in as one more history step (sectionsHistory
-  // .set, not .reset) specifically so Ctrl+Z still has the pre-AI version to
-  // go back to -- a full reset here would wipe that out, which is exactly
-  // what force-remounting this component used to do before this listener
-  // existed.
+  // Pulls the AI's new sections in as one more history step (setSections,
+  // not sectionsHistory.reset) specifically so Ctrl+Z still has the
+  // pre-AI version to go back to -- a full reset here would wipe that
+  // out, which is exactly what force-remounting this component used to do
+  // before this listener existed.
   useEffect(() => {
     const onAiUpdated = (e) => {
       if (!e.detail?.pageIds?.includes(pageId)) return;
       apiRequest('GET', null, `/business/site-pages/${pageId}/draft`)
-        .then((data) => { setPage(data.page); sectionsHistory.set(data.sections || [], { commit: true }); })
+        .then((data) => { setPage(data.page); setSections(data.sections || [], { commit: true }); })
         .catch(() => {});
     };
     window.addEventListener('gs-site-ai-updated', onAiUpdated);

@@ -91,7 +91,7 @@ function PageRenameForm({ page, onSaved, onCancel }) {
  * refreshed the content but silently wiped its undo/redo stack in the
  * process (Ctrl+Z had nothing to go back to right after an AI edit).
  */
-export default function WebsitePagesPanel({ businessId, subdomain, site, pages, onPagesChanged, onNavChange }) {
+export default function WebsitePagesPanel({ businessId, subdomain, site, onSiteUpdate, pages, onPagesChanged, onNavChange }) {
   const [activePageId, setActivePageId] = useState(null);
   const [newPageOpen, setNewPageOpen] = useState(false);
   const [renamingPageId, setRenamingPageId] = useState(null);
@@ -260,7 +260,7 @@ export default function WebsitePagesPanel({ businessId, subdomain, site, pages, 
             </div>
           )}
 
-          <PageEditor key={activePage.id} businessId={businessId} pageId={activePage.id} subdomain={subdomain} />
+          <PageEditor key={activePage.id} businessId={businessId} pageId={activePage.id} subdomain={subdomain} site={site} onSiteUpdate={onSiteUpdate} />
         </>
       )}
     </div>

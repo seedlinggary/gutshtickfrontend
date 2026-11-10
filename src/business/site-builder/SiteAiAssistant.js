@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Sparkles, Send, X } from 'lucide-react';
 import apiRequest from '../../ApiRequest';
 
@@ -15,31 +15,46 @@ import apiRequest from '../../ApiRequest';
  * section tab (Pages, Theme, Templates, Settings, ...), not just buried
  * inside whichever page happens to be open.
  *
+ * Keeps a running log of every instruction and its outcome (`turns`,
+ * session-only -- not persisted) instead of replacing a single message/
+ * error line each time, so reopening the panel still shows whether the
+ * last few things actually worked, which is exactly what a one-line
+ * "Done."/error message that vanishes the moment you ask something else
+ * couldn't tell you.
+ *
  * On success, dispatches 'gs-site-ai-updated' with the ids of every page
- * it actually rewrote -- WebsitePagesPanel.js listens for this to refresh
- * the currently-open page if the AI just changed it (same "custom window
- * event instead of prop-drilling" convention ProductBlocks.js already
- * uses for gs-products-changed).
+ * it actually rewrote -- PageEditor.js listens for this to pull the new
+ * sections into its own undo history if it happens to have that page
+ * open (same "custom window event instead of prop-drilling" convention
+ * ProductBlocks.js already uses for gs-products-changed). Theme changes
+ * reach every open page a simpler way -- onThemeChange here is
+ * SiteBuilderTab's own patchSite, so the one shared `site` state updates
+ * immediately wherever it's read, no event needed.
  */
 export default function SiteAiAssistant({ businessId, pages, theme, onThemeChange }) {
   const [open, setOpen] = useState(false);
   const [instruction, setInstruction] = useState('');
   const [busy, setBusy] = useState(false);
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
+  const [turns, setTurns] = useState([]);
+  const bottomRef = useRef(null);
+
+  useEffect(() => {
+    if (open) bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  }, [turns, open]);
 
   const submit = (e) => {
     e.preventDefault();
-    if (!instruction.trim() || busy || !pages?.length) return;
+    const text = instruction.trim();
+    if (!text || busy || !pages?.length) return;
+    setInstruction('');
+    setTurns((t) => [...t, { role: 'user', content: text }]);
     setBusy(true);
-    setError('');
-    setMessage('');
 
     Promise.all(pages.map((p) => apiRequest('GET', null, `/business/site-pages/${p.id}/draft`)
       .then(({ sections }) => ({ id: p.id, slug: p.slug, title: p.title, sections }))))
       .then((pagesWithSections) => apiRequest(
         'POST',
-        { instruction: instruction.trim(), theme, pages: pagesWithSections },
+        { instruction: text, theme, pages: pagesWithSections },
         `/business/businesses/${businessId}/site-ai/generate-site`,
       ))
       .then((data) => {
@@ -50,11 +65,12 @@ export default function SiteAiAssistant({ businessId, pages, theme, onThemeChang
             if (updates.length) {
               window.dispatchEvent(new CustomEvent('gs-site-ai-updated', { detail: { pageIds: updates.map((p) => p.id) } }));
             }
-            setMessage(data.message || 'Done.');
-            setInstruction('');
+            setTurns((t) => [...t, { role: 'assistant', content: data.message || 'Done.' }]);
           });
       })
-      .catch((err) => setError(typeof err === 'string' ? err : 'Could not reach the AI assistant.'))
+      .catch((err) => {
+        setTurns((t) => [...t, { role: 'error', content: typeof err === 'string' ? err : 'Could not reach the AI assistant.' }]);
+      })
       .finally(() => setBusy(false));
   };
 
@@ -69,14 +85,22 @@ export default function SiteAiAssistant({ businessId, pages, theme, onThemeChang
           <p className="sb-ai-float-hint">
             Works across your whole site -- e.g. "make the whole site feel more modern" or "update the hero heading on Home and About."
           </p>
+          <div className="sb-ai-float-log">
+            {turns.length === 0 && (
+              <p style={{ fontSize: 12, color: 'var(--muted)', margin: 0 }}>Ask something below -- every request and its result stays listed here so you can tell at a glance what already happened.</p>
+            )}
+            {turns.map((turn, i) => (
+              <div key={i} className={`sb-ai-turn sb-ai-turn-${turn.role}`}>{turn.content}</div>
+            ))}
+            {busy && <div className="sb-ai-turn sb-ai-turn-assistant sb-ai-turn-pending">Thinking…</div>}
+            <div ref={bottomRef} />
+          </div>
           <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <textarea
               className="gs-input" rows={3}
               placeholder='Try "Use a warmer color palette everywhere" or "Rewrite the About page to sound more personal"'
               value={instruction} onChange={(e) => setInstruction(e.target.value)}
             />
-            {message && !error && <p style={{ fontSize: 13, color: 'var(--accent)', margin: 0 }}>{message}</p>}
-            {error && <p style={{ fontSize: 13, color: 'var(--danger, #b42318)', margin: 0 }}>{error}</p>}
             <button type="submit" className="gs-btn gs-btn-sm" disabled={busy || !instruction.trim()} style={{ alignSelf: 'flex-start' }}>
               {busy ? 'Thinking…' : <><Send size={13} /> Ask</>}
             </button>
