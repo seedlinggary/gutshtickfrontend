@@ -24,6 +24,16 @@ export function fieldLabel(field, answers) {
   return field.label;
 }
 
+/** field.label_style is {align, color, size} -- same shape as the site
+ * builder's own resolveItemStyle() (blocks/ContentBlocks.js), minus `bg`
+ * (a field label has no card concept). Spread onto the label's own style
+ * prop at each render call site (NonprofitFormPage.js,
+ * blocks/NonprofitBlocks.js's DynamicFormBlock). */
+export function fieldLabelStyle(field) {
+  const s = field.label_style || {};
+  return { textAlign: s.align || undefined, color: s.color || undefined, fontSize: s.size || undefined };
+}
+
 export function FieldInput({ field, value, onChange }) {
   switch (field.type) {
     case 'long_text':

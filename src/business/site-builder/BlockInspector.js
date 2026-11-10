@@ -1,10 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { X, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Minus, Plus as PlusIcon, Trash2, Undo2, Redo2 } from 'lucide-react';
+import {
+  X, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Minus, Plus as PlusIcon, Trash2, Undo2, Redo2,
+  ChevronDown,
+} from 'lucide-react';
 import UploadFile from '../../Uploadfile';
 import apiRequest from '../../ApiRequest';
 import { BLOCK_DEFS, moduleLabelFor } from './blocks/blockDefs';
 import { ICON_NAMES } from './blocks/ContentBlocks';
 import { CONTACT_DEFAULT_EXTRA_FIELDS } from './blocks/ContactFormBlock';
+import ItemStyleFields from './ItemStyleFields';
 
 const NUDGE_STEP = 5; // percent per tap
 
@@ -220,8 +224,18 @@ function DarkBackgroundToggle({ content, updateContent }) {
   );
 }
 
-function ItemListEditor({ items, onChange, fields, blank, addLabel }) {
+/** itemStyleEditable: when true, each item also gets a collapsed-by-
+ * default "Style" toggle (collapsed unless item.style is already set --
+ * same convention NonprofitFormBuilderPage.js's own condition/alt-label
+ * section uses) revealing ItemStyleFields bound to that one item's own
+ * style override, on top of whatever block-wide content.itemStyle default
+ * the caller's own inspector section already renders once above this
+ * list. Passed by every block whose items carry real text (feature_grid/
+ * testimonial_grid/service_list/faq_accordion) -- not logo_strip, which
+ * has no text to style at all. */
+function ItemListEditor({ items, onChange, fields, blank, addLabel, itemStyleEditable }) {
   const list = items || [];
+  const [styleOpen, setStyleOpen] = useState({});
   const updateItem = (i, patch) => onChange(list.map((it, idx) => (idx === i ? { ...it, ...patch } : it)));
   const removeItem = (i) => onChange(list.filter((_, idx) => idx !== i));
   const addItem = () => onChange([...list, { ...blank }]);
@@ -263,6 +277,20 @@ function ItemListEditor({ items, onChange, fields, blank, addLabel }) {
               )}
             </div>
           ))}
+          {itemStyleEditable && (
+            <div style={{ marginTop: 4 }}>
+              <button type="button" className="sb-icon-btn" style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11 }}
+                onClick={() => setStyleOpen((s) => ({ ...s, [i]: !s[i] }))}>
+                <ChevronDown size={11} style={{ transform: (styleOpen[i] || item.style) ? 'rotate(180deg)' : 'none' }} />
+                Style override for this item
+              </button>
+              {(styleOpen[i] || item.style) && (
+                <div style={{ marginTop: 6 }}>
+                  <ItemStyleFields value={item.style} onChange={(style) => updateItem(i, { style })} />
+                </div>
+              )}
+            </div>
+          )}
         </div>
       ))}
       <button type="button" className="gs-btn gs-btn-outline gs-btn-sm" onClick={addItem}>
@@ -547,12 +575,17 @@ export default function BlockInspector({ businessId, block, onChange, onClose, h
           <input className="gs-input" value={block.content.heading || ''} onChange={(e) => updateContent({ heading: e.target.value })} style={{ marginBottom: 12 }} />
           <HeadingSizeColorControls content={block.content} updateContent={updateContent} />
           <DarkBackgroundToggle content={block.content} updateContent={updateContent} />
+          <div className="gs-label">Item text style (every question/answer, unless overridden below)</div>
+          <div style={{ marginBottom: 12 }}>
+            <ItemStyleFields value={block.content.itemStyle} onChange={(itemStyle) => updateContent({ itemStyle })} />
+          </div>
           <div className="gs-label">Questions</div>
           <ItemListEditor
             items={block.content.items}
             onChange={(items) => updateContent({ items })}
             blank={{ question: '', answer: '' }}
             addLabel="Add question"
+            itemStyleEditable
             fields={[
               { key: 'question', label: 'Question', placeholder: 'What areas do you serve?' },
               { key: 'answer', label: 'Answer', type: 'textarea', placeholder: 'We serve...' },
@@ -577,12 +610,17 @@ export default function BlockInspector({ businessId, block, onChange, onClose, h
           </select>
           <GridColumnsControl value={block.content.columns} onChange={(columns) => updateContent({ columns })} />
           <DarkBackgroundToggle content={block.content} updateContent={updateContent} />
+          <div className="gs-label">Item text style (every card, unless overridden below)</div>
+          <div style={{ marginBottom: 12 }}>
+            <ItemStyleFields value={block.content.itemStyle} onChange={(itemStyle) => updateContent({ itemStyle })} />
+          </div>
           <div className="gs-label">Items</div>
           <ItemListEditor
             items={block.content.items}
             onChange={(items) => updateContent({ items })}
             blank={{ icon: 'Star', title: '', description: '', badge: '' }}
             addLabel="Add item"
+            itemStyleEditable
             fields={
               block.content.cardStyle === 'timeline'
                 ? [
@@ -632,12 +670,17 @@ export default function BlockInspector({ businessId, block, onChange, onClose, h
             <GridColumnsControl value={block.content.columns} onChange={(columns) => updateContent({ columns })} />
           )}
           <DarkBackgroundToggle content={block.content} updateContent={updateContent} />
+          <div className="gs-label">Item text style (every testimonial, unless overridden below)</div>
+          <div style={{ marginBottom: 12 }}>
+            <ItemStyleFields value={block.content.itemStyle} onChange={(itemStyle) => updateContent({ itemStyle })} />
+          </div>
           <div className="gs-label">Testimonials</div>
           <ItemListEditor
             items={block.content.items}
             onChange={(items) => updateContent({ items })}
             blank={{ quote: '', author: '', role: '' }}
             addLabel="Add testimonial"
+            itemStyleEditable
             fields={[
               { key: 'quote', label: 'Quote', type: 'textarea', placeholder: 'What they said...' },
               { key: 'author', label: 'Name', placeholder: 'Jane Smith' },
@@ -657,12 +700,17 @@ export default function BlockInspector({ businessId, block, onChange, onClose, h
             Show numbered index (01, 02, …)
           </label>
           <DarkBackgroundToggle content={block.content} updateContent={updateContent} />
+          <div className="gs-label">Item text style (every service, unless overridden below)</div>
+          <div style={{ marginBottom: 12 }}>
+            <ItemStyleFields value={block.content.itemStyle} onChange={(itemStyle) => updateContent({ itemStyle })} />
+          </div>
           <div className="gs-label">Services</div>
           <ItemListEditor
             items={block.content.items}
             onChange={(items) => updateContent({ items })}
             blank={{ icon: 'Star', title: '', description: '', points: [] }}
             addLabel="Add service"
+            itemStyleEditable
             fields={[
               { key: 'icon', label: 'Icon', type: 'select', options: ICON_NAMES },
               { key: 'title', label: 'Title', placeholder: 'Condo & Co-op Management' },

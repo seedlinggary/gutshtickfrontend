@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { HandCoins, Repeat, CalendarDays, Minus, Plus, Check, Users } from 'lucide-react';
 import apiRequest from '../../../ApiRequest';
 import TurnstileWidget from '../../site-builder/TurnstileWidget';
-import { fieldIsVisible, fieldLabel, FieldInput } from '../dynamicFormFields';
+import { fieldIsVisible, fieldLabel, fieldLabelStyle, FieldInput } from '../dynamicFormFields';
 import { DEFAULT_THEME } from '../../site-builder/theme';
 
 /** Embeddable versions of the nonprofit module's public flows (donate/
@@ -408,7 +408,7 @@ export function DynamicFormBlock({ content, editable, subdomain, theme }) {
     <>
       {visibleFields.map((field) => (
         <div key={field.id} className="gs-field" style={{ marginBottom: 0 }}>
-          <div className="gs-label" style={{ fontFamily: 'var(--sb-font-body)' }}>{fieldLabel(field, answers)}{field.required && ' *'}</div>
+          <div className="gs-label" style={{ fontFamily: 'var(--sb-font-body)', ...fieldLabelStyle(field) }}>{fieldLabel(field, answers)}{field.required && ' *'}</div>
           {field.help_text && <p style={{ fontSize: 11, color: 'var(--sb-muted, #8a7a68)', margin: '0 0 4px' }}>{field.help_text}</p>}
           <FieldInput field={field} value={answers[String(field.id)]} onChange={(v) => setAnswers((a) => ({ ...a, [String(field.id)]: v }))} />
         </div>

@@ -34,6 +34,27 @@ function headingStyle(content) {
   return { fontSize: content.headingSize || undefined, color: content.headingColor || undefined };
 }
 
+/** content.itemStyle is the block-wide default for every repeating item's
+ * text/background (feature_grid/testimonial_grid/service_list/
+ * faq_accordion); item.style is that one item's own optional override --
+ * same shape, so the inspector's ItemStyleFields component is identical
+ * whether it's bound to the block default or one item. Resolution is
+ * "per-item key wins, else the block default, else leave it unset so the
+ * existing CSS default (var(--sb-*) tokens) applies" -- never forcing a
+ * value where the owner hasn't actually set one. */
+function resolveItemStyle(content, item) {
+  const base = content.itemStyle || {};
+  const over = (item && item.style) || {};
+  const align = over.align || base.align;
+  const color = over.color || base.color;
+  const size = over.size || base.size;
+  const bg = over.bg || base.bg;
+  return {
+    text: { textAlign: align || undefined, color: color || undefined, fontSize: size || undefined },
+    card: bg ? { background: bg } : undefined,
+  };
+}
+
 /** Collapsible question/answer list -- the one structured-content shape
  * that kept coming up (every services business has an FAQ page) with no
  * block equivalent before this: a plain text block loses the collapse
@@ -54,18 +75,20 @@ export function FaqAccordionBlock({ content, editable }) {
       )}
       {items.map((item, i) => {
         const open = editable || openIndex === i;
+        const s = resolveItemStyle(content, item);
         return (
-          <div key={i} className="sb-faq-item">
+          <div key={i} className="sb-faq-item" style={s.card}>
             <button
               type="button"
               className="sb-faq-question"
               onClick={() => !editable && setOpenIndex(openIndex === i ? -1 : i)}
               disabled={editable}
+              style={s.text}
             >
               <span>{item.question}</span>
               <ChevronDown size={16} style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
             </button>
-            {open && <div className="sb-faq-answer">{item.answer}</div>}
+            {open && <div className="sb-faq-answer" style={s.text}>{item.answer}</div>}
           </div>
         );
       })}
@@ -89,9 +112,9 @@ export function FaqAccordionBlock({ content, editable }) {
  * (Airbnb, Pentagram) where an entire card is one click target, not just
  * a separate "read more" link buried inside it. One wrapper for every
  * cardStyle rather than repeating the div/a branch in each. */
-function CardWrap({ href, className, children }) {
-  if (!href) return <div className={className}>{children}</div>;
-  return <a href={href} className={`${className} sb-card-link`}>{children}</a>;
+function CardWrap({ href, className, style, children }) {
+  if (!href) return <div className={className} style={style}>{children}</div>;
+  return <a href={href} className={`${className} sb-card-link`} style={style}>{children}</a>;
 }
 
 /** A small pill in the card's corner -- "New", "Best Seller", a category
@@ -110,11 +133,12 @@ export function FeatureGridBlock({ content }) {
       {content.heading && <h3 className="sb-faq-heading" style={headingStyle(content)}>{content.heading}</h3>}
       <div className={`sb-feature-grid sb-feature-grid-${cardStyle}${content.columns ? ` sb-grid-cols-${content.columns}` : ''}`}>
         {items.map((item, i) => {
+          const s = resolveItemStyle(content, item);
           if (cardStyle === 'row') {
             return (
-              <CardWrap key={i} href={item.href} className="sb-feature-row">
+              <CardWrap key={i} href={item.href} className="sb-feature-row" style={s.card}>
                 <div className="sb-feature-row-icon"><FeatureIcon name={item.icon} size={20} /></div>
-                <div>
+                <div style={s.text}>
                   <h4>{item.title}</h4>
                   <p>{item.description}</p>
                 </div>
@@ -123,7 +147,7 @@ export function FeatureGridBlock({ content }) {
           }
           if (cardStyle === 'checklist') {
             return (
-              <CardWrap key={i} href={item.href} className="sb-feature-checklist-item">
+              <CardWrap key={i} href={item.href} className="sb-feature-checklist-item" style={{ ...s.card, ...s.text }}>
                 <FeatureIcon name={item.icon || 'CheckCircle2'} size={18} />
                 <span>{item.title}</span>
               </CardWrap>
@@ -131,16 +155,18 @@ export function FeatureGridBlock({ content }) {
           }
           if (cardStyle === 'timeline') {
             return (
-              <CardWrap key={i} href={item.href} className="sb-feature-timeline-item">
+              <CardWrap key={i} href={item.href} className="sb-feature-timeline-item" style={s.card}>
                 <span className="sb-feature-timeline-badge">{item.badge}</span>
-                <h4>{item.title}</h4>
-                <p>{item.description}</p>
+                <div style={s.text}>
+                  <h4>{item.title}</h4>
+                  <p>{item.description}</p>
+                </div>
               </CardWrap>
             );
           }
           if (cardStyle === 'stat') {
             return (
-              <div key={i} className="sb-feature-stat-item">
+              <div key={i} className="sb-feature-stat-item" style={{ ...s.card, ...s.text }}>
                 <div className="sb-feature-stat-value">{item.title}</div>
                 <p>{item.description}</p>
               </div>
@@ -148,18 +174,22 @@ export function FeatureGridBlock({ content }) {
           }
           if (cardStyle === 'panel') {
             return (
-              <CardWrap key={i} href={item.href} className="sb-feature-panel-item">
-                <h4>{item.title}</h4>
-                <p>{item.description}</p>
+              <CardWrap key={i} href={item.href} className="sb-feature-panel-item" style={s.card}>
+                <div style={s.text}>
+                  <h4>{item.title}</h4>
+                  <p>{item.description}</p>
+                </div>
               </CardWrap>
             );
           }
           return (
-            <CardWrap key={i} href={item.href} className="sb-feature-card">
+            <CardWrap key={i} href={item.href} className="sb-feature-card" style={s.card}>
               {item.badge && <CardBadge text={item.badge} />}
               <div className="sb-feature-icon"><FeatureIcon name={item.icon} /></div>
-              <h4>{item.title}</h4>
-              <p>{item.description}</p>
+              <div style={s.text}>
+                <h4>{item.title}</h4>
+                <p>{item.description}</p>
+              </div>
               {item.href && <span className="sb-feature-card-link">Learn more →</span>}
             </CardWrap>
           );
@@ -247,25 +277,28 @@ export function ServiceListBlock({ content }) {
     <div className={content.dark ? 'sb-content-dark' : ''} style={{ height: '100%', overflow: 'auto' }}>
       {content.heading && <h3 className="sb-faq-heading" style={headingStyle(content)}>{content.heading}</h3>}
       <div className="sb-service-list">
-        {items.map((item, i) => (
-          <CardWrap key={i} href={item.href} className="sb-service-card">
-            <div className="sb-service-icon-col">
-              <div className="sb-service-icon"><FeatureIcon name={item.icon} size={26} /></div>
-              {content.numbered !== false && <span className="sb-service-index">{String(i + 1).padStart(2, '0')}</span>}
-            </div>
-            <div>
-              <h4>{item.title}</h4>
-              <p>{item.description}</p>
-              {(item.points || []).filter(Boolean).length > 0 && (
-                <ul className="sb-service-points">
-                  {item.points.filter(Boolean).map((point, pi) => (
-                    <li key={pi}><CheckCircle2 size={14} />{point}</li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          </CardWrap>
-        ))}
+        {items.map((item, i) => {
+          const s = resolveItemStyle(content, item);
+          return (
+            <CardWrap key={i} href={item.href} className="sb-service-card" style={s.card}>
+              <div className="sb-service-icon-col">
+                <div className="sb-service-icon"><FeatureIcon name={item.icon} size={26} /></div>
+                {content.numbered !== false && <span className="sb-service-index">{String(i + 1).padStart(2, '0')}</span>}
+              </div>
+              <div style={s.text}>
+                <h4>{item.title}</h4>
+                <p>{item.description}</p>
+                {(item.points || []).filter(Boolean).length > 0 && (
+                  <ul className="sb-service-points">
+                    {item.points.filter(Boolean).map((point, pi) => (
+                      <li key={pi}><CheckCircle2 size={14} />{point}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </CardWrap>
+          );
+        })}
       </div>
     </div>
   );
@@ -284,12 +317,15 @@ export function TestimonialGridBlock({ content }) {
     return (
       <div className={content.dark ? 'sb-content-dark' : ''} style={{ height: '100%', overflow: 'auto' }}>
         {content.heading && <h3 className="sb-faq-heading" style={headingStyle(content)}>{content.heading}</h3>}
-        {items.map((item, i) => (
-          <figure key={i} className="sb-testimonial-pullquote">
-            <blockquote>“{item.quote}”</blockquote>
-            <figcaption>{item.author}{item.role ? <span> · {item.role}</span> : null}</figcaption>
-          </figure>
-        ))}
+        {items.map((item, i) => {
+          const s = resolveItemStyle(content, item);
+          return (
+            <figure key={i} className="sb-testimonial-pullquote" style={{ ...s.card, ...s.text }}>
+              <blockquote>“{item.quote}”</blockquote>
+              <figcaption>{item.author}{item.role ? <span> · {item.role}</span> : null}</figcaption>
+            </figure>
+          );
+        })}
       </div>
     );
   }
@@ -297,13 +333,18 @@ export function TestimonialGridBlock({ content }) {
     <div className={content.dark ? 'sb-content-dark' : ''} style={{ height: '100%', overflow: 'auto' }}>
       {content.heading && <h3 className="sb-faq-heading" style={headingStyle(content)}>{content.heading}</h3>}
       <div className={`sb-testimonial-grid${content.columns ? ` sb-grid-cols-${content.columns}` : ''}`}>
-        {items.map((item, i) => (
-          <div key={i} className="sb-testimonial-card">
-            <Quote size={20} className="sb-testimonial-quote-icon" />
-            <p className="sb-testimonial-quote">{item.quote}</p>
-            <p className="sb-testimonial-author">{item.author}{item.role ? <span>{item.role}</span> : null}</p>
-          </div>
-        ))}
+        {items.map((item, i) => {
+          const s = resolveItemStyle(content, item);
+          return (
+            <div key={i} className="sb-testimonial-card" style={s.card}>
+              <Quote size={20} className="sb-testimonial-quote-icon" />
+              <div style={s.text}>
+                <p className="sb-testimonial-quote">{item.quote}</p>
+                <p className="sb-testimonial-author">{item.author}{item.role ? <span>{item.role}</span> : null}</p>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

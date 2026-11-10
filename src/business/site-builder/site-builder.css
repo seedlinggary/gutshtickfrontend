@@ -380,6 +380,7 @@
   color: var(--text);
 }
 .sb-icon-btn:hover { background: var(--bg); }
+.sb-icon-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 
 .sb-section-bg-menu { position: relative; display: inline-block; }
 .sb-section-bg-dropdown {

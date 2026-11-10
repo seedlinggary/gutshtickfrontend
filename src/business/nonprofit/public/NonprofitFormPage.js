@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { Check } from 'lucide-react';
 import apiRequest from '../../../ApiRequest';
 import SiteFooter from '../../site-builder/SiteFooter';
-import { fieldIsVisible, fieldLabel, FieldInput } from '../dynamicFormFields';
+import { fieldIsVisible, fieldLabel, fieldLabelStyle, FieldInput } from '../dynamicFormFields';
 import '../../site-builder/theme.css';
 
 /** Renders a dynamic form built in the staff portal's form builder.
@@ -77,7 +77,7 @@ export default function NonprofitFormPage({ subdomain }) {
         <form onSubmit={submit} className="sb-form-plain-card" style={{ display: 'flex', flexDirection: 'column', gap: 16, boxSizing: 'border-box' }}>
           {visibleFields.map((field) => (
             <div key={field.id} className="gs-field" style={{ marginBottom: 0 }}>
-              <div className="gs-label" style={{ fontFamily: 'var(--sb-font-body)' }}>{fieldLabel(field, answers)}{field.required && ' *'}</div>
+              <div className="gs-label" style={{ fontFamily: 'var(--sb-font-body)', ...fieldLabelStyle(field) }}>{fieldLabel(field, answers)}{field.required && ' *'}</div>
               {field.help_text && <p style={{ fontSize: 12, color: 'var(--sb-muted, #8a7a68)', margin: '0 0 6px' }}>{field.help_text}</p>}
               <FieldInput field={field} value={answers[String(field.id)]} onChange={(v) => setAnswers((a) => ({ ...a, [String(field.id)]: v }))} />
             </div>

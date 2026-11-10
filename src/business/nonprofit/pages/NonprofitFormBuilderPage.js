@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { ArrowLeft, Save, Plus, Trash2, ChevronUp, ChevronDown, ChevronRight, X } from 'lucide-react';
+import ItemStyleFields from '../../site-builder/ItemStyleFields';
 import '../nonprofit.css';
 
 const FIELD_TYPES = [
@@ -81,6 +82,28 @@ function ConditionEditor({ field, index, fields, update }) {
   );
 }
 
+/** Same collapsed-unless-already-set convention as ConditionEditor right
+ * above -- most fields never need this, so it stays out of the way until
+ * a field actually has a label_style set. Shares ItemStyleFields with the
+ * site builder's card/list blocks (see that file's own docstring) --
+ * allowBackground={false} since a form field's label has no card concept
+ * the way a feature-grid item does. */
+function LabelStyleEditor({ field, update }) {
+  const [expanded, setExpanded] = useState(!!field.label_style);
+  return (
+    <div style={{ marginTop: 10 }}>
+      <button type="button" className="sb-icon-btn" onClick={() => setExpanded((e) => !e)} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+        {expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />} Label style
+      </button>
+      {expanded && (
+        <div style={{ marginTop: 8, paddingLeft: 10, borderLeft: '2px solid var(--border)' }}>
+          <ItemStyleFields value={field.label_style} onChange={(label_style) => update({ label_style })} allowBackground={false} />
+        </div>
+      )}
+    </div>
+  );
+}
+
 function FieldRow({ field, index, fields, onChange, onRemove, onMoveUp, onMoveDown, isFirst, isLast }) {
   const update = (patch) => onChange({ ...field, ...patch });
   const isChoice = field.type === 'single_choice' || field.type === 'multi_choice';
@@ -121,13 +144,14 @@ function FieldRow({ field, index, fields, onChange, onRemove, onMoveUp, onMoveDo
       )}
 
       <ConditionEditor field={field} index={index} fields={fields} update={update} />
+      <LabelStyleEditor field={field} update={update} />
     </div>
   );
 }
 
 let localKeySeq = 0;
 function emptyField() {
-  return { _key: `tmp-${localKeySeq++}`, label: '', type: 'short_text', required: false, options: [], help_text: '', condition_field_id: null, condition_value: '', condition_mode: null, alt_label: '' };
+  return { _key: `tmp-${localKeySeq++}`, label: '', type: 'short_text', required: false, options: [], help_text: '', condition_field_id: null, condition_value: '', condition_mode: null, alt_label: '', label_style: null };
 }
 
 export default function NonprofitFormBuilderPage({ apiRequest, urlPrefix = '/nonprofit', formsSegment = 'forms', businessId, formId, onBack }) {
@@ -170,6 +194,7 @@ export default function NonprofitFormBuilderPage({ apiRequest, urlPrefix = '/non
         condition_value: f.condition_value || null,
         condition_mode: f.condition_mode || null,
         alt_label: f.alt_label || null,
+        label_style: f.label_style || null,
       })),
     };
     apiRequest('PATCH', body, formUrl)
