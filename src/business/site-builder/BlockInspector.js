@@ -589,6 +589,7 @@ export default function BlockInspector({ businessId, block, onChange, onClose, h
             fields={[
               { key: 'question', label: 'Question', placeholder: 'What areas do you serve?' },
               { key: 'answer', label: 'Answer', type: 'textarea', placeholder: 'We serve...' },
+              { key: 'hidden', label: '', type: 'checkbox', checkboxLabel: 'Hide (keep saved, hide from the live site)' },
             ]}
           />
         </div>
@@ -627,22 +628,29 @@ export default function BlockInspector({ businessId, block, onChange, onClose, h
                   { key: 'badge', label: 'Badge (e.g. a year)', placeholder: '2011' },
                   { key: 'title', label: 'Title', placeholder: 'Where it started' },
                   { key: 'description', label: 'Description', type: 'textarea', placeholder: 'A short description...' },
+                  { key: 'image', label: 'Image (optional)', type: 'image' },
+                  { key: 'hidden', label: '', type: 'checkbox', checkboxLabel: 'Hide (keep saved, hide from the live site)' },
                 ]
                 : block.content.cardStyle === 'stat'
                   ? [
                     { key: 'title', label: 'Number', placeholder: '2011' },
                     { key: 'description', label: 'Label', placeholder: 'Managing NYC Properties Since' },
+                    { key: 'hidden', label: '', type: 'checkbox', checkboxLabel: 'Hide (keep saved, hide from the live site)' },
                   ]
                   : block.content.cardStyle === 'panel'
                     ? [
                       { key: 'title', label: 'Heading', placeholder: 'Where to Find Us' },
                       { key: 'description', label: 'Text', type: 'textarea', placeholder: 'Across from...' },
                       { key: 'href', label: 'Links to (optional)', placeholder: '/services' },
+                      { key: 'image', label: 'Image (optional)', type: 'image' },
+                      { key: 'hidden', label: '', type: 'checkbox', checkboxLabel: 'Hide (keep saved, hide from the live site)' },
                     ]
                     : block.content.cardStyle === 'checklist'
                     ? [
                       { key: 'icon', label: 'Icon', type: 'select', options: ICON_NAMES },
                       { key: 'title', label: 'Text', placeholder: 'Financial clarity & precision' },
+                      { key: 'image', label: 'Image (optional, shown instead of the icon)', type: 'image' },
+                      { key: 'hidden', label: '', type: 'checkbox', checkboxLabel: 'Hide (keep saved, hide from the live site)' },
                     ]
                     : [
                       { key: 'icon', label: 'Icon', type: 'select', options: ICON_NAMES },
@@ -650,6 +658,8 @@ export default function BlockInspector({ businessId, block, onChange, onClose, h
                       { key: 'description', label: 'Description', type: 'textarea', placeholder: 'A short description...' },
                       { key: 'badge', label: 'Badge (optional, e.g. "New")', placeholder: 'New' },
                       { key: 'href', label: 'Links to (optional)', placeholder: '/services' },
+                      { key: 'image', label: 'Image (optional, shown instead of the icon)', type: 'image' },
+                      { key: 'hidden', label: '', type: 'checkbox', checkboxLabel: 'Hide (keep saved, hide from the live site)' },
                     ]
             }
           />
@@ -685,6 +695,8 @@ export default function BlockInspector({ businessId, block, onChange, onClose, h
               { key: 'quote', label: 'Quote', type: 'textarea', placeholder: 'What they said...' },
               { key: 'author', label: 'Name', placeholder: 'Jane Smith' },
               { key: 'role', label: 'Title / company (optional)', placeholder: 'Board President, 123 Main St' },
+              { key: 'image', label: 'Photo (optional)', type: 'image' },
+              { key: 'hidden', label: '', type: 'checkbox', checkboxLabel: 'Hide (keep saved, hide from the live site)' },
             ]}
           />
         </div>
@@ -717,6 +729,8 @@ export default function BlockInspector({ businessId, block, onChange, onClose, h
               { key: 'description', label: 'Description', type: 'textarea', placeholder: 'A paragraph describing this service...' },
               { key: 'points', label: 'Supporting points (one per line)', type: 'list', placeholder: 'Dedicated property manager\nMonthly financial statements' },
               { key: 'href', label: 'Links to (optional)', placeholder: '/services#this-one' },
+              { key: 'image', label: 'Image (optional, shown instead of the icon)', type: 'image' },
+              { key: 'hidden', label: '', type: 'checkbox', checkboxLabel: 'Hide (keep saved, hide from the live site)' },
             ]}
           />
         </div>

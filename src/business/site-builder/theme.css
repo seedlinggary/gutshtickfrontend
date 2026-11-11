@@ -597,6 +597,19 @@ body.sb-layout-with-sidebar .main-content { padding-left: 220px; }
 .sb-testimonial-pullquote figcaption { margin-top: 16px; font-size: 14px; font-weight: 600; color: var(--sb-muted); }
 .sb-testimonial-pullquote figcaption span { font-weight: 400; }
 
+/* Optional per-item photo, shown instead of the icon/quote-mark slot when
+   an item has one set -- same `.sb-item-image` class everywhere, sized
+   and shaped per context so it fits whichever card style it lands in. */
+.sb-item-image { object-fit: cover; display: block; }
+.sb-feature-row-icon.sb-item-image { width: 44px; height: 44px; border-radius: 999px; flex-shrink: 0; }
+.sb-feature-checklist-item .sb-item-image { width: 20px; height: 20px; border-radius: 6px; flex-shrink: 0; }
+.sb-feature-card .sb-item-image,
+.sb-feature-timeline-item .sb-item-image,
+.sb-feature-panel-item .sb-item-image { width: 100%; height: 120px; border-radius: 8px; margin-bottom: 10px; }
+.sb-service-icon-col .sb-item-image { width: 56px; height: 56px; border-radius: 12px; flex-shrink: 0; }
+.sb-testimonial-card .sb-item-image { width: 44px; height: 44px; border-radius: 999px; margin-bottom: 8px; }
+.sb-testimonial-pullquote .sb-item-image { width: 56px; height: 56px; border-radius: 999px; margin: 0 auto 12px; }
+
 /* Logo / trust-badge strip. */
 .sb-logo-strip { display: flex; align-items: center; justify-content: center; gap: 40px; flex-wrap: wrap; padding: 8px 0; }
 .sb-logo-strip img { max-height: 36px; max-width: 140px; object-fit: contain; opacity: 0.85; }

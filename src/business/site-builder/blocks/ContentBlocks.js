@@ -64,7 +64,7 @@ function resolveItemStyle(content, item) {
  * a time, same "accordion" convention as the business this was modeled
  * on. */
 export function FaqAccordionBlock({ content, editable }) {
-  const items = content.items || [];
+  const items = (content.items || []).filter((it) => !it.hidden);
   const [openIndex, setOpenIndex] = useState(editable ? null : -1);
 
   return (
@@ -126,7 +126,7 @@ function CardBadge({ text }) {
 }
 
 export function FeatureGridBlock({ content }) {
-  const items = content.items || [];
+  const items = (content.items || []).filter((it) => !it.hidden);
   const cardStyle = content.cardStyle || 'card';
   return (
     <div className={content.dark ? 'sb-content-dark' : ''} style={{ height: '100%', overflow: 'auto' }}>
@@ -137,7 +137,9 @@ export function FeatureGridBlock({ content }) {
           if (cardStyle === 'row') {
             return (
               <CardWrap key={i} href={item.href} className="sb-feature-row" style={s.card}>
-                <div className="sb-feature-row-icon"><FeatureIcon name={item.icon} size={20} /></div>
+                {item.image ? <img src={item.image} alt="" className="sb-feature-row-icon sb-item-image" /> : (
+                  <div className="sb-feature-row-icon"><FeatureIcon name={item.icon} size={20} /></div>
+                )}
                 <div>
                   <h4 style={s.text}>{item.title}</h4>
                   <p style={s.text}>{item.description}</p>
@@ -148,7 +150,7 @@ export function FeatureGridBlock({ content }) {
           if (cardStyle === 'checklist') {
             return (
               <CardWrap key={i} href={item.href} className="sb-feature-checklist-item" style={{ ...s.card, ...s.text }}>
-                <FeatureIcon name={item.icon || 'CheckCircle2'} size={18} />
+                {item.image ? <img src={item.image} alt="" className="sb-item-image" /> : <FeatureIcon name={item.icon || 'CheckCircle2'} size={18} />}
                 <span>{item.title}</span>
               </CardWrap>
             );
@@ -156,6 +158,7 @@ export function FeatureGridBlock({ content }) {
           if (cardStyle === 'timeline') {
             return (
               <CardWrap key={i} href={item.href} className="sb-feature-timeline-item" style={s.card}>
+                {item.image && <img src={item.image} alt="" className="sb-item-image" />}
                 <span className="sb-feature-timeline-badge">{item.badge}</span>
                 <h4 style={s.text}>{item.title}</h4>
                 <p style={s.text}>{item.description}</p>
@@ -173,6 +176,7 @@ export function FeatureGridBlock({ content }) {
           if (cardStyle === 'panel') {
             return (
               <CardWrap key={i} href={item.href} className="sb-feature-panel-item" style={s.card}>
+                {item.image && <img src={item.image} alt="" className="sb-item-image" />}
                 <h4 style={s.text}>{item.title}</h4>
                 <p style={s.text}>{item.description}</p>
               </CardWrap>
@@ -181,7 +185,9 @@ export function FeatureGridBlock({ content }) {
           return (
             <CardWrap key={i} href={item.href} className="sb-feature-card" style={s.card}>
               {item.badge && <CardBadge text={item.badge} />}
-              <div className="sb-feature-icon"><FeatureIcon name={item.icon} /></div>
+              {item.image ? <img src={item.image} alt="" className="sb-item-image" /> : (
+                <div className="sb-feature-icon"><FeatureIcon name={item.icon} /></div>
+              )}
               <h4 style={s.text}>{item.title}</h4>
               <p style={s.text}>{item.description}</p>
               {item.href && <span className="sb-feature-card-link">Learn more →</span>}
@@ -266,7 +272,7 @@ export function GoogleReviewsBadgeBlock({ content }) {
  * both a paragraph AND supporting bullet points per item -- a services
  * page, a process breakdown, a plans/tiers list. */
 export function ServiceListBlock({ content }) {
-  const items = content.items || [];
+  const items = (content.items || []).filter((it) => !it.hidden);
   return (
     <div className={content.dark ? 'sb-content-dark' : ''} style={{ height: '100%', overflow: 'auto' }}>
       {content.heading && <h3 className="sb-faq-heading" style={headingStyle(content)}>{content.heading}</h3>}
@@ -276,7 +282,9 @@ export function ServiceListBlock({ content }) {
           return (
             <CardWrap key={i} href={item.href} className="sb-service-card" style={s.card}>
               <div className="sb-service-icon-col">
-                <div className="sb-service-icon"><FeatureIcon name={item.icon} size={26} /></div>
+                {item.image ? <img src={item.image} alt="" className="sb-item-image" /> : (
+                  <div className="sb-service-icon"><FeatureIcon name={item.icon} size={26} /></div>
+                )}
                 {content.numbered !== false && <span className="sb-service-index">{String(i + 1).padStart(2, '0')}</span>}
               </div>
               <div>
@@ -305,7 +313,7 @@ export function ServiceListBlock({ content }) {
  * distinct enough from a wall of boxed testimonial cards to be its own
  * style rather than a one-item grid of the default card. */
 export function TestimonialGridBlock({ content }) {
-  const items = content.items || [];
+  const items = (content.items || []).filter((it) => !it.hidden);
   const cardStyle = content.cardStyle || 'card';
   if (cardStyle === 'quote') {
     return (
@@ -315,6 +323,7 @@ export function TestimonialGridBlock({ content }) {
           const s = resolveItemStyle(content, item);
           return (
             <figure key={i} className="sb-testimonial-pullquote" style={s.card}>
+              {item.image && <img src={item.image} alt="" className="sb-item-image" />}
               <blockquote style={s.text}>“{item.quote}”</blockquote>
               <figcaption style={s.text}>{item.author}{item.role ? <span> · {item.role}</span> : null}</figcaption>
             </figure>
@@ -331,7 +340,9 @@ export function TestimonialGridBlock({ content }) {
           const s = resolveItemStyle(content, item);
           return (
             <div key={i} className="sb-testimonial-card" style={s.card}>
-              <Quote size={20} className="sb-testimonial-quote-icon" />
+              {item.image ? <img src={item.image} alt="" className="sb-item-image" /> : (
+                <Quote size={20} className="sb-testimonial-quote-icon" />
+              )}
               <p className="sb-testimonial-quote" style={s.text}>{item.quote}</p>
               <p className="sb-testimonial-author" style={s.text}>{item.author}{item.role ? <span>{item.role}</span> : null}</p>
             </div>
