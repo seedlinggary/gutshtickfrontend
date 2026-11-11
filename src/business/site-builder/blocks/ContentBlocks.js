@@ -138,9 +138,9 @@ export function FeatureGridBlock({ content }) {
             return (
               <CardWrap key={i} href={item.href} className="sb-feature-row" style={s.card}>
                 <div className="sb-feature-row-icon"><FeatureIcon name={item.icon} size={20} /></div>
-                <div style={s.text}>
-                  <h4>{item.title}</h4>
-                  <p>{item.description}</p>
+                <div>
+                  <h4 style={s.text}>{item.title}</h4>
+                  <p style={s.text}>{item.description}</p>
                 </div>
               </CardWrap>
             );
@@ -157,28 +157,24 @@ export function FeatureGridBlock({ content }) {
             return (
               <CardWrap key={i} href={item.href} className="sb-feature-timeline-item" style={s.card}>
                 <span className="sb-feature-timeline-badge">{item.badge}</span>
-                <div style={s.text}>
-                  <h4>{item.title}</h4>
-                  <p>{item.description}</p>
-                </div>
+                <h4 style={s.text}>{item.title}</h4>
+                <p style={s.text}>{item.description}</p>
               </CardWrap>
             );
           }
           if (cardStyle === 'stat') {
             return (
-              <div key={i} className="sb-feature-stat-item" style={{ ...s.card, ...s.text }}>
-                <div className="sb-feature-stat-value">{item.title}</div>
-                <p>{item.description}</p>
+              <div key={i} className="sb-feature-stat-item" style={s.card}>
+                <div className="sb-feature-stat-value" style={s.text}>{item.title}</div>
+                <p style={s.text}>{item.description}</p>
               </div>
             );
           }
           if (cardStyle === 'panel') {
             return (
               <CardWrap key={i} href={item.href} className="sb-feature-panel-item" style={s.card}>
-                <div style={s.text}>
-                  <h4>{item.title}</h4>
-                  <p>{item.description}</p>
-                </div>
+                <h4 style={s.text}>{item.title}</h4>
+                <p style={s.text}>{item.description}</p>
               </CardWrap>
             );
           }
@@ -186,10 +182,8 @@ export function FeatureGridBlock({ content }) {
             <CardWrap key={i} href={item.href} className="sb-feature-card" style={s.card}>
               {item.badge && <CardBadge text={item.badge} />}
               <div className="sb-feature-icon"><FeatureIcon name={item.icon} /></div>
-              <div style={s.text}>
-                <h4>{item.title}</h4>
-                <p>{item.description}</p>
-              </div>
+              <h4 style={s.text}>{item.title}</h4>
+              <p style={s.text}>{item.description}</p>
               {item.href && <span className="sb-feature-card-link">Learn more →</span>}
             </CardWrap>
           );
@@ -285,13 +279,13 @@ export function ServiceListBlock({ content }) {
                 <div className="sb-service-icon"><FeatureIcon name={item.icon} size={26} /></div>
                 {content.numbered !== false && <span className="sb-service-index">{String(i + 1).padStart(2, '0')}</span>}
               </div>
-              <div style={s.text}>
-                <h4>{item.title}</h4>
-                <p>{item.description}</p>
+              <div>
+                <h4 style={s.text}>{item.title}</h4>
+                <p style={s.text}>{item.description}</p>
                 {(item.points || []).filter(Boolean).length > 0 && (
-                  <ul className="sb-service-points">
+                  <ul className="sb-service-points" style={s.text}>
                     {item.points.filter(Boolean).map((point, pi) => (
-                      <li key={pi}><CheckCircle2 size={14} />{point}</li>
+                      <li key={pi} style={s.text}><CheckCircle2 size={14} />{point}</li>
                     ))}
                   </ul>
                 )}
@@ -320,9 +314,9 @@ export function TestimonialGridBlock({ content }) {
         {items.map((item, i) => {
           const s = resolveItemStyle(content, item);
           return (
-            <figure key={i} className="sb-testimonial-pullquote" style={{ ...s.card, ...s.text }}>
-              <blockquote>“{item.quote}”</blockquote>
-              <figcaption>{item.author}{item.role ? <span> · {item.role}</span> : null}</figcaption>
+            <figure key={i} className="sb-testimonial-pullquote" style={s.card}>
+              <blockquote style={s.text}>“{item.quote}”</blockquote>
+              <figcaption style={s.text}>{item.author}{item.role ? <span> · {item.role}</span> : null}</figcaption>
             </figure>
           );
         })}
@@ -338,10 +332,8 @@ export function TestimonialGridBlock({ content }) {
           return (
             <div key={i} className="sb-testimonial-card" style={s.card}>
               <Quote size={20} className="sb-testimonial-quote-icon" />
-              <div style={s.text}>
-                <p className="sb-testimonial-quote">{item.quote}</p>
-                <p className="sb-testimonial-author">{item.author}{item.role ? <span>{item.role}</span> : null}</p>
-              </div>
+              <p className="sb-testimonial-quote" style={s.text}>{item.quote}</p>
+              <p className="sb-testimonial-author" style={s.text}>{item.author}{item.role ? <span>{item.role}</span> : null}</p>
             </div>
           );
         })}
