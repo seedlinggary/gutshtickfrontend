@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Bell, CheckCircle2 } from 'lucide-react';
 import apiRequest from '../ApiRequest';
 import { isLoggedIn } from '../auth';
+import AlertFilterFields, { defaultLabel } from './AlertFilterFields';
 
 const _EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
@@ -21,17 +22,23 @@ const _EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
  * `variant="icon"` renders a small round bell instead of the full pill CTA,
  * for dropping onto a listing/post CARD (one icon per item in a results
  * list, rather than one big button above the whole list) -- the form opens
- * in a popover anchored to the icon instead of expanding inline, since an
- * inline expansion would distort that card's place in a grid/list. Callers
- * on a card should pass filters/label describing THAT item specifically
- * (type/city/neighborhood, etc.), not the whole directory's current search,
- * so a signup from a card is pre-filled for "more like this one" with
- * nothing left for the visitor to fill in themselves. */
-export default function GetAlertsButton({ searchType, filters, label, variant = 'cta' }) {
+ * in a popover anchored to the icon instead of expanding inline. These stay
+ * pre-filled-and-fixed (the whole point is "more like THIS one"), so
+ * showFilters is ignored for this variant.
+ *
+ * `showFilters` turns on the full editable filter UI (AlertFilterFields) --
+ * for the catch-all header buttons, where someone landing fresh should be
+ * able to narrow "new properties"/"new jobs" down to what they actually
+ * want (type, neighborhood, price...) instead of only ever getting the
+ * unfiltered catch-all. `filters`/`label` still seed the initial state (so
+ * a caller can still start it pre-narrowed), but from then on the visitor's
+ * own edits drive both the saved filters and the alert's label. */
+export default function GetAlertsButton({ searchType, filters, label, variant = 'cta', showFilters = false }) {
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState('idle'); // idle | sending | done | error
   const [message, setMessage] = useState('');
+  const [localFilters, setLocalFilters] = useState(() => ({ ...(filters || {}) }));
   const loggedIn = isLoggedIn();
   const wrapRef = useRef(null);
 
@@ -42,7 +49,10 @@ export default function GetAlertsButton({ searchType, filters, label, variant = 
     return () => document.removeEventListener('mousedown', onDown);
   }, [variant, open]);
 
-  const filtersQs = Object.entries(filters || {})
+  const effectiveFilters = showFilters ? localFilters : (filters || {});
+  const effectiveLabel = showFilters ? defaultLabel(searchType, localFilters) : label;
+
+  const filtersQs = Object.entries(effectiveFilters)
     .filter(([, v]) => v !== undefined && v !== null && v !== '' && v !== false)
     .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
     .join('&');
@@ -59,7 +69,7 @@ export default function GetAlertsButton({ searchType, filters, label, variant = 
       const res = await apiRequest('POST', {
         search_type: searchType,
         filters: filtersQs,
-        label,
+        label: effectiveLabel,
         ...(loggedIn ? {} : { email: email.trim() }),
       }, '/alerts');
       setStatus('done');
@@ -77,8 +87,16 @@ export default function GetAlertsButton({ searchType, filters, label, variant = 
       <CheckCircle2 size={14} /> {message}
     </div>
   ) : (
-    <form onSubmit={submit} onClick={stop} className="gs-card" style={{ display: 'inline-flex', flexDirection: 'column', gap: 8, padding: 14, width: 280, maxWidth: '80vw' }}>
-      <strong style={{ fontSize: 13.5, display: 'inline-flex', alignItems: 'center', gap: 4 }}><Bell size={13} /> Get alerts for: {label}</strong>
+    <form
+      onSubmit={submit} onClick={stop} className="gs-card"
+      style={{ display: 'inline-flex', flexDirection: 'column', gap: 10, padding: 14, width: showFilters ? 440 : 280, maxWidth: '90vw' }}
+    >
+      <strong style={{ fontSize: 13.5, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+        <Bell size={13} /> {showFilters ? 'Get alerts' : `Get alerts for: ${label}`}
+      </strong>
+      {showFilters && (
+        <AlertFilterFields searchType={searchType} filters={localFilters} onChange={setLocalFilters} />
+      )}
       {!loggedIn && (
         <input
           type="email" className="gs-input" placeholder="Your email"
