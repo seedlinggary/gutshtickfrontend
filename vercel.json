@@ -67,6 +67,8 @@
     { "source": "/about", "destination": "/api/static-meta?route=about" },
     { "source": "/contact", "destination": "/api/static-meta?route=contact" },
 
+    { "source": "/campaigns/r/:code", "destination": "/api/campaign-redirect?code=:code" },
+
     {
       "source": "/learn",
       "has": [{ "type": "host", "value": "gutestates.com" }],
