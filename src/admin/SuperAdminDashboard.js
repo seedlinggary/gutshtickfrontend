@@ -9,6 +9,7 @@ import AdminScrapers from './AdminScrapers';
 import AdminYoutubeChannels from './AdminYoutubeChannels';
 import AdminAnalytics from './AdminAnalytics';
 import AdminBusinessAnalytics from './AdminBusinessAnalytics';
+import AdminCampaigns from './AdminCampaigns';
 import AdminAlertSchedule from './AdminAlertSchedule';
 import AdminAllAlerts from './AdminAllAlerts';
 import AdminSiteTemplates from './AdminSiteTemplates';
@@ -608,6 +609,7 @@ export default function SuperAdminDashboard() {
           ['content_pipeline', Bot, 'Content Pipeline'],
           ['analytics', LineChart, 'Analytics'],
           ['business_analytics', Store, 'Business'],
+          ['campaigns', Target, 'Campaigns'],
           ['activity', UserSearch, selectedUser ? selectedUser.profile_name : 'Activity'],
         ].map(([key, Icon, label]) => (
           <button key={key} className={`admin-tab${tab === key ? ' active' : ''}`} onClick={() => setTab(key)}>
@@ -1323,6 +1325,18 @@ export default function SuperAdminDashboard() {
       {!loading && (
         <div style={{ display: tab === 'business_analytics' ? 'block' : 'none' }}>
           <AdminBusinessAnalytics />
+        </div>
+      )}
+
+      {/* ── Marketing campaign link tracking (backend/campaigns/) -- NOT
+          the "Ads" tab above (in-site ad slots shown to visitors); this is
+          outbound links handed out on other channels that point back at
+          us. Same stays-mounted pattern as Analytics/Business above, so
+          switching tabs away and back doesn't lose expanded activity
+          panels or re-fetch the campaign list. ── */}
+      {!loading && (
+        <div style={{ display: tab === 'campaigns' ? 'block' : 'none' }}>
+          <AdminCampaigns />
         </div>
       )}
 

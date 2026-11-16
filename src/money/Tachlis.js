@@ -503,9 +503,15 @@ export default function Tachlis() {
                 Post a job opening or your resume. Every post is contact-first: reach out directly.
               </p>
             </div>
-            <button className="gs-board-hero-cta" onClick={startCompose}>
-              {composing ? 'Close' : <><Plus size={14} /> New Post</>}
-            </button>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
+              <button className="gs-board-hero-cta" onClick={startCompose}>
+                {composing ? 'Close' : <><Plus size={14} /> New Post</>}
+              </button>
+              {/* Catch-all alert (no filters) so it's one click for anyone, not
+                  just people who've already set up a search -- the filtered
+                  version still lives in the toolbar below for a narrower ask. */}
+              <GetAlertsButton searchType="tachlis" filters={{}} label="new Job Board posts" />
+            </div>
           </div>
         </div>
 

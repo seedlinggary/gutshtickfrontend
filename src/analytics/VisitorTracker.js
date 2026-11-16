@@ -5,6 +5,7 @@ import { getCurrentSite, getCurrentBusinessSiteSubdomain } from '../siteMode';
 const API = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
 const LOCAL_HOSTNAMES = ['localhost', '127.0.0.1', '0.0.0.0'];
 const ANON_ID_KEY = 'anon_id';
+const AD_CODE_KEY = 'gs_ad_code';
 
 function getOrCreateAnonId() {
   let id = localStorage.getItem(ANON_ID_KEY);
@@ -13,6 +14,30 @@ function getOrCreateAnonId() {
     localStorage.setItem(ANON_ID_KEY, id);
   }
   return id;
+}
+
+// A campaign redirect (GET <API>/campaigns/r/<code>, see backend/campaigns/
+// routes/campaign.py) 302s here with ?gs_ad=<code> appended. Captured once,
+// on whatever page the visitor actually lands on -- stored to localStorage
+// (same per-origin caveat as ANON_ID_KEY: a link into a DIFFERENT sub-site
+// than where signup happens would lose attribution, since each hostname is
+// its own origin) and stripped from the visible URL immediately. Never
+// gated behind the localhost check below -- this is harmless bookkeeping
+// even when no beacon is ever sent, and is exactly what local testing of
+// the redirect flow needs to observe.
+function captureAdCodeFromUrl() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('gs_ad');
+    if (!code) return;
+    localStorage.setItem(AD_CODE_KEY, code);
+    params.delete('gs_ad');
+    const qs = params.toString();
+    const cleanUrl = window.location.pathname + (qs ? `?${qs}` : '') + window.location.hash;
+    window.history.replaceState({}, '', cleanUrl);
+  } catch (_) {
+    // Never block rendering over this.
+  }
 }
 
 /**
@@ -43,6 +68,13 @@ function getOrCreateAnonId() {
 export default function VisitorTracker() {
   const location = useLocation();
 
+  // Runs once on mount, independent of the beacon effect below -- this has
+  // to inspect the browser's raw URL the instant the page lands, not react
+  // to a later route change.
+  useEffect(() => {
+    captureAdCodeFromUrl();
+  }, []);
+
   useEffect(() => {
     const isLocalHost = LOCAL_HOSTNAMES.includes(window.location.hostname);
     if (isLocalHost) return;
@@ -58,6 +90,10 @@ export default function VisitorTracker() {
     // subdomain is what lets the backend tell one owner's traffic apart
     // from another's (see visitor.py's beacon()).
     const subdomain = siteId === 'business-site' ? getCurrentBusinessSiteSubdomain() : null;
+    // Sent on every beacon call (not just once) so the backend can attach
+    // it the moment a VisitorSession row exists for this anon_id -- the
+    // backend itself only ever applies it sticky/first-touch (see beacon()).
+    const adCode = localStorage.getItem(AD_CODE_KEY) || null;
 
     fetch(`${API}/analytics/beacon`, {
       method: 'POST',
@@ -70,6 +106,7 @@ export default function VisitorTracker() {
         path: location.pathname,
         site: siteId,
         ...(subdomain ? { subdomain } : {}),
+        ...(adCode ? { ad_code: adCode } : {}),
       }),
     }).catch(() => {
       // Analytics must never break the app -- swallow network errors silently.

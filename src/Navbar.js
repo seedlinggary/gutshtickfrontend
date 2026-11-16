@@ -7,7 +7,7 @@ import { getEmail, getToken, isAdmin, isSuperAdmin, clearAuth } from './auth';
 import NotificationBell from './NotificationBell';
 import NavStreakChip from './NavStreakChip';
 import GlobalSearchBar from './search/GlobalSearchBar';
-import { Newspaper, MessagesSquare, Coffee, Settings, Plus, Bell, Inbox, Heart, Hourglass, ShoppingBag } from 'lucide-react';
+import { Newspaper, MessagesSquare, Coffee, Settings, Plus, Bell, Inbox, Heart, Hourglass, ShoppingBag, FileText } from 'lucide-react';
 
 function useOutsideClose(open, setOpen) {
   const ref = useRef(null);
@@ -121,6 +121,7 @@ function AppNavbar() {
             <li className="nav-item"><button className="nav-link" onClick={() => go('/hock')}><MessagesSquare size={15} /> Hock</button></li>
             <li className="nav-item"><button className="nav-link" onClick={() => go('/marketplace')}><ShoppingBag size={15} /> Marketplace</button></li>
             <li className="nav-item"><button className="nav-link" onClick={() => go('/games')}><Coffee size={15} /> Coffee Break</button></li>
+            <li className="nav-item"><button className="nav-link" onClick={() => go('/pdf-tools')}><FileText size={15} /> PDF Tools</button></li>
 
             {boss && (
               <li className="nav-item dropdown" ref={adminRef}>

@@ -83,6 +83,7 @@ const Marketplace                 = lazy(() => import('./marketplace/Marketplace
 const MarketplaceListingForm      = lazy(() => import('./marketplace/MarketplaceListingForm'));
 const MarketplaceGuestManage      = lazy(() => import('./marketplace/MarketplaceGuestManage'));
 const MarketplaceListingProfile    = lazy(() => import('./marketplace/MarketplaceListingProfile'));
+const PdfTools            = lazy(() => import('./pdf-tools/PdfTools'));
 const MyMarketplace                = lazy(() => import('./marketplace/MyMarketplace'));
 const TodayOnGut          = lazy(() => import('./TodayOnGut'));
 const AlertConfirm        = lazy(() => import('./alerts/AlertConfirm'));
@@ -274,6 +275,11 @@ function App() {
                   <Route path="/hock/post/:id" element={<HockPostPage />} />
                   <Route path="/guest/hock/:token" element={<HockGuestManage />} />
                   <Route path="/today" element={<TodayOnGut />} />
+
+                  {/* ── PDF Tools -- view/merge/split/rotate/reorder PDFs,
+                      entirely client-side (pdf.js + pdf-lib), no file ever
+                      uploaded to us -- see src/pdf-tools/PdfTools.js ── */}
+                  <Route path="/pdf-tools" element={<PdfTools />} />
 
                   {/* ── Community Marketplace (buy/sell/trade/giveaway; public to browse;
                       /new is open to guests too -- MarketplaceListingForm reveals its own

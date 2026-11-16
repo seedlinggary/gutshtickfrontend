@@ -1,0 +1,146 @@
+/* Scoped to this page's own classes -- lives on the main site, so it
+   reuses the global --bg/--accent/--text/--border tokens from index.css
+   directly rather than redefining a `<id>-theme` scope the way the
+   separate branded sub-sites (business/estates/money/...) do. */
+
+.pdftools-page {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - var(--navbar-h, 64px));
+  background: var(--bg);
+}
+
+.pdftools-dropzone {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 24px;
+  padding: 48px 24px;
+  border: 2px dashed var(--border);
+  border-radius: var(--radius-lg, 22px);
+  background: var(--surface);
+  color: var(--muted);
+  text-align: center;
+  transition: border-color 0.15s, background 0.15s;
+}
+.pdftools-dropzone-active {
+  border-color: var(--accent);
+  background: var(--surface-deep);
+}
+.pdftools-dropzone h2 { margin: 4px 0 0; color: var(--text); }
+.pdftools-dropzone p { max-width: 420px; margin: 0; font-size: 14px; }
+.pdftools-dropzone-hint { font-size: 12px; color: var(--muted-faint); }
+
+.pdftools-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+.pdftools-toolbar-group { display: flex; align-items: center; gap: 6px; }
+.pdftools-filename {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  color: var(--muted);
+}
+.pdftools-page-indicator, .pdftools-zoom-indicator {
+  font-size: 13px;
+  color: var(--text);
+  min-width: 90px;
+  text-align: center;
+}
+.pdftools-toolbar-active { background: var(--accent) !important; color: #fff !important; border-color: var(--accent) !important; }
+
+.pdftools-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.pdftools-icon-btn:hover:not(:disabled) { background: var(--bg); }
+.pdftools-icon-btn:disabled { opacity: 0.4; cursor: default; }
+
+.pdftools-error {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 10px 16px 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 13px;
+}
+.pdftools-loading { margin: 10px 16px 0; font-size: 13px; color: var(--muted); }
+
+.pdftools-viewer {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  padding: 24px;
+  overflow: auto;
+}
+.pdftools-page-canvas {
+  background: #fff;
+  box-shadow: var(--shadow-sm);
+  max-width: 100%;
+}
+
+.pdftools-pages-panel {
+  padding: 14px 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.pdftools-pages-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.pdftools-thumb-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+.pdftools-thumb {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  width: 140px;
+}
+.pdftools-thumb-selected { border-color: var(--accent); background: var(--surface-deep); }
+.pdftools-thumb-select { position: absolute; top: 6px; left: 6px; }
+.pdftools-thumb-canvas { max-width: 100%; border: 1px solid var(--border); background: #fff; }
+.pdftools-thumb-label { font-size: 11px; color: var(--muted); }
+.pdftools-thumb-actions { display: flex; gap: 3px; }
+
+@media (max-width: 640px) {
+  .pdftools-toolbar { gap: 8px; }
+  .pdftools-filename { max-width: 120px; }
+}

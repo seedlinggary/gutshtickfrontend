@@ -33,7 +33,14 @@ const SignUp = () => {
     setError('');
     setLoading(true);
     try {
-      await apiRequest('POST', form, '/user');
+      // Same localStorage key VisitorTracker.js already writes/reads --
+      // lets the backend log a 'signup' VisitorEvent under this visitor's
+      // existing anonymous_id, so a campaign-attributed session (see
+      // VisitorSession.campaign_link_id) can be joined to this signup.
+      // Harmless to omit (e.g. localhost, or tracking blocked) -- the
+      // backend only writes the event when an id is actually present.
+      const anonId = localStorage.getItem('anon_id');
+      await apiRequest('POST', anonId ? { ...form, anon_id: anonId } : form, '/user');
       navigate(next ? `/signin?next=${encodeURIComponent(next)}` : '/signin');
     } catch (err) {
       setError(typeof err === 'string' ? err : 'Sign-up failed. That email or profile name may already be taken.');

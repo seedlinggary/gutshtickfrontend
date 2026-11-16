@@ -240,10 +240,16 @@ export default function EstatesDirectory() {
               <h1 className="est-masthead-title">Find your next home</h1>
               <p className="est-masthead-sub">{SUBTITLE}</p>
             </div>
-            <NearMeShakeControls
-              nearMeActive={nearMeActive} locating={locating} onNearMe={findNearMe}
-              radiusMiles={NEAR_ME_RADIUS_MILES} shaking={shaking} onShake={shake} nearMeError={nearMeError}
-            />
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
+              <NearMeShakeControls
+                nearMeActive={nearMeActive} locating={locating} onNearMe={findNearMe}
+                radiusMiles={NEAR_ME_RADIUS_MILES} shaking={shaking} onShake={shake} nearMeError={nearMeError}
+              />
+              {/* Catch-all alert (no filters) -- one click for anyone right from
+                  the top of the page, separate from the search-scoped version
+                  further down in the filter toolbar. */}
+              <GetAlertsButton searchType="estates" filters={{}} label="new Gut Estates listings" />
+            </div>
           </div>
           <EstatesStatsBar />
         </div>
