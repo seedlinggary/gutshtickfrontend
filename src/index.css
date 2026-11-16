@@ -1572,6 +1572,37 @@ iframe {
 }
 .gs-alert-cta:hover { background: #ffc24d; transform: translateY(-1px); }
 
+/* ── "Get alerts" icon variant (GetAlertsButton.js variant="icon") -- a
+   subtle per-card affordance for a results list, instead of one big CTA
+   above the whole list. Matching amber fill so it still reads as "the
+   alerts action" at a glance, just smaller. ── */
+.gs-alert-icon-wrap {
+  position: relative;
+  display: inline-flex;
+}
+.gs-alert-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  border: none;
+  background: #f0ad2e;
+  color: #2a1d00;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.22);
+  cursor: pointer;
+  transition: background 140ms ease, transform 140ms ease;
+}
+.gs-alert-icon-btn:hover { background: #ffc24d; transform: translateY(-1px); }
+.gs-alert-popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 40;
+}
+
 /* ── Pin Something card -- the site-wide invitation to contribute ── */
 .pin-something {
   display: block; width: 100%; text-align: left; cursor: pointer;

@@ -5,6 +5,7 @@ import apiRequest from '../ApiRequest';
 import { isLoggedIn } from '../auth';
 import FreshnessBadge from '../utils/FreshnessBadge';
 import ShareButton from '../ShareButton';
+import GetAlertsButton from '../alerts/GetAlertsButton';
 
 export function formatPrice(listing) {
   const symbol = listing.currency === 'ILS' ? '₪' : '$';
@@ -52,6 +53,14 @@ export default function ListingCard({ listing, initiallyLiked, onUnlike }) {
           title={listing.title}
           text={`${listing.title} — ${formatPrice(listing)}${listing.neighborhood || listing.city ? ` in ${listing.neighborhood || listing.city}` : ''}`}
           url={`${window.location.origin}/listings/${listing.slug}`}
+        />
+      </div>
+      <div className="est-card-alert" onClick={(e) => e.stopPropagation()}>
+        <GetAlertsButton
+          variant="icon"
+          searchType="estates"
+          filters={{ listing_type: listing.listing_type, city: listing.city, neighborhood: listing.neighborhood }}
+          label={`more listings like this${listing.neighborhood || listing.city ? ` in ${listing.neighborhood || listing.city}` : ''}`}
         />
       </div>
       {listing.cover_photo_url ? (

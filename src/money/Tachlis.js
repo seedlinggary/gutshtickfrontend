@@ -122,7 +122,13 @@ export function PostCard({ post }) {
               <div className="shtick-author-avatar">{authorInitial}</div>
               <span className="shtick-author-name">{post.user?.profile_name || 'Anonymous'}</span>
             </div>
-            <div onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }} onClick={(e) => e.stopPropagation()}>
+              <GetAlertsButton
+                variant="icon"
+                searchType="tachlis"
+                filters={{ type: post.post_type, location: post.location, category: post.category }}
+                label={`more ${post.post_type === 'job' ? 'jobs' : 'resumes'} like this${post.location ? ` in ${post.location}` : ''}`}
+              />
               <ShareButton
                 title={post.title}
                 text={shareText}
@@ -503,15 +509,9 @@ export default function Tachlis() {
                 Post a job opening or your resume. Every post is contact-first: reach out directly.
               </p>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
-              <button className="gs-board-hero-cta" onClick={startCompose}>
-                {composing ? 'Close' : <><Plus size={14} /> New Post</>}
-              </button>
-              {/* Catch-all alert (no filters) so it's one click for anyone, not
-                  just people who've already set up a search -- the filtered
-                  version still lives in the toolbar below for a narrower ask. */}
-              <GetAlertsButton searchType="tachlis" filters={{}} label="new jobs" />
-            </div>
+            <button className="gs-board-hero-cta" onClick={startCompose}>
+              {composing ? 'Close' : <><Plus size={14} /> New Post</>}
+            </button>
           </div>
         </div>
 

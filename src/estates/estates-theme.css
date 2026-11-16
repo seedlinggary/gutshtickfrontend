@@ -460,6 +460,14 @@
   box-shadow: var(--shadow-sm);
 }
 
+/* Sits directly below .est-like-btn, same top-right corner. */
+.est-card-alert {
+  position: absolute;
+  top: 48px;
+  right: 10px;
+  z-index: 2;
+}
+
 /* ── Listing/group-buy detail page ── */
 .est-hero-gallery {
   display: grid;
