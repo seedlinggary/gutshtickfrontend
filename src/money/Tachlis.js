@@ -510,7 +510,7 @@ export default function Tachlis() {
               {/* Catch-all alert (no filters) so it's one click for anyone, not
                   just people who've already set up a search -- the filtered
                   version still lives in the toolbar below for a narrower ask. */}
-              <GetAlertsButton searchType="tachlis" filters={{}} label="new Job Board posts" />
+              <GetAlertsButton searchType="tachlis" filters={{}} label="new jobs" />
             </div>
           </div>
         </div>

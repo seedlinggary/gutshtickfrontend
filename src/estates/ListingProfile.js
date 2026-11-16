@@ -8,6 +8,7 @@ import apiRequest from '../ApiRequest';
 import { isLoggedIn } from '../auth';
 import ShareButton from '../ShareButton';
 import AffordabilityInline from './AffordabilityInline';
+import GetAlertsButton from '../alerts/GetAlertsButton';
 
 const TYPE_LABEL = {
   sale: 'For Sale',
@@ -204,6 +205,13 @@ export default function ListingProfile() {
             text={`${listing.title} — ${formatPrice(listing)}${listing.neighborhood || listing.city ? ` in ${listing.neighborhood || listing.city}` : ''}`}
             url={window.location.href}
           />
+          {!listing.is_own_listing && (
+            <GetAlertsButton
+              searchType="estates"
+              filters={{ listing_type: listing.listing_type, city: listing.city, neighborhood: listing.neighborhood }}
+              label={`more ${TYPE_LABEL[listing.listing_type] || 'listings'} in ${listing.neighborhood || listing.city || 'this area'}`}
+            />
+          )}
           {isLoggedIn() && !listing.is_own_listing && (
             <button type="button" className={`gs-btn gs-btn-outline${listing.is_liked ? ' active' : ''}`} onClick={toggleLike} disabled={liking}>
               <Heart size={15} fill={listing.is_liked ? 'currentColor' : 'none'} /> {listing.is_liked ? 'Saved' : 'Save for later'}

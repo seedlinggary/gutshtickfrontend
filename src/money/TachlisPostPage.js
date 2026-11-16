@@ -7,6 +7,7 @@ import { isLoggedIn, isAdmin } from '../auth';
 import { TypeBadge, BusinessPostBadge } from './Tachlis';
 import CompensationEquivalent from './CompensationEquivalent';
 import timeAgo from '../utils/timeAgo';
+import GetAlertsButton from '../alerts/GetAlertsButton';
 
 const TITLE_MAX = 150;
 
@@ -260,6 +261,16 @@ export default function TachlisPostPage() {
                         </p>
                       </div>
                     </div>
+
+                    {!isOwner && (
+                      <div style={{ marginTop: 12 }}>
+                        <GetAlertsButton
+                          searchType="tachlis"
+                          filters={{ type: post.post_type, location: post.location, category: post.category }}
+                          label={`more ${post.post_type === 'job' ? 'jobs' : 'resumes'}${post.location ? ` in ${post.location}` : ''}`}
+                        />
+                      </div>
+                    )}
 
                     {post.post_type === 'job' && loggedIn && !isOwner && post.status === 'active' && (
                       <div className="gs-card" style={{ marginTop: 12 }}>

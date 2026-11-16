@@ -1547,6 +1547,31 @@ iframe {
   .gs-board-hero { padding: 20px 18px; }
 }
 
+/* ── "Get alerts" CTA (GetAlertsButton.js) -- deliberately NOT themed off
+   --accent/--text like .gs-btn-outline, which goes dark-on-dark the moment
+   it's dropped onto a dark hero (e.g. Estates' .est-masthead gradient --
+   that's what made it unreadable there). Fixed amber regardless of theme
+   or background so it always reads as a distinct "ring the bell" action,
+   on a light card or a dark masthead alike -- also the whole point per the
+   business goal (getting people to set these up), not just a visibility fix. */
+.gs-alert-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  background: #f0ad2e;
+  color: #2a1d00;
+  border: none;
+  border-radius: 100px;
+  padding: 8px 15px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.22);
+  transition: background 140ms ease, transform 140ms ease;
+  white-space: nowrap;
+}
+.gs-alert-cta:hover { background: #ffc24d; transform: translateY(-1px); }
+
 /* ── Pin Something card -- the site-wide invitation to contribute ── */
 .pin-something {
   display: block; width: 100%; text-align: left; cursor: pointer;

@@ -50,8 +50,8 @@ export default function GetAlertsButton({ searchType, filters, label }) {
 
   if (!open) {
     return (
-      <button type="button" className="gs-btn gs-btn-outline gs-btn-sm" onClick={() => setOpen(true)}>
-        <Bell size={14} /> Get alerts for this search
+      <button type="button" className="gs-alert-cta" onClick={() => setOpen(true)}>
+        <Bell size={14} /> Get alerts for {label || 'this search'}
       </button>
     );
   }

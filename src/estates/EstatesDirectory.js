@@ -248,7 +248,7 @@ export default function EstatesDirectory() {
               {/* Catch-all alert (no filters) -- one click for anyone right from
                   the top of the page, separate from the search-scoped version
                   further down in the filter toolbar. */}
-              <GetAlertsButton searchType="estates" filters={{}} label="new Gut Estates listings" />
+              <GetAlertsButton searchType="estates" filters={{}} label="new properties" />
             </div>
           </div>
           <EstatesStatsBar />
