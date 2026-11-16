@@ -73,7 +73,12 @@ export default function GetAlertsButton({ searchType, filters, label, variant = 
         ...(loggedIn ? {} : { email: email.trim() }),
       }, '/alerts');
       setStatus('done');
-      setMessage(loggedIn ? 'Alert on -- see it anytime in My Alerts.' : (res.message || 'Check your email to confirm.'));
+      // Alerts auto-confirm now (no "check your email" step) -- a 200 here
+      // means an identical alert already existed (res.message says so);
+      // a 201 means this is a brand new one, already active either way.
+      setMessage(loggedIn
+        ? 'Alert on -- see it anytime in My Alerts.'
+        : (res.message || "You're set -- we emailed you a receipt with an unsubscribe link."));
     } catch (err) {
       setStatus('error');
       setMessage(typeof err === 'string' ? err : 'Could not save this alert.');
