@@ -246,6 +246,7 @@ export default function BusinessForm() {
         if (!loggedIn) {
           payload.guest_email = guestEmail.trim() || null;
           payload.guest_phone = guestPhone.trim() || null;
+          payload.anon_id = localStorage.getItem('anon_id') || undefined;
         }
         const created = await apiRequest('POST', payload, loggedIn ? '/business/businesses' : '/business/businesses/guest');
         if (loggedIn) {

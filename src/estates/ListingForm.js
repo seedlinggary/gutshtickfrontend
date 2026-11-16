@@ -134,6 +134,7 @@ export default function ListingForm() {
     if (guestMode) {
       body.guest_email = guestEmail.trim() || null;
       body.guest_phone = guestPhone.trim() || null;
+      body.anon_id = localStorage.getItem('anon_id') || undefined;
     }
     const req = editing
       ? apiRequest('PATCH', body, `/estates/listings/${listingId}`)

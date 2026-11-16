@@ -30,6 +30,10 @@ export default [
   // redirecting to /signin when nobody's logged in. Editing an existing
   // listing stays owner-only.
   { path: '/listings/new', element: <ListingForm /> },
+  // Campaign-link landing spot (see good-shtick-backend's campaigns module)
+  // for "come list a property" outreach -- same guest-capable form as
+  // /listings/new, just a more memorable path to hand out.
+  { path: '/contribute', element: <ListingForm /> },
   { path: '/guest/estates/:token', element: <EstatesGuestManage /> },
   { path: '/listings/:idOrSlug/edit', element: <RequireAuth check={isLoggedIn}><ListingForm /></RequireAuth> },
   { path: '/listings/:idOrSlug', element: <ListingProfile /> },

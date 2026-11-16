@@ -28,6 +28,10 @@ export default [
   { path: '/budgeting', element: <Budgeting /> },
   { path: '/learn', element: <Learn /> },
   { path: '/tachlis', element: <Tachlis /> },
+  // Campaign-link landing spot (see good-shtick-backend's campaigns module)
+  // for "come post a job/resume" outreach -- lands straight on the post
+  // form already open, no hunting for "New Post" first.
+  { path: '/contribute', element: <Tachlis autoCompose /> },
   { path: '/tachlis/post/:id', element: <TachlisPostPage /> },
   { path: '/tachlis/areas/:areaSlug', element: <AreaPage /> },
   { path: '/my-tachlis-posts', element: <RequireAuth check={isLoggedIn}><MyPosts /></RequireAuth> },

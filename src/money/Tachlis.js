@@ -210,6 +210,7 @@ function CreatePostForm({ onCreated, onCancel, loggedIn }) {
       if (!loggedIn) {
         payload.guest_email = guestEmail.trim() || null;
         payload.guest_phone = guestPhone.trim() || null;
+        payload.anon_id = localStorage.getItem('anon_id') || undefined;
       }
       const created = await apiRequest('POST', payload, loggedIn ? '/tachlis/posts' : '/tachlis/posts/guest');
       setCreatedPost(created);
@@ -386,7 +387,7 @@ function CreatePostForm({ onCreated, onCancel, loggedIn }) {
   );
 }
 
-export default function Tachlis() {
+export default function Tachlis({ autoCompose = false }) {
   const [searchParams, setSearchParams] = useSearchParams();
   // Every filter initializes from the URL (once, on mount) so a copied link
   // restores the same search -- see the sync-back effect below, which is
@@ -400,7 +401,10 @@ export default function Tachlis() {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState(false);
-  const [composing, setComposing] = useState(false);
+  // /contribute (see money/routes.js) renders this with autoCompose so the
+  // post form is already open on arrival, instead of landing on the plain
+  // board and making a fresh visitor hunt for "New Post" themselves.
+  const [composing, setComposing] = useState(() => autoCompose);
   const [search, setSearch] = useState(() => searchParams.get('q') || '');
   const [debouncedSearch, setDebouncedSearch] = useState(() => searchParams.get('q') || '');
   const [filterOpen, setFilterOpen] = useState(false);

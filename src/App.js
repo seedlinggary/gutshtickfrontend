@@ -74,6 +74,7 @@ import Games from './games/Games';
 // anonymous visitor just reading the feed doesn't pay for admin tooling. ──────
 const Profile             = lazy(() => import('./users/Profile'));
 const CreateShtick        = lazy(() => import('./shtick/CreateShtick'));
+const ContributePicker    = lazy(() => import('./ContributePicker'));
 const ShtickGuestStatus   = lazy(() => import('./shtick/ShtickGuestStatus'));
 const PostPage            = lazy(() => import('./feed/PostPage'));
 const Hock                = lazy(() => import('./hock/Hock'));
@@ -301,6 +302,13 @@ function App() {
                       required" pattern as every other site's create form). */}
                   <Route path="/CreateShtick" element={<CreateShtick />} />
                   <Route path="/guest/shtick/:token" element={<ShtickGuestStatus />} />
+
+                  {/* Campaign-link landing spot when the destination site
+                      isn't picked in advance -- see src/ContributePicker.js.
+                      Each of Business/Estates/Money also has its own
+                      /contribute landing directly on that site's own
+                      guest-capable create form (see their routes.js). */}
+                  <Route path="/contribute" element={<ContributePicker />} />
                 </>
               )}
 

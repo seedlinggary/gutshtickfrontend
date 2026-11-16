@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Copy, Check, Plus, Link2, MousePointerClick, Users, UserCheck, ChevronDown, ChevronUp, Pause, Play, Archive } from 'lucide-react';
+import { Copy, Check, Plus, Link2, MousePointerClick, Users, UserCheck, FilePlus2, ChevronDown, ChevronUp, Pause, Play, Archive } from 'lucide-react';
 import apiRequest from '../ApiRequest';
 
 function formatDateTime(iso) {
@@ -39,6 +39,18 @@ function StatChip({ Icon, value, label }) {
 }
 
 const EMPTY_LINK_FORM = { label: '', destination_url: '' };
+
+// One-click destination_url fills for the "/contribute" guest-submission
+// flow (see src/ContributePicker.js + business/estates/money routes.js) --
+// the first one is the single "let them pick" link this feature is mostly
+// about; the other three skip straight to one site's own form when the
+// campaign already knows which content type it's recruiting for.
+const CONTRIBUTE_PRESETS = [
+  { label: 'Contribute (let them pick)', url: 'https://www.gutshtick.com/contribute' },
+  { label: 'Contribute → Business', url: 'https://www.gutcommunity.com/contribute' },
+  { label: 'Contribute → Jobs', url: 'https://www.gutmoney.com/contribute' },
+  { label: 'Contribute → Estates', url: 'https://www.gutestates.com/contribute' },
+];
 
 /** One campaign's links -- new-link form, link rows with their stats, and
  * a per-link expandable activity drill-down (raw clicks + attributed
@@ -131,6 +143,7 @@ function CampaignLinks({ campaign, onLinkCreated }) {
                     <StatChip Icon={MousePointerClick} value={stats.clicks} label="clicks" />
                     <StatChip Icon={Users} value={stats.visitors} label="visitors" />
                     <StatChip Icon={UserCheck} value={stats.signups} label="signups" />
+                    <StatChip Icon={FilePlus2} value={stats.contributions} label="contributions" />
                   </div>
                   <button type="button" className="gs-btn gs-btn-outline gs-btn-sm" onClick={() => toggleActivity(link.id)}>
                     {expanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />} Activity
@@ -240,6 +253,17 @@ function CampaignLinks({ campaign, onLinkCreated }) {
               className="gs-input" placeholder="Destination URL (e.g. https://www.gutshtick.com/signup)"
               value={linkForm.destination_url} onChange={(e) => setLinkForm((f) => ({ ...f, destination_url: e.target.value }))}
             />
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              <span style={{ fontSize: 11.5, color: 'var(--muted)', alignSelf: 'center' }}>Quick fill:</span>
+              {CONTRIBUTE_PRESETS.map((p) => (
+                <button
+                  key={p.url} type="button" className="gs-chip"
+                  onClick={() => setLinkForm((f) => ({ ...f, destination_url: p.url }))}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
             <div style={{ display: 'flex', gap: 8 }}>
               <button type="submit" className="gs-btn gs-btn-primary gs-btn-sm" disabled={savingLink}>
                 {savingLink ? 'Creating…' : 'Create link'}
@@ -387,6 +411,7 @@ export default function AdminCampaigns() {
                   <StatChip Icon={MousePointerClick} value={totals.clicks} label="clicks" />
                   <StatChip Icon={Users} value={totals.visitors} label="visitors" />
                   <StatChip Icon={UserCheck} value={totals.signups} label="signups" />
+                  <StatChip Icon={FilePlus2} value={totals.contributions} label="contributions" />
                   {campaign.status === 'active' ? (
                     <button className="gs-btn gs-btn-outline gs-btn-sm" onClick={() => setStatus(campaign, 'paused')} title="Pause">
                       <Pause size={13} /> Pause

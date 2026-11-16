@@ -51,6 +51,10 @@ export default [
   // Open to guests too -- BusinessForm reveals its own guest-contact section
   // instead of redirecting to /signin when nobody's logged in.
   { path: '/business/new', element: <BusinessForm /> },
+  // Campaign-link landing spot (see good-shtick-backend's campaigns module)
+  // for "come list your business" outreach -- same guest-capable form as
+  // /business/new, just a more memorable path to hand out.
+  { path: '/contribute', element: <BusinessForm /> },
   // TEMPORARY, prod-testing-only restriction: the whole site builder
   // feature (this included) is super-admin-only right now -- see
   // BusinessOwnerTools.js's RESTRICTED_TABS comment. Was previously fully
