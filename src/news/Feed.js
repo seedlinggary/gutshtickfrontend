@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { Newspaper, Search, Plus } from 'lucide-react';
 import apiRequest from '../ApiRequest';
 import { isLoggedIn } from '../auth';
-import NewsStatsBar from './NewsStatsBar';
 import ArticleCard, { categoryLabel } from './ArticleCard';
 
 export default function Feed() {
@@ -41,7 +40,6 @@ export default function Feed() {
           <div className="news-masthead-kicker"><Newspaper size={13} /> GutKol</div>
           <h1 className="news-masthead-title">News, curated and community-written</h1>
           <p className="news-masthead-sub">Headlines pulled from real news sources, plus original posts from the community -- every scraped headline is reviewed by a human before it ever shows up here.</p>
-          <NewsStatsBar />
         </div>
 
         {isLoggedIn() && (
