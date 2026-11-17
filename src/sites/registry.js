@@ -64,7 +64,7 @@ export const SITES = [
   },
   {
     id: 'news',
-    label: 'Gut News',
+    label: 'GutKol',
     themeClass: 'news-theme',
     Navbar: NewsNavbar,
     routes: newsRoutes,

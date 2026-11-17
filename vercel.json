@@ -55,6 +55,9 @@
     { "source": "/sheets/:sheetId", "has": [{ "type": "host", "value": "guttorah.com" }], "destination": "/api/render?kind=torah_sheet&slug=:sheetId" },
     { "source": "/sheets/:sheetId", "has": [{ "type": "host", "value": "www.guttorah.com" }], "destination": "/api/render?kind=torah_sheet&slug=:sheetId" },
 
+    { "source": "/articles/:slug", "has": [{ "type": "host", "value": "gutkol.com" }], "destination": "/api/render?kind=news_article&slug=:slug" },
+    { "source": "/articles/:slug", "has": [{ "type": "host", "value": "www.gutkol.com" }], "destination": "/api/render?kind=news_article&slug=:slug" },
+
     { "source": "/hock", "has": [{ "type": "host", "value": "gutshtick.com" }], "destination": "/api/static-meta?route=main_hock" },
     { "source": "/hock", "has": [{ "type": "host", "value": "www.gutshtick.com" }], "destination": "/api/static-meta?route=main_hock" },
     { "source": "/today", "has": [{ "type": "host", "value": "gutshtick.com" }], "destination": "/api/static-meta?route=main_today" },
@@ -129,6 +132,16 @@
       "source": "/",
       "has": [{ "type": "host", "value": "www.guttorah.com" }],
       "destination": "/api/static-meta?route=torah_home"
+    },
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "gutkol.com" }],
+      "destination": "/api/static-meta?route=news_home"
+    },
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "www.gutkol.com" }],
+      "destination": "/api/static-meta?route=news_home"
     },
     {
       "source": "/",

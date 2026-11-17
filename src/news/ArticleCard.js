@@ -2,10 +2,18 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Newspaper } from 'lucide-react';
 
-const CATEGORY_LABEL = {
-  world: 'World', politics: 'Politics', business: 'Business', science: 'Science',
-  health: 'Health', sports: 'Sports', entertainment: 'Entertainment', other: 'Other',
+export const CATEGORY_LABEL = {
+  finance: 'Finance', political: 'Political', american: 'American', international: 'International',
+  technology: 'Technology', health: 'Health & Science', other: 'Other',
 };
+
+/** A preset category has a friendly label above; a custom one a poster
+ * typed in (see PostForm's "add your own topic") doesn't, so this title-
+ * cases the raw string instead of showing it lowercase/unstyled. */
+export function categoryLabel(category) {
+  if (!category) return '';
+  return CATEGORY_LABEL[category] || category.replace(/\b\w/g, (c) => c.toUpperCase());
+}
 
 export default function ArticleCard({ article }) {
   return (
@@ -15,8 +23,12 @@ export default function ArticleCard({ article }) {
       ) : (
         <div className="news-article-card-img news-article-card-img-placeholder"><Newspaper size={28} /></div>
       )}
-      <div className={`news-article-card-badge${!article.imported ? ' original' : ''}`}>
-        {article.imported ? (CATEGORY_LABEL[article.category] || article.category) : 'Original'}
+      <div className="news-article-card-badges">
+        {(article.categories || []).map((c) => (
+          <span key={c} className={`news-article-card-badge${!article.imported ? ' original' : ''}`}>
+            {categoryLabel(c)}
+          </span>
+        ))}
       </div>
       <div className="news-article-card-body">
         <h3>{article.title}</h3>

@@ -2,16 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Newspaper, CheckCircle2, Clock, XCircle } from 'lucide-react';
 import apiRequest from '../ApiRequest';
+import CategorySelect from './CategorySelect';
 
 const TITLE_MAX = 200;
 const EXCERPT_MAX = 500;
 const BODY_MAX = 8000;
-
-const CATEGORIES = [
-  { key: 'world', label: 'World' }, { key: 'politics', label: 'Politics' }, { key: 'business', label: 'Business' },
-  { key: 'science', label: 'Science' }, { key: 'health', label: 'Health' }, { key: 'sports', label: 'Sports' },
-  { key: 'entertainment', label: 'Entertainment' }, { key: 'other', label: 'Other' },
-];
 
 function StatusNotice({ article }) {
   if (article.approved_to_publish === null) {
@@ -20,12 +15,12 @@ function StatusNotice({ article }) {
   if (article.approved_to_publish === false) {
     return <div className="gs-error-box" style={{ display: 'flex', alignItems: 'center', gap: 6 }}><XCircle size={15} /> Not approved. Editing and saving sends it back in for review.</div>;
   }
-  return <div className="gs-success-box" style={{ display: 'flex', alignItems: 'center', gap: 6 }}><CheckCircle2 size={15} /> Live on Gut News.</div>;
+  return <div className="gs-success-box" style={{ display: 'flex', alignItems: 'center', gap: 6 }}><CheckCircle2 size={15} /> Live on GutKol.</div>;
 }
 
 /** Token-only management page for a guest (no-account) News submission --
- * see NewsGuestSubmit.js for why this stays registered outside the site's
- * SuperAdminGate in news/routes.js. */
+ * lets the submitter view/edit/delete their tip purely by presenting the
+ * token, no login needed. */
 export default function NewsGuestManage() {
   const { token } = useParams();
   const [state, setState] = useState('loading');
@@ -34,7 +29,7 @@ export default function NewsGuestManage() {
   const [title, setTitle] = useState('');
   const [excerpt, setExcerpt] = useState('');
   const [bodyText, setBodyText] = useState('');
-  const [category, setCategory] = useState('other');
+  const [categories, setCategories] = useState([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [msg, setMsg] = useState('');
@@ -49,7 +44,7 @@ export default function NewsGuestManage() {
     setTitle(article.title || '');
     setExcerpt(article.excerpt || '');
     setBodyText(article.body_text || '');
-    setCategory(article.category || 'other');
+    setCategories(article.categories && article.categories.length ? article.categories : ['other']);
     setError('');
     setEditing(true);
   };
@@ -61,7 +56,7 @@ export default function NewsGuestManage() {
     setError('');
     try {
       const updated = await apiRequest('PATCH', {
-        title: title.trim(), excerpt: excerpt.trim() || null, body_text: bodyText.trim() || null, category,
+        title: title.trim(), excerpt: excerpt.trim() || null, body_text: bodyText.trim() || null, categories,
       }, `/news/articles/guest/${token}`);
       setArticle(updated);
       setEditing(false);
@@ -113,7 +108,7 @@ export default function NewsGuestManage() {
     <div className="feed-section">
       <div className="gs-container" style={{ maxWidth: 680 }}>
         <div className="news-masthead">
-          <div className="news-masthead-kicker"><Newspaper size={13} /> Gut News</div>
+          <div className="news-masthead-kicker"><Newspaper size={13} /> GutKol</div>
           <h1 className="news-masthead-title">Manage your submission</h1>
           <p className="news-masthead-sub">No account needed — this private link is how you manage it.</p>
         </div>
@@ -137,10 +132,8 @@ export default function NewsGuestManage() {
             <label className="news-field-label">Title *</label>
             <input className="gs-input" value={title} maxLength={TITLE_MAX} onChange={(e) => setTitle(e.target.value)} style={{ marginBottom: 12 }} />
 
-            <label className="news-field-label">Category</label>
-            <select className="gs-input" value={category} onChange={(e) => setCategory(e.target.value)} style={{ marginBottom: 12 }}>
-              {CATEGORIES.map((c) => <option key={c.key} value={c.key}>{c.label}</option>)}
-            </select>
+            <label className="news-field-label">Topics (up to 3)</label>
+            <CategorySelect value={categories} onChange={setCategories} />
 
             <label className="news-field-label">Excerpt</label>
             <textarea className="gs-input" style={{ minHeight: 70, marginBottom: 12 }} value={excerpt} maxLength={EXCERPT_MAX} onChange={(e) => setExcerpt(e.target.value)} />

@@ -11,7 +11,7 @@ const BRAND = {
   estates: { name: <>Gut <span>Estates</span></>, plain: "Gut Estates", tagline: "Real listings for sale and rent, posted directly by owners and agents." },
   money: { name: <>Gut <span>Money</span></>, plain: "Gut Money", tagline: "Calculators, budgeting, and market research to plan your money." },
   torah: { name: <>Gut <span>Torah</span></>, plain: "Gut Torah", tagline: "Divrei Torah, zmanim, sources and prayers, shared by the community." },
-  news: { name: <>Gut <span>News</span></>, plain: "Gut News", tagline: "Curated headlines and community-written posts, reviewed before they're public." },
+  news: { name: <>Gut<span>Kol</span></>, plain: "GutKol", tagline: "Curated headlines and community-written posts, reviewed before they're public." },
 };
 
 // Every sub-site's footer "Navigate" column, as plain {label, path} entries

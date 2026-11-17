@@ -5,7 +5,12 @@
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/logo192.png" />
     <link rel="manifest" href="/manifest.json" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- viewport-fit=cover is required for env(safe-area-inset-*) to
+         resolve to anything but 0 on iOS -- without it, every fixed
+         bottom-pinned widget's safe-area padding (ad slot, cross-site
+         switcher, AskGut) was silently a no-op on notched/home-indicator
+         iPhones instead of actually clearing the home indicator. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="description" content="Gut Shtick — curated content worth sharing" />
     <title>Gut Shtick</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -24,7 +29,7 @@
          itself uses, a deliberate choice given this site surfaces Sefaria's
          own text; Noto Sans Hebrew covers the Hebrew source text itself. -->
     <link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;600;700&family=Noto+Sans:wght@400;500;600;700;800&family=Noto+Sans+Hebrew:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <!-- Gut News's own typeface pairing, scoped under .news-theme in
+    <!-- GutKol's own typeface pairing, scoped under .news-theme in
          news-theme.css -- a classic newspaper masthead serif/sans pairing. -->
     <link href="https://fonts.googleapis.com/css2?family=PT+Serif:wght@400;700&family=PT+Sans:wght@400;700&display=swap" rel="stylesheet" />
   </head>

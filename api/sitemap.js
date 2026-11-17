@@ -145,6 +145,18 @@ async function torahEntries(origin) {
   ];
 }
 
+async function newsEntries(origin) {
+  const data = await fetchJson('/news/sitemap-data');
+  const articles = (data && data.articles) || [];
+  return [
+    ...[
+      { path: '/', changefreq: 'hourly', priority: '1.0' },
+      { path: '/learn', changefreq: 'monthly', priority: '0.5' },
+    ].map((p) => urlEntry(`${origin}${p.path}`, p)),
+    ...articles.filter((x) => x.slug).map((x) => urlEntry(`${origin}/articles/${x.slug}`, { lastmod: x.updated, changefreq: 'weekly', priority: '0.6' })),
+  ];
+}
+
 async function mainEntries(origin) {
   const [shtick, hock] = await Promise.all([
     fetchJson('/shtick/sitemap-data'),
@@ -169,9 +181,8 @@ const ENTRY_BUILDERS = {
   estates: estatesEntries,
   money: moneyEntries,
   torah: torahEntries,
+  news: newsEntries,
   main: mainEntries,
-  // Gut News is locked to super_admin only -- nothing public to index, so it
-  // intentionally has no entry here and falls through to an empty sitemap.
 };
 
 module.exports = async function handler(req, res) {

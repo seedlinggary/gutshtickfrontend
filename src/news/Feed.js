@@ -4,20 +4,10 @@ import { Newspaper, Search, Plus } from 'lucide-react';
 import apiRequest from '../ApiRequest';
 import { isLoggedIn } from '../auth';
 import NewsStatsBar from './NewsStatsBar';
-import ArticleCard from './ArticleCard';
-
-const CATEGORY_TABS = [
-  { key: '', label: 'All' },
-  { key: 'world', label: 'World' },
-  { key: 'politics', label: 'Politics' },
-  { key: 'business', label: 'Business' },
-  { key: 'science', label: 'Science' },
-  { key: 'health', label: 'Health' },
-  { key: 'sports', label: 'Sports' },
-  { key: 'entertainment', label: 'Entertainment' },
-];
+import ArticleCard, { categoryLabel } from './ArticleCard';
 
 export default function Feed() {
+  const [categories, setCategories] = useState([]);
   const [category, setCategory] = useState('');
   const [source, setSource] = useState('');
   const [q, setQ] = useState('');
@@ -25,6 +15,12 @@ export default function Feed() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    apiRequest('GET', null, '/news/categories')
+      .then((d) => setCategories(d.categories || []))
+      .catch(() => setCategories([]));
+  }, []);
 
   useEffect(() => {
     setLoading(true);
@@ -42,7 +38,7 @@ export default function Feed() {
     <div className="feed-section">
       <div className="gs-container" style={{ maxWidth: 1180 }}>
         <div className="news-masthead">
-          <div className="news-masthead-kicker"><Newspaper size={13} /> Gut News</div>
+          <div className="news-masthead-kicker"><Newspaper size={13} /> GutKol</div>
           <h1 className="news-masthead-title">News, curated and community-written</h1>
           <p className="news-masthead-sub">Headlines pulled from real news sources, plus original posts from the community -- every scraped headline is reviewed by a human before it ever shows up here.</p>
           <NewsStatsBar />
@@ -54,19 +50,15 @@ export default function Feed() {
           </div>
         )}
 
-        <div className="news-chip-row">
-          {CATEGORY_TABS.map((t) => (
-            <button key={t.key || 'all'} type="button" className={`news-chip${category === t.key ? ' active' : ''}`} onClick={() => { setPage(1); setCategory(t.key); }}>
-              {t.label}
-            </button>
-          ))}
-        </div>
-
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', margin: '0 0 16px' }}>
           <div style={{ position: 'relative', flex: '1 1 220px' }}>
             <Search size={15} style={{ position: 'absolute', left: 10, top: 10, color: 'var(--muted)' }} />
             <input className="gs-input" style={{ paddingLeft: 32, width: '100%' }} placeholder="Search articles" value={q} onChange={(e) => { setPage(1); setQ(e.target.value); }} />
           </div>
+          <select className="gs-input" style={{ width: 170 }} value={category} onChange={(e) => { setPage(1); setCategory(e.target.value); }}>
+            <option value="">All topics</option>
+            {categories.map((c) => <option key={c} value={c}>{categoryLabel(c)}</option>)}
+          </select>
           <select className="gs-input" style={{ width: 160 }} value={source} onChange={(e) => { setPage(1); setSource(e.target.value); }}>
             <option value="">All posts</option>
             <option value="original">Community posts</option>

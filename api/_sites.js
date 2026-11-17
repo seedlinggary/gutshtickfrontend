@@ -24,10 +24,6 @@ const SITE_HOSTS = {
   estates: parseHostnames(process.env.VITE_ESTATES_HOSTNAMES),
   money: parseHostnames(process.env.VITE_MONEY_HOSTNAMES),
   torah: parseHostnames(process.env.VITE_TORAH_HOSTNAMES),
-  // News is locked to super_admin only (see src/news's RequireAuth gate) --
-  // included here so sitemap.js can positively identify its hostnames and
-  // correctly serve an empty sitemap, rather than misidentifying them as an
-  // unmatched host and falling through to the main site's sitemap.
   news: parseHostnames(process.env.VITE_NEWS_HOSTNAMES),
   main: parseHostnames(process.env.VITE_MAIN_HOSTNAMES),
 };

@@ -3,11 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Heart, Pencil, Trash2, ExternalLink, Newspaper } from 'lucide-react';
 import apiRequest from '../ApiRequest';
 import { isLoggedIn } from '../auth';
-
-const CATEGORY_LABEL = {
-  world: 'World', politics: 'Politics', business: 'Business', science: 'Science',
-  health: 'Health', sports: 'Sports', entertainment: 'Entertainment', other: 'Other',
-};
+import { categoryLabel } from './ArticleCard';
 
 export default function ArticleProfile() {
   const { slug } = useParams();
@@ -62,8 +58,12 @@ export default function ArticleProfile() {
           </div>
         )}
 
-        <div className={`news-article-card-badge${!article.imported ? ' original' : ''}`} style={{ position: 'static', display: 'inline-flex', marginBottom: 10 }}>
-          {article.imported ? (CATEGORY_LABEL[article.category] || article.category) : 'Original post'}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
+          {(article.categories || []).map((c) => (
+            <span key={c} className={`news-article-card-badge${!article.imported ? ' original' : ''}`}>
+              {categoryLabel(c)}
+            </span>
+          ))}
         </div>
         <h1 style={{ margin: '0 0 8px' }}>{article.title}</h1>
         {article.source_name && (

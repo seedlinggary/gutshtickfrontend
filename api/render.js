@@ -327,6 +327,36 @@ async function buildHockPostMeta(id, origin) {
   return { siteName: SITE_NAME, title, description, url, image, jsonLd };
 }
 
+const NEWS_CATEGORY_LABEL = {
+  finance: 'Finance', political: 'Political', american: 'American', international: 'International',
+  technology: 'Technology', health: 'Health & Science', other: 'News',
+};
+const newsCategoryLabel = (c) => NEWS_CATEGORY_LABEL[c] || (c ? c.replace(/\b\w/g, (ch) => ch.toUpperCase()) : 'News');
+
+async function buildNewsArticleMeta(slug, origin) {
+  const SITE_NAME = 'GutKol';
+  const apiRes = await fetch(`${API_BASE}/news/articles/${encodeURIComponent(slug)}`);
+  if (!apiRes.ok) return null;
+  const a = await apiRes.json();
+  const labels = (a.categories && a.categories.length ? a.categories : ['other']).map(newsCategoryLabel);
+  const title = `${a.title} | ${labels[0]} | ${SITE_NAME}`;
+  const description = truncate(a.excerpt || `A ${labels[0].toLowerCase()} story on ${SITE_NAME}.`, DESCRIPTION_MAX);
+  const url = `${origin}/articles/${a.slug}`;
+  const image = a.image_url || `${origin}/og/main.png`;
+
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'NewsArticle',
+    headline: a.title,
+    url,
+    image,
+    ...(a.pub_date ? { datePublished: a.pub_date } : {}),
+    articleSection: labels.join(', '),
+  };
+
+  return { siteName: SITE_NAME, title, description, url, image, jsonLd };
+}
+
 const TACHLIS_TYPE_LABEL = { job: 'Job', resume: 'Resume', service: 'Service' };
 
 async function buildTachlisPostMeta(id, origin) {
@@ -363,6 +393,7 @@ const BUILDERS = {
   money_area: buildMoneyAreaMeta,
   torah_post: buildTorahPostMeta,
   torah_sheet: buildTorahSheetMeta,
+  news_article: buildNewsArticleMeta,
   shtick_post: buildShtickPostMeta,
   hock_post: buildHockPostMeta,
   tachlis_post: buildTachlisPostMeta,

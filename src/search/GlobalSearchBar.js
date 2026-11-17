@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { Search, X } from 'lucide-react';
 
 /** The one search entry point dropped into every site's navbar (AppNavbar,
- * Business/Estates/Money/TorahNavbar -- not NewsNavbar, since Gut News
- * isn't publicly launched yet, see news/SuperAdminGate.js and
- * search/SearchResults.js's own matching exclusion). Collapsed to a plain
+ * Business/Estates/Money/TorahNavbar -- not NewsNavbar; GutKol isn't wired
+ * into cross-site search yet, see search/routes/search.py's own matching
+ * exclusion). Collapsed to a plain
  * icon button so it doesn't compete for space with each site's own
  * differently-sized set of nav links (same reasoning NotificationBell.js
  * and CrossSiteLink.js already use their own small fixed-size triggers

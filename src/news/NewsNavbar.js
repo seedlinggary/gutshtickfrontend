@@ -25,7 +25,7 @@ function useOutsideClose(open, setOpen) {
 
 export default function NewsNavbar() {
   const navigate = useNavigate();
-  useEffect(() => { document.title = 'Gut News'; }, []);
+  useEffect(() => { document.title = 'GutKol'; }, []);
   const email = getEmail();
   const boss = isAdmin();
   const superAdmin = isSuperAdmin();
@@ -40,7 +40,7 @@ export default function NewsNavbar() {
     <nav className="gs-navbar">
       <div className="navbar-inner">
         <button className="navbar-brand" onClick={() => go('/')}>
-          Gut <span>News</span>
+          Gut<span>Kol</span>
         </button>
         <button className="navbar-toggler" aria-label="Toggle navigation" aria-expanded={mobileOpen} onClick={() => setMobileOpen((o) => !o)}>
           <span className="navbar-toggler-icon" />
@@ -68,7 +68,7 @@ export default function NewsNavbar() {
                   {accountOpen && (
                     <ul className="dropdown-menu dropdown-menu-end">
                       <li><button className="dropdown-item" onClick={() => go('/my-articles')}><Newspaper size={14} /> My Posts</button></li>
-                      {superAdmin && <li><button className="dropdown-item" onClick={() => go('/pending')}><ClipboardCheck size={14} /> Pending Review</button></li>}
+                      {boss && <li><button className="dropdown-item" onClick={() => go('/pending')}><ClipboardCheck size={14} /> Pending Review</button></li>}
                       {(boss || superAdmin) && <li><div className="dropdown-divider" /></li>}
                       {boss && <li><button className="dropdown-item" onClick={() => go('/admin')}><Settings size={14} /> Admin</button></li>}
                       {boss && <li><button className="dropdown-item" onClick={() => go('/admin/integrations')}><Plug size={14} /> Integrations</button></li>}

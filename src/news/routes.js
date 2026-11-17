@@ -1,9 +1,8 @@
 import React, { lazy } from 'react';
 import RequireAuth from '../RequireAuth';
-import { isLoggedIn, isSuperAdmin } from '../auth';
+import { isLoggedIn, isAdmin } from '../auth';
 import Contact from '../Contact';
 import NotFound from '../NotFound';
-import SuperAdminGate from './SuperAdminGate';
 
 const Feed           = lazy(() => import('./Feed'));
 const ArticleProfile  = lazy(() => import('./ArticleProfile'));
@@ -14,26 +13,21 @@ const Pending         = lazy(() => import('./Pending'));
 const NewsGuestSubmit = lazy(() => import('./NewsGuestSubmit'));
 const NewsGuestManage = lazy(() => import('./NewsGuestManage'));
 
-// Every route wrapped in SuperAdminGate -- the whole site is soft-locked to
-// super_admin only for now (see SuperAdminGate.js for why/how to revert).
-const gate = (el) => <SuperAdminGate>{el}</SuperAdminGate>;
-
-/** Gut News's own routes -- same {path, element} shape as the other
- * sites', registered the same way via src/sites/registry.js. */
+/** GutKol's own routes -- same {path, element} shape as the other
+ * sites', registered the same way via src/sites/registry.js. The
+ * pre-launch SuperAdminGate soft lock that used to wrap every route here
+ * is gone now that the site is open to the public (see SuperAdminGate.js,
+ * left in place but unused, for how to re-apply it if ever needed). */
 export default [
-  // Deliberately NOT wrapped in gate() -- the whole site is soft-locked
-  // pre-launch, but the backend's guest-submission routes were left
-  // un-gated on purpose so tips can stockpile ahead of launch (see
-  // NewsGuestSubmit.js's docstring). Keep these two reachable to everyone.
   { path: '/guest-submit', element: <NewsGuestSubmit /> },
   { path: '/guest/news/:token', element: <NewsGuestManage /> },
-  { path: '/', element: gate(<Feed />) },
-  { path: '/articles/new', element: gate(<RequireAuth check={isLoggedIn}><PostForm /></RequireAuth>) },
-  { path: '/articles/:idOrSlug/edit', element: gate(<RequireAuth check={isLoggedIn}><PostForm /></RequireAuth>) },
-  { path: '/articles/:slug', element: gate(<ArticleProfile />) },
-  { path: '/my-articles', element: gate(<RequireAuth check={isLoggedIn}><MyPosts /></RequireAuth>) },
-  { path: '/learn', element: gate(<Learn />) },
-  { path: '/pending', element: gate(<RequireAuth check={isSuperAdmin}><Pending /></RequireAuth>) },
-  { path: '/contact', element: gate(<Contact />) },
-  { path: '*', element: gate(<NotFound />) },
+  { path: '/', element: <Feed /> },
+  { path: '/articles/new', element: <RequireAuth check={isLoggedIn}><PostForm /></RequireAuth> },
+  { path: '/articles/:idOrSlug/edit', element: <RequireAuth check={isLoggedIn}><PostForm /></RequireAuth> },
+  { path: '/articles/:slug', element: <ArticleProfile /> },
+  { path: '/my-articles', element: <RequireAuth check={isLoggedIn}><MyPosts /></RequireAuth> },
+  { path: '/learn', element: <Learn /> },
+  { path: '/pending', element: <RequireAuth check={isAdmin}><Pending /></RequireAuth> },
+  { path: '/contact', element: <Contact /> },
+  { path: '*', element: <NotFound /> },
 ];

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { LayoutGrid, Check } from 'lucide-react';
 import { getCurrentSite, listAllSites } from './siteMode';
-import { isLoggedIn, getEmail, isSuperAdmin } from './auth';
+import { isLoggedIn, getEmail } from './auth';
 import apiRequest from './ApiRequest';
 
 /** Navigates to an absolute cross-site URL (built via siteMode.js's
@@ -37,10 +37,7 @@ export default function CrossSiteLink() {
   const ref = useRef(null);
   const currentSite = getCurrentSite();
   const currentId = currentSite ? currentSite.id : 'main';
-  // Gut News is soft-locked to super_admin only for now (see
-  // news/SuperAdminGate.js) -- don't advertise it in the switcher to
-  // everyone else.
-  const sites = listAllSites().filter((site) => site.id !== 'news' || isSuperAdmin());
+  const sites = listAllSites();
 
   useEffect(() => {
     if (!open) return undefined;

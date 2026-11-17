@@ -32,6 +32,9 @@ const SITE_IMAGE = {
   'Gut Money': '/og/money.png',
   'Gut Torah': '/og/torah.png',
   'Gut Shtick': '/og/main.png',
+  // No dedicated /og/news.png yet -- falls back to the main share image
+  // until a GutKol-branded one is designed.
+  GutKol: '/og/main.png',
 };
 
 const PAGES = {
@@ -147,6 +150,12 @@ const PAGES = {
     description: 'Share and read divrei Torah, look up zmanim for any city, browse the full Tanach/Talmud/Halacha library, and build shareable source sheets.',
     path: '/',
   },
+  news_home: {
+    siteName: 'GutKol',
+    title: 'GutKol — Finance, Political, American & International Headlines',
+    description: "Curated headlines plus original, community-written posts -- finance, political, American and international news, reviewed before it's public.",
+    path: '/',
+  },
   torah_zmanim: {
     siteName: 'Gut Torah',
     title: 'Zmanim — Halachic Times for Any City | Gut Torah',
@@ -195,7 +204,7 @@ const PAGES = {
 
 const SITE_LABELS = {
   business: 'Gut Community', estates: 'Gut Estates', money: 'Gut Money',
-  torah: 'Gut Torah', news: 'Gut News', main: 'Gut Shtick',
+  torah: 'Gut Torah', news: 'GutKol', main: 'Gut Shtick',
 };
 
 // Pages reachable on EVERY site by the app's own design (see

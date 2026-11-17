@@ -45,9 +45,9 @@ const SITES = [
   },
 ];
 
-// Gut News's own sources -- same pending-queue pattern, posted as
+// GutKol's own sources -- same pending-queue pattern, posted as
 // NewsArticle rows via a separate endpoint (backend/news/routes/
-// news_scraper.py) instead of Shtick rows, so they land in Gut News's own
+// news_scraper.py) instead of Shtick rows, so they land in GutKol's own
 // review queue, not this site's.
 const NEWS_SITES = [
   {
@@ -183,9 +183,9 @@ export default function AdminScrapers() {
       ))}
 
       <div style={{ maxWidth: 640, marginTop: 28 }}>
-        <h3 className="shtick-caption admin-section-label" style={{ marginBottom: 6 }}><Newspaper size={16} /> Gut News Scrapers</h3>
+        <h3 className="shtick-caption admin-section-label" style={{ marginBottom: 6 }}><Newspaper size={16} /> GutKol Scrapers</h3>
         <p className="admin-empty" style={{ margin: '0 0 18px' }}>
-          Same pending-queue pattern, feeding Gut News's own article queue instead of Shtick's.
+          Same pending-queue pattern, feeding GutKol's own article queue instead of Shtick's.
         </p>
       </div>
       {NEWS_SITES.map((site) => (

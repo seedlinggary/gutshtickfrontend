@@ -206,6 +206,12 @@ function App() {
     // toggle) never leaves a stale one behind, then apply the current one.
     SITES.forEach((s) => document.body.classList.remove(s.themeClass));
     if (site) document.body.classList.add(site.themeClass);
+    // Mirrors the `{site ? <site.Navbar /> : <><AppNavbar /><MobileTabBar /></>}`
+    // choice below -- lets CSS (the fixed ad/cross-site-switcher/AskGut
+    // widgets) know whether .mobile-tabbar is actually on screen to clear,
+    // instead of every site paying its clearance unconditionally. See
+    // index.css's .ad-slot-bottom/.cross-site-wrap/.askgut-wrap comments.
+    document.body.classList.toggle('has-mobile-tabbar', !site);
   }, [site]);
 
   // Briefly shown only while checking whether an unrecognized host is a

@@ -9,7 +9,7 @@ export default function Pending() {
   const load = () => {
     apiRequest('GET', null, '/news/admin/pending')
       .then((d) => setArticles(d.articles || []))
-      .catch(() => setError('Could not load the pending queue (super-admin access required).'));
+      .catch(() => setError('Could not load the pending queue (admin access required).'));
   };
   useEffect(load, []);
 
@@ -24,7 +24,7 @@ export default function Pending() {
     <div className="feed-section">
       <div className="gs-container" style={{ maxWidth: 820 }}>
         <div className="news-masthead">
-          <div className="news-masthead-kicker"><ClipboardCheck size={13} /> Super Admin</div>
+          <div className="news-masthead-kicker"><ClipboardCheck size={13} /> Admin</div>
           <h1 className="news-masthead-title">Pending Review</h1>
           <p className="news-masthead-sub">Scraped headlines wait here until approved -- nothing pulled in automatically goes public without a human check.</p>
         </div>

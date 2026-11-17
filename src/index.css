@@ -289,7 +289,12 @@ iframe {
   z-index: 950;
 }
 @media (max-width: 768px) {
-  .askgut-wrap { bottom: calc(84px + env(safe-area-inset-bottom)); left: 12px; }
+  /* Only the main site renders .mobile-tabbar (App.js toggles
+     body.has-mobile-tabbar alongside it) -- a sub-site paying this same
+     ~84px clearance for a tab bar that was never there left this widget
+     floating in a dead gap above the real screen bottom on phones. */
+  .askgut-wrap { bottom: calc(12px + env(safe-area-inset-bottom)); left: 12px; }
+  body.has-mobile-tabbar .askgut-wrap { bottom: calc(84px + env(safe-area-inset-bottom)); }
 }
 .askgut-fab {
   width: 52px;
@@ -433,7 +438,11 @@ iframe {
   z-index: 902;
 }
 @media (max-width: 768px) {
-  .cross-site-wrap { bottom: calc(64px + 12px + env(safe-area-inset-bottom)); right: 12px; }
+  /* Same has-mobile-tabbar gating as .askgut-wrap/.ad-slot-bottom below --
+     sub-sites never render .mobile-tabbar, so they only need safe-area
+     clearance here, not its extra ~64px on top of that. */
+  .cross-site-wrap { bottom: calc(12px + env(safe-area-inset-bottom)); right: 12px; }
+  body.has-mobile-tabbar .cross-site-wrap { bottom: calc(64px + 12px + env(safe-area-inset-bottom)); }
 }
 .cross-site-link {
   width: 40px;
@@ -3134,8 +3143,12 @@ iframe {
   /* 64px undershot the tab bar's real height on at least one real device
      (its dismiss button ended up covered) -- padded generously past the
      tab bar's actual content+padding height instead of chasing an exact
-     number across every phone/Safari-chrome state. */
-  .ad-slot-bottom { bottom: calc(84px + env(safe-area-inset-bottom)); }
+     number across every phone/Safari-chrome state. Gated to
+     body.has-mobile-tabbar (set in App.js) since sub-sites never render
+     the tab bar -- without the gate they got that same ~84px dead gap
+     above the real screen bottom for nothing. */
+  .ad-slot-bottom { bottom: env(safe-area-inset-bottom, 0px); }
+  body.has-mobile-tabbar .ad-slot-bottom { bottom: calc(84px + env(safe-area-inset-bottom)); }
 }
 .ad-slot-top .gs-card-body,
 .ad-slot-bottom .gs-card-body {
