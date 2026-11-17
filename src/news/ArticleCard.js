@@ -21,16 +21,16 @@ export default function ArticleCard({ article }) {
       {article.image_url ? (
         <img src={article.image_url} alt={article.title} className="news-article-card-img" />
       ) : (
-        <div className="news-article-card-img news-article-card-img-placeholder"><Newspaper size={28} /></div>
+        <div className="news-article-card-img news-article-card-img-placeholder"><Newspaper size={22} /></div>
       )}
-      <div className="news-article-card-badges">
-        {(article.categories || []).map((c) => (
-          <span key={c} className={`news-article-card-badge${!article.imported ? ' original' : ''}`}>
-            {categoryLabel(c)}
-          </span>
-        ))}
-      </div>
       <div className="news-article-card-body">
+        <div className="news-article-card-badges">
+          {(article.categories || []).map((c) => (
+            <span key={c} className={`news-article-card-badge${!article.imported ? ' original' : ''}`}>
+              {categoryLabel(c)}
+            </span>
+          ))}
+        </div>
         <h3>{article.title}</h3>
         {article.excerpt && <p>{article.excerpt}</p>}
         {article.source_name && <span className="news-article-card-source">{article.source_name}</span>}

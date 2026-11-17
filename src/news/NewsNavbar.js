@@ -1,11 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Newspaper, BookOpen, ClipboardCheck, User, Plus, Settings, Plug, ShieldCheck, LogOut, ChevronDown,
+  Newspaper, BookOpen, ClipboardCheck, Radio, User, Plus, Settings, Plug, ShieldCheck, LogOut, ChevronDown,
 } from 'lucide-react';
 import { getEmail, isAdmin, isSuperAdmin, clearAuth } from '../auth';
 import NotificationBell from '../NotificationBell';
 import AccessibilityToggle from '../business/AccessibilityToggle';
+import NewsTicker from './NewsTicker';
 
 function useOutsideClose(open, setOpen) {
   const ref = useRef(null);
@@ -37,6 +38,7 @@ export default function NewsNavbar() {
   const handleSignOut = () => { clearAuth(); navigate('/'); navigate(0); };
 
   return (
+    <>
     <nav className="gs-navbar">
       <div className="navbar-inner">
         <button className="navbar-brand" onClick={() => go('/')}>
@@ -48,6 +50,7 @@ export default function NewsNavbar() {
         <div className={`navbar-collapse${mobileOpen ? ' show' : ''}`}>
           <ul className="navbar-nav navbar-nav-start">
             <li className="nav-item"><button className="nav-link" onClick={() => go('/')}><Newspaper size={15} /> Articles</button></li>
+            <li className="nav-item"><button className="nav-link" onClick={() => go('/ticker')}><Radio size={15} /> Ticker</button></li>
             <li className="nav-item"><button className="nav-link" onClick={() => go('/learn')}><BookOpen size={15} /> Media Literacy</button></li>
           </ul>
           <ul className="navbar-nav navbar-nav-end">
@@ -69,6 +72,7 @@ export default function NewsNavbar() {
                     <ul className="dropdown-menu dropdown-menu-end">
                       <li><button className="dropdown-item" onClick={() => go('/my-articles')}><Newspaper size={14} /> My Posts</button></li>
                       {boss && <li><button className="dropdown-item" onClick={() => go('/pending')}><ClipboardCheck size={14} /> Pending Review</button></li>}
+                      {boss && <li><button className="dropdown-item" onClick={() => go('/admin/ticker')}><Radio size={14} /> Ticker</button></li>}
                       {(boss || superAdmin) && <li><div className="dropdown-divider" /></li>}
                       {boss && <li><button className="dropdown-item" onClick={() => go('/admin')}><Settings size={14} /> Admin</button></li>}
                       {boss && <li><button className="dropdown-item" onClick={() => go('/admin/integrations')}><Plug size={14} /> Integrations</button></li>}
@@ -91,5 +95,7 @@ export default function NewsNavbar() {
         </div>
       </div>
     </nav>
+    <NewsTicker />
+    </>
   );
 }

@@ -151,6 +151,7 @@ async function newsEntries(origin) {
   return [
     ...[
       { path: '/', changefreq: 'hourly', priority: '1.0' },
+      { path: '/ticker', changefreq: 'hourly', priority: '0.5' },
       { path: '/learn', changefreq: 'monthly', priority: '0.5' },
     ].map((p) => urlEntry(`${origin}${p.path}`, p)),
     ...articles.filter((x) => x.slug).map((x) => urlEntry(`${origin}/articles/${x.slug}`, { lastmod: x.updated, changefreq: 'weekly', priority: '0.6' })),

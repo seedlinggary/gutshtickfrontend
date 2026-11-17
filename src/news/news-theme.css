@@ -83,6 +83,93 @@
 :root[data-biz-tap="large"] .news-theme .news-chip,
 :root[data-biz-tap="large"] .news-theme a.gs-btn { min-height: 44px; min-width: 44px; padding-top: 10px; padding-bottom: 10px; }
 
+/* ── Ticker: a horizontal scrolling strip + a "Next Up" rotator box,
+   side by side on a wide screen, stacked on a narrow one ── */
+/* Fixed, pinned directly under the (also-fixed) navbar -- a normal
+   in-flow element here would render at the top of the page UNDER the
+   navbar's own fixed stacking context, invisible behind it, since the
+   navbar is `position: fixed` and so takes no space in the flow its
+   siblings can push off of. Its real height gets fed back in as
+   --news-ticker-h (set from NewsTicker.js) so .main-content below can
+   reserve room for it, the same way --site-banner-h already does for the
+   site-wide announcement banner. */
+.news-ticker-bar { position: fixed; top: calc(64px + var(--site-banner-h)); left: 0; right: 0; z-index: 999; display: flex; align-items: stretch; background: var(--primary); color: #fff; }
+.news-theme .main-content { padding-top: calc(72px + var(--site-banner-h) + var(--news-ticker-h, 0px)); }
+.news-theme .main-content.has-top-ad { padding-top: calc(144px + var(--site-banner-h) + var(--news-ticker-h, 0px)); }
+@media (max-width: 640px) {
+  /* Matches index.css's own mobile .main-content.has-top-ad override --
+     needed here too since this file's higher specificity (.news-theme
+     prefix) would otherwise beat that rule at every width, including
+     this narrower one where the ad itself renders shorter. */
+  .news-theme .main-content.has-top-ad { padding-top: calc(118px + var(--site-banner-h) + var(--news-ticker-h, 0px)); }
+}
+
+.news-ticker-scroll { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; padding: 7px 16px; overflow: hidden; font-size: 13px; }
+.news-ticker-label {
+  flex-shrink: 0; display: inline-flex; align-items: center; gap: 4px; background: var(--gold); color: #fff;
+  font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; font-size: 11px; padding: 3px 9px; border-radius: 3px;
+}
+.news-ticker-viewport { flex: 1; min-width: 0; overflow: hidden; }
+.news-ticker-track {
+  display: inline-flex; white-space: nowrap; animation: news-ticker-scroll 32s linear infinite;
+}
+.news-ticker-scroll:hover .news-ticker-track { animation-play-state: paused; }
+.news-ticker-item { display: inline-flex; align-items: center; padding: 0 22px; position: relative; }
+.news-ticker-item:not(:last-child)::after {
+  content: '•'; position: absolute; right: -2px; color: var(--gold); font-weight: 700;
+}
+.news-ticker-item a { color: #fff; text-decoration: none; }
+.news-ticker-item a:hover { text-decoration: underline; }
+.news-ticker-item-time { margin-left: 8px; font-size: 10.5px; font-weight: 500; opacity: 0.6; white-space: nowrap; }
+.news-ticker-item-article::before {
+  content: 'Article'; font-size: 9px; text-transform: uppercase; opacity: 0.65; margin-right: 6px;
+  letter-spacing: 0.04em; vertical-align: 1px;
+}
+@keyframes news-ticker-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+/* "Next Up" rotator -- steps through the same items one at a time,
+   advancing every few seconds (see NewsTicker.js's rotateMs); the
+   progress bar is a visual countdown to the next swap. */
+.news-ticker-rotator {
+  flex: 0 0 280px; display: flex; flex-direction: column; justify-content: center; gap: 5px;
+  padding: 6px 16px; border-left: 1px solid rgba(255, 255, 255, 0.15); overflow: hidden;
+}
+.news-ticker-rotator-inner { display: flex; flex-direction: column; gap: 2px; animation: news-ticker-rotator-in 420ms ease; }
+.news-ticker-rotator-meta { display: flex; align-items: baseline; gap: 7px; }
+.news-ticker-rotator-badge { font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--gold); font-weight: 800; }
+.news-ticker-rotator-time { font-size: 10px; opacity: 0.6; font-weight: 500; }
+.news-ticker-rotator-text {
+  font-size: 12.5px; font-weight: 600; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical; overflow: hidden;
+}
+.news-ticker-rotator-text a { color: #fff; text-decoration: none; }
+.news-ticker-rotator-text a:hover { text-decoration: underline; }
+.news-ticker-rotator-progress-track { height: 2.5px; background: rgba(255, 255, 255, 0.18); border-radius: 2px; overflow: hidden; }
+.news-ticker-rotator-progress { height: 100%; width: 0%; background: var(--gold); animation-name: news-ticker-progress; animation-timing-function: linear; }
+
+@keyframes news-ticker-rotator-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes news-ticker-progress {
+  from { width: 0%; }
+  to { width: 100%; }
+}
+
+@media (max-width: 768px) {
+  .news-ticker-bar { flex-direction: column; }
+  .news-ticker-rotator { flex: none; width: 100%; border-left: none; border-top: 1px solid rgba(255, 255, 255, 0.15); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .news-ticker-track { animation: none; }
+  .news-ticker-viewport { overflow-x: auto; }
+  .news-ticker-rotator-inner { animation: none; }
+}
+
 /* ── Chips ── */
 .news-chip-row { display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; overflow-x: auto; }
 .news-chip {
@@ -121,21 +208,25 @@
 .news-stats-value svg { color: var(--gold); flex-shrink: 0; }
 .news-stats-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: rgba(255, 255, 255, 0.55); white-space: nowrap; }
 
-/* ── Article grid/card ── */
-.news-article-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+/* ── Article list/card ── */
+.news-article-grid { display: flex; flex-direction: column; gap: 12px; }
 .news-article-card {
-  display: block; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md);
+  display: flex; align-items: stretch; gap: 14px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md);
   overflow: hidden; text-decoration: none; color: inherit; transition: transform .12s ease, box-shadow .12s ease; position: relative;
 }
 .news-article-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
-.news-article-card-img { width: 100%; height: 160px; object-fit: cover; display: block; background: var(--surface-deep); }
+.news-article-card-img { width: 160px; height: 110px; flex: 0 0 160px; object-fit: cover; display: block; background: var(--surface-deep); }
 .news-article-card-img-placeholder { display: flex; align-items: center; justify-content: center; color: var(--muted-faint); }
-.news-article-card-badges { position: absolute; top: 10px; left: 10px; display: flex; gap: 6px; flex-wrap: wrap; max-width: calc(100% - 20px); }
+.news-article-card-badges { display: flex; gap: 6px; flex-wrap: wrap; margin: 0 0 6px; }
 .news-article-card-badge {
-  background: rgba(28, 26, 25, 0.82); color: #fff; font-size: 11px;
-  font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; padding: 4px 10px; border-radius: 999px;
+  background: var(--surface-deep); color: var(--muted); font-size: 10.5px;
+  font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; padding: 3px 9px; border-radius: 999px;
 }
-.news-article-card-badge.original { background: var(--gold); }
+.news-article-card-badge.original { background: var(--gold); color: #fff; }
+@media (max-width: 560px) {
+  .news-article-card { flex-direction: column; }
+  .news-article-card-img { width: 100%; height: 150px; flex: none; }
+}
 
 /* ── Category picker (write-a-post forms) ── */
 .news-category-chip {
@@ -147,9 +238,12 @@
   background: rgba(255, 255, 255, 0.22); color: #fff; border: none; cursor: pointer; padding: 0; line-height: 1;
 }
 .news-category-chip button:hover { background: rgba(255, 255, 255, 0.38); }
-.news-article-card-body { padding: 12px 14px; }
+.news-article-card-body { flex: 1; min-width: 0; padding: 12px 14px; display: flex; flex-direction: column; justify-content: center; }
 .news-article-card-body h3 { margin: 0 0 4px; font-size: 15.5px; line-height: 1.3; }
-.news-article-card-body p { margin: 0; font-size: 13px; color: var(--muted); }
+.news-article-card-body p {
+  margin: 0; font-size: 13px; color: var(--muted); display: -webkit-box; -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2; overflow: hidden;
+}
 .news-article-card-source { font-size: 11.5px; color: var(--muted-faint); margin-top: 6px; display: block; }
 
 /* ── Forms ── */

@@ -10,6 +10,8 @@ const PostForm        = lazy(() => import('./PostForm'));
 const MyPosts         = lazy(() => import('./MyPosts'));
 const Learn           = lazy(() => import('./Learn'));
 const Pending         = lazy(() => import('./Pending'));
+const TickerAdmin     = lazy(() => import('./TickerAdmin'));
+const TickerFeed      = lazy(() => import('./TickerFeed'));
 const NewsGuestSubmit = lazy(() => import('./NewsGuestSubmit'));
 const NewsGuestManage = lazy(() => import('./NewsGuestManage'));
 
@@ -27,7 +29,9 @@ export default [
   { path: '/articles/:slug', element: <ArticleProfile /> },
   { path: '/my-articles', element: <RequireAuth check={isLoggedIn}><MyPosts /></RequireAuth> },
   { path: '/learn', element: <Learn /> },
+  { path: '/ticker', element: <TickerFeed /> },
   { path: '/pending', element: <RequireAuth check={isAdmin}><Pending /></RequireAuth> },
+  { path: '/admin/ticker', element: <RequireAuth check={isAdmin}><TickerAdmin /></RequireAuth> },
   { path: '/contact', element: <Contact /> },
   { path: '*', element: <NotFound /> },
 ];

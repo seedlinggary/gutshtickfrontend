@@ -3128,7 +3128,11 @@ iframe {
   border-right: none;
 }
 .ad-slot-top {
-  top: calc(72px + var(--site-banner-h)); /* just below the fixed navbar */
+  /* Just below the fixed navbar -- plus --news-ticker-h, which is only
+     ever set (by NewsTicker.js) on GutKol, so this is a no-op everywhere
+     else; without it GutKol's ticker strip (also fixed, pinned right
+     under the navbar) sat in this same space and covered the ad. */
+  top: calc(72px + var(--site-banner-h) + var(--news-ticker-h, 0px));
   border-top: none;
 }
 .ad-slot-bottom {
@@ -3275,8 +3279,12 @@ iframe {
   /* Clears the navbar (64px) + the top banner below it (~72-143px when an
      ad is actually showing there), not just the navbar alone -- otherwise
      the two overlap whenever both a top-banner ad and a sidebar ad are
-     live at once. */
-  top: 156px;
+     live at once. Also clears the site-wide announcement banner
+     (--site-banner-h) and GutKol's fixed ticker strip (--news-ticker-h,
+     a no-op everywhere else) -- missing both meant the top banner could
+     slide down far enough (on a site with an active banner, or on GutKol
+     once the ticker shipped) to overlap and clip the top of this. */
+  top: calc(156px + var(--site-banner-h) + var(--news-ticker-h, 0px));
   width: 180px;
   max-height: 400px;
   overflow: hidden;
@@ -3285,11 +3293,16 @@ iframe {
   .ad-slot-sidebar {
     display: block;
   }
+  /* Hugs the viewport edge right at the 1650px threshold (where there's
+     barely room for it at all), then eases inward -- toward the main
+     content column instead of the raw window edge -- as the viewport
+     keeps growing past it, rather than staying pinned 20px from the edge
+     all the way out to an ultrawide monitor. */
   .ad-slot-sidebar-left {
-    left: 20px;
+    left: max(20px, calc(50vw - 860px));
   }
   .ad-slot-sidebar-right {
-    right: 20px;
+    right: max(20px, calc(50vw - 860px));
   }
 }
 .ad-slot-sidebar .ad-slot-image {
