@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Heart, Pencil, Trash2, ExternalLink, Newspaper } from 'lucide-react';
 import apiRequest from '../ApiRequest';
-import { isLoggedIn } from '../auth';
+import { isLoggedIn, isSuperAdmin } from '../auth';
 import { categoryLabel } from './ArticleCard';
 
 export default function ArticleProfile() {
@@ -30,7 +30,7 @@ export default function ArticleProfile() {
     if (!window.confirm('Delete this post? This cannot be undone.')) return;
     try {
       await apiRequest('DELETE', null, `/news/articles/${article.id}`);
-      navigate('/my-articles');
+      navigate('/');
     } catch (e) { /* ignore */ }
   };
 
@@ -88,10 +88,17 @@ export default function ArticleProfile() {
             </button>
           )}
           {article.can_manage && !article.imported && (
-            <>
-              <Link to={`/articles/${article.slug}/edit`} className="gs-btn gs-btn-outline"><Pencil size={15} /> Edit</Link>
-              <button type="button" className="gs-btn gs-btn-outline" onClick={handleDelete}><Trash2 size={15} /> Delete</button>
-            </>
+            <Link to={`/articles/${article.slug}/edit`} className="gs-btn gs-btn-outline"><Pencil size={15} /> Edit</Link>
+          )}
+          {/* A scraped (imported) article can't be meaningfully "edited" --
+              there's no author draft to revise -- but a super admin still
+              needs to be able to take a bad scrape down, so Delete is
+              shown for those too (super-admin-only; can_manage alone
+              would already cover any admin here, since it's just
+              is_boss server-side, but removing published news is kept
+              to the top tier specifically), just never Edit. */}
+          {((article.can_manage && !article.imported) || (article.imported && isSuperAdmin())) && (
+            <button type="button" className="gs-btn gs-btn-outline" onClick={handleDelete}><Trash2 size={15} /> Delete</button>
           )}
           <span style={{ color: 'var(--muted-faint)', fontSize: 12.5, marginLeft: 'auto' }}>{article.views_count} views</span>
         </div>

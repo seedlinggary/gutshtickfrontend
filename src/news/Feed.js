@@ -2,10 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Newspaper, Search, Plus } from 'lucide-react';
 import apiRequest from '../ApiRequest';
-import { isLoggedIn } from '../auth';
+import { isLoggedIn, isSuperAdmin } from '../auth';
 import ArticleCard, { categoryLabel } from './ArticleCard';
 
 export default function Feed() {
+  const superAdmin = isSuperAdmin();
   const [categories, setCategories] = useState([]);
   const [category, setCategory] = useState('');
   const [source, setSource] = useState('');
@@ -32,6 +33,14 @@ export default function Feed() {
       .catch(() => setResults([]))
       .finally(() => setLoading(false));
   }, [category, source, q, page]);
+
+  const handleDelete = async (article) => {
+    if (!window.confirm(`Delete "${article.title}"? This cannot be undone.`)) return;
+    try {
+      await apiRequest('DELETE', null, `/news/articles/${article.id}`);
+      setResults((rows) => rows.filter((a) => a.id !== article.id));
+    } catch (e) { /* ignore */ }
+  };
 
   return (
     <div className="feed-section">
@@ -68,7 +77,7 @@ export default function Feed() {
         {!loading && results && results.length === 0 && <p className="news-empty">No articles found.</p>}
         {!loading && results && results.length > 0 && (
           <div className="news-article-grid">
-            {results.map((a) => <ArticleCard key={a.id} article={a} />)}
+            {results.map((a) => <ArticleCard key={a.id} article={a} onDelete={superAdmin ? handleDelete : undefined} />)}
           </div>
         )}
 
