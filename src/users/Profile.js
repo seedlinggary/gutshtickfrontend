@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Check, Newspaper, ThumbsUp, MessageCircle, MessagesSquare, Briefcase, Heart, ClipboardList, Settings } from 'lucide-react';
+import { Link, useSearchParams } from 'react-router-dom';
+import {
+  Check, Newspaper, ThumbsUp, MessageCircle, MessagesSquare, Briefcase, Heart, ClipboardList, Settings,
+  Gift, Copy, Users, MousePointerClick,
+} from 'lucide-react';
 import apiRequest from '../ApiRequest';
 import timeAgo from '../utils/timeAgo';
 import { siteUrl } from '../siteMode';
@@ -522,8 +525,78 @@ function AccountSettings() {
   );
 }
 
+function MyGiveaways() {
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [data, setData] = useState(null);
+  const [copiedSlug, setCopiedSlug] = useState('');
+
+  useEffect(() => {
+    apiRequest('GET', null, '/giveaways/my')
+      .then((d) => setData(d.participations))
+      .catch((err) => setError(typeof err === 'string' ? err : 'Could not load your giveaways.'))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return <div className="gs-loading"><div className="gs-spinner" /> Loading…</div>;
+  if (error) return <div className="gs-error-box">{error}</div>;
+  if (!data || data.length === 0) {
+    return <p className="admin-empty">You haven't entered any giveaways yet -- look out for one on the main feed!</p>;
+  }
+
+  async function copyLink(slug, url) {
+    try { await navigator.clipboard.writeText(url); setCopiedSlug(slug); setTimeout(() => setCopiedSlug(''), 1500); } catch (_) { /* link's shown on screen */ }
+  }
+
+  return (
+    <div>
+      {data.map((p) => (
+        <div key={p.campaign_slug} className="admin-card" style={{ marginBottom: 16 }}>
+          <div className="admin-card-top">
+            <span className="shtick-caption" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 15 }}>
+              <Gift size={15} /> {p.campaign_name}
+            </span>
+            {!p.verified && <span className="admin-badge pending">Confirm your email to activate entries</span>}
+          </div>
+          <p style={{ margin: '6px 0', fontSize: 14 }}>
+            You have <strong>{p.entry_total}</strong> {p.entry_total === 1 ? 'entry' : 'entries'}.
+          </p>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', margin: '6px 0' }}>
+            <code style={{ fontSize: 12, background: 'var(--bg)', padding: '3px 6px', borderRadius: 6, wordBreak: 'break-all' }}>
+              {p.referral_url}
+            </code>
+            <button type="button" className="gs-btn gs-btn-outline gs-btn-sm" onClick={() => copyLink(p.campaign_slug, p.referral_url)}>
+              <Copy size={12} /> {copiedSlug === p.campaign_slug ? 'Copied!' : 'Copy'}
+            </button>
+          </div>
+          <div style={{ display: 'flex', gap: 14, fontSize: 12.5, color: 'var(--muted)', margin: '8px 0' }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+              <MousePointerClick size={13} /> {p.referral_clicks} link clicks
+            </span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+              <Users size={13} /> {p.referred_signups.length} signed up through you
+            </span>
+          </div>
+          {p.referred_signups.length > 0 && (
+            <div style={{ marginTop: 10, borderTop: '1px solid var(--border)', paddingTop: 8 }}>
+              <p style={{ margin: '0 0 6px', fontSize: 12.5, fontWeight: 700 }}>Who signed up with your link</p>
+              {p.referred_signups.map((r, i) => (
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, padding: '3px 0' }}>
+                  <span>{r.name} {r.verified ? '' : '(unconfirmed)'}</span>
+                  <span className="admin-date">{timeAgo(r.created_at)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 const Profile = () => {
-  const [tab, setTab] = useState('activity');
+  const [searchParams] = useSearchParams();
+  const [tab, setTab] = useState(searchParams.get('tab') === 'giveaways' ? 'giveaways' : 'activity');
 
   return (
     <div className="auth-page">
@@ -544,9 +617,17 @@ const Profile = () => {
           >
             <Settings size={14} /> Account Settings
           </button>
+          <button
+            className={`admin-tab${tab === 'giveaways' ? ' active' : ''}`}
+            onClick={() => setTab('giveaways')}
+          >
+            <Gift size={14} /> My Giveaways
+          </button>
         </div>
 
-        {tab === 'activity' ? <MyActivity /> : <AccountSettings />}
+        {tab === 'activity' && <MyActivity />}
+        {tab === 'settings' && <AccountSettings />}
+        {tab === 'giveaways' && <MyGiveaways />}
 
         <div className="auth-footer">
           <Link to="/">Back to feed</Link>

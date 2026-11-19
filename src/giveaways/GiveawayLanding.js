@@ -310,7 +310,9 @@ export default function GiveawayLanding() {
           </div>
         )}
         <Countdown endsAt={campaign.ends_at} />
-        <p style={{ fontSize: 13, color: 'var(--muted)' }}>{campaign.participants_count} already entered</p>
+        {campaign.participants_count != null && (
+          <p style={{ fontSize: 13, color: 'var(--muted)' }}>{campaign.participants_count} already entered</p>
+        )}
 
         {justVerified && !me && (
           <div className="gs-success-box" style={{ margin: '10px 0' }}>Your entry is confirmed!</div>
@@ -371,11 +373,13 @@ export default function GiveawayLanding() {
               <input className="gs-input" placeholder="Your name" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
               <input className="gs-input" type="email" placeholder="Email address" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} />
               <input className="gs-input" placeholder="Phone (optional)" value={form.phone} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))} />
-              <label style={{ display: 'flex', gap: 8, fontSize: 12.5, color: 'var(--muted)', alignItems: 'flex-start' }}>
-                <input type="checkbox" style={{ marginTop: 2 }} checked={form.consent_marketing}
-                  onChange={(e) => setForm((f) => ({ ...f, consent_marketing: e.target.checked }))} />
-                Send me occasional updates and offers (optional -- not required to enter).
-              </label>
+              {campaign.ask_marketing_consent !== false && (
+                <label style={{ display: 'flex', gap: 8, fontSize: 12.5, color: 'var(--muted)', alignItems: 'flex-start' }}>
+                  <input type="checkbox" style={{ marginTop: 2 }} checked={form.consent_marketing}
+                    onChange={(e) => setForm((f) => ({ ...f, consent_marketing: e.target.checked }))} />
+                  Send me occasional updates and offers (optional -- not required to enter).
+                </label>
+              )}
               <button type="submit" className="gs-btn gs-btn-primary gs-btn-block" disabled={submitting}>
                 {submitting ? 'Entering…' : 'Enter the giveaway'}
               </button>

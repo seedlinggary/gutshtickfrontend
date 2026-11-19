@@ -3,6 +3,7 @@ import {
   Gift, Plus, ChevronDown, ChevronUp, Users, UserCheck, Link2, Trophy,
   Download, Ban, Shuffle, Copy, Check, Mail, ListChecks, BarChart3,
   ShieldAlert, Scale, CheckCircle2, MousePointerClick, Calendar, Clock,
+  Settings, Eye, EyeOff,
 } from 'lucide-react';
 import apiRequest from '../ApiRequest';
 import { CampaignLinks } from './AdminCampaigns';
@@ -40,6 +41,17 @@ function formatDateTime(iso) {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return '—';
   return d.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+}
+
+// datetime-local inputs want "YYYY-MM-DDTHH:mm" in the viewer's local time,
+// not the ISO string's UTC offset -- this reformats without shifting the
+// clock value shown to the admin.
+function isoToLocalInput(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 const STATUS_LABEL = {
@@ -677,9 +689,107 @@ function DrawPanel({ campaign, onCampaignChange }) {
   );
 }
 
+// ── Campaign settings (dates, prize/terms text, public visibility) ───────
+
+function SettingsPanel({ campaign, onCampaignChange }) {
+  const [form, setForm] = useState({
+    name: campaign.name || '', description: campaign.description || '',
+    prize_details: campaign.prize_details || '', terms_text: campaign.terms_text || '',
+    privacy_note: campaign.privacy_note || '', image_url: campaign.image_url || '',
+    starts_at: isoToLocalInput(campaign.starts_at), ends_at: isoToLocalInput(campaign.ends_at),
+    show_participant_count: (campaign.entry_rules || {}).show_participant_count !== false,
+    ask_marketing_consent: (campaign.entry_rules || {}).ask_marketing_consent !== false,
+  });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const [saved, setSaved] = useState(false);
+
+  async function save(e) {
+    e.preventDefault();
+    setSaving(true);
+    setError('');
+    setSaved(false);
+    try {
+      const updated = await apiRequest('PATCH', {
+        name: form.name, description: form.description, prize_details: form.prize_details,
+        terms_text: form.terms_text, privacy_note: form.privacy_note, image_url: form.image_url,
+        starts_at: form.starts_at || null, ends_at: form.ends_at || null,
+        entry_rules: {
+          ...(campaign.entry_rules || {}),
+          show_participant_count: form.show_participant_count,
+          ask_marketing_consent: form.ask_marketing_consent,
+        },
+      }, `/giveaways/${campaign.id}`);
+      onCampaignChange(updated);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (err) {
+      setError(typeof err === 'string' ? err : 'Could not save these changes.');
+    } finally { setSaving(false); }
+  }
+
+  return (
+    <form onSubmit={save} style={{ display: 'flex', flexDirection: 'column', gap: 10, maxWidth: 520 }}>
+      {error && <div className="gs-error-box">{error}</div>}
+      <div className="auth-field">
+        <label className="auth-label">Campaign name</label>
+        <input className="auth-input" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
+      </div>
+      <div className="auth-field">
+        <label className="auth-label">Description</label>
+        <textarea className="auth-input" rows={2} value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} />
+      </div>
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+        <div className="auth-field" style={{ flex: '1 1 200px' }}>
+          <label className="auth-label">Starts</label>
+          <input type="datetime-local" className="auth-input" value={form.starts_at} onChange={(e) => setForm((f) => ({ ...f, starts_at: e.target.value }))} />
+        </div>
+        <div className="auth-field" style={{ flex: '1 1 200px' }}>
+          <label className="auth-label">Ends</label>
+          <input type="datetime-local" className="auth-input" value={form.ends_at} onChange={(e) => setForm((f) => ({ ...f, ends_at: e.target.value }))} />
+        </div>
+      </div>
+      <div className="auth-field">
+        <label className="auth-label">Prize details</label>
+        <textarea className="auth-input" rows={2} value={form.prize_details} onChange={(e) => setForm((f) => ({ ...f, prize_details: e.target.value }))} />
+      </div>
+      <div className="auth-field">
+        <label className="auth-label">Image URL</label>
+        <input className="auth-input" value={form.image_url} onChange={(e) => setForm((f) => ({ ...f, image_url: e.target.value }))} />
+      </div>
+      <div className="auth-field">
+        <label className="auth-label">Terms &amp; conditions</label>
+        <textarea className="auth-input" rows={3} value={form.terms_text} onChange={(e) => setForm((f) => ({ ...f, terms_text: e.target.value }))} />
+      </div>
+      <div className="auth-field">
+        <label className="auth-label">Privacy note</label>
+        <textarea className="auth-input" rows={2} value={form.privacy_note} onChange={(e) => setForm((f) => ({ ...f, privacy_note: e.target.value }))} />
+      </div>
+      <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+        <input type="checkbox" checked={form.show_participant_count}
+          onChange={(e) => setForm((f) => ({ ...f, show_participant_count: e.target.checked }))} />
+        {form.show_participant_count ? <Eye size={14} /> : <EyeOff size={14} />}
+        Show "N already entered" count on the public page
+      </label>
+      <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+        <input type="checkbox" checked={form.ask_marketing_consent}
+          onChange={(e) => setForm((f) => ({ ...f, ask_marketing_consent: e.target.checked }))} />
+        Ask entrants to opt in to promotional emails (shown unchecked by default -- entering never requires it)
+      </label>
+      <div style={{ display: 'flex', gap: 8 }}>
+        <button type="submit" className="gs-btn gs-btn-primary gs-btn-sm" disabled={saving}>
+          {saving ? 'Saving…' : 'Save settings'}
+        </button>
+        {saved && <span style={{ fontSize: 12.5, color: 'var(--accent)', alignSelf: 'center' }}><Check size={13} style={{ verticalAlign: -2 }} /> Saved</span>}
+      </div>
+    </form>
+  );
+}
+
 // ── Campaign card ─────────────────────────────────────────────────────────
 
 const SUB_TABS = [
+  ['settings', Settings, 'Settings'],
   ['actions', ListChecks, 'Entry Actions'],
   ['links', Link2, 'Tracking Links'],
   ['participants', Users, 'Participants'],
@@ -695,12 +805,16 @@ function CampaignCard({ campaign, onUpdate, compareSelected, onToggleCompare }) 
   const [expanded, setExpanded] = useState(false);
   const [subTab, setSubTab] = useState('actions');
   const [savingStatus, setSavingStatus] = useState(false);
+  const [statusError, setStatusError] = useState('');
 
   async function setStatus(status) {
     setSavingStatus(true);
+    setStatusError('');
     try {
       const updated = await apiRequest('PATCH', { status }, `/giveaways/${campaign.id}`);
       onUpdate(updated);
+    } catch (err) {
+      setStatusError(typeof err === 'string' ? err : 'Could not change this campaign\'s status.');
     } finally { setSavingStatus(false); }
   }
 
@@ -756,6 +870,9 @@ function CampaignCard({ campaign, onUpdate, compareSelected, onToggleCompare }) 
             </button>
           </div>
         </div>
+        {statusError && (
+          <p style={{ fontSize: 12.5, color: 'var(--danger, #c0392b)', marginTop: 8 }}>{statusError}</p>
+        )}
 
         {expanded && (
           <div style={{ marginTop: 14, borderTop: '1px solid var(--border)', paddingTop: 12 }}>
@@ -767,6 +884,7 @@ function CampaignCard({ campaign, onUpdate, compareSelected, onToggleCompare }) 
                 </button>
               ))}
             </div>
+            {subTab === 'settings' && <SettingsPanel campaign={campaign} onCampaignChange={onUpdate} />}
             {subTab === 'actions' && <EntryActionsPanel campaign={campaign} onActionsChanged={(entry_actions) => onUpdate({ ...campaign, entry_actions })} />}
             {subTab === 'links' && <TrackingLinksPanel marketingCampaignId={campaign.marketing_campaign_id} />}
             {subTab === 'participants' && <ParticipantsPanel campaignId={campaign.id} />}
