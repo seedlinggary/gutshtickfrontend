@@ -10,6 +10,7 @@ import AdminYoutubeChannels from './AdminYoutubeChannels';
 import AdminAnalytics from './AdminAnalytics';
 import AdminBusinessAnalytics from './AdminBusinessAnalytics';
 import AdminCampaigns from './AdminCampaigns';
+import AdminGiveaways from './AdminGiveaways';
 import AdminAlertSchedule from './AdminAlertSchedule';
 import AdminAllAlerts from './AdminAllAlerts';
 import AdminSiteTemplates from './AdminSiteTemplates';
@@ -19,7 +20,7 @@ import {
   ScrollText, Bot, LineChart, Store, UserSearch, Newspaper, MessagesSquare, MessageCircle,
   Briefcase, Home, BookOpen, ImageOff, Eye, MousePointerClick, Target, Archive, Pencil,
   Trash2, BarChart3, Undo2, Check, X, Clock, UserCircle2, Play, Pause, Heart, Gamepad2, Plus,
-  LogIn, Inbox, ShoppingBag, Building2, Mail, Phone, BellRing, LayoutTemplate,
+  LogIn, Inbox, ShoppingBag, Building2, Mail, Phone, BellRing, LayoutTemplate, Gift,
 } from 'lucide-react';
 
 // Labels/icons for each content type the unified Guest Submissions inbox
@@ -610,6 +611,7 @@ export default function SuperAdminDashboard() {
           ['analytics', LineChart, 'Analytics'],
           ['business_analytics', Store, 'Business'],
           ['campaigns', Target, 'Campaigns'],
+          ['giveaways', Gift, 'Giveaways'],
           ['activity', UserSearch, selectedUser ? selectedUser.profile_name : 'Activity'],
         ].map(([key, Icon, label]) => (
           <button key={key} className={`admin-tab${tab === key ? ' active' : ''}`} onClick={() => setTab(key)}>
@@ -1337,6 +1339,16 @@ export default function SuperAdminDashboard() {
       {!loading && (
         <div style={{ display: tab === 'campaigns' ? 'block' : 'none' }}>
           <AdminCampaigns />
+        </div>
+      )}
+
+      {/* ── Giveaway campaigns (backend/giveaways/) -- participants, entry
+          ledger, referral tracking, and winner draw for a full giveaway,
+          separate from the bare link-tracking Campaigns tab above. Same
+          stays-mounted pattern. ── */}
+      {!loading && (
+        <div style={{ display: tab === 'giveaways' ? 'block' : 'none' }}>
+          <AdminGiveaways />
         </div>
       )}
 

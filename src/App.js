@@ -75,6 +75,7 @@ import Games from './games/Games';
 const Profile             = lazy(() => import('./users/Profile'));
 const CreateShtick        = lazy(() => import('./shtick/CreateShtick'));
 const ContributePicker    = lazy(() => import('./ContributePicker'));
+const GiveawayLanding     = lazy(() => import('./giveaways/GiveawayLanding'));
 const ShtickGuestStatus   = lazy(() => import('./shtick/ShtickGuestStatus'));
 const PostPage            = lazy(() => import('./feed/PostPage'));
 const Hock                = lazy(() => import('./hock/Hock'));
@@ -338,6 +339,14 @@ function App() {
                   <Route path="/content-guidelines" element={<ContentGuidelines />} />
                 </>
               )}
+              {/* Giveaway/campaign landing page -- reachable on every
+                  hostname (same reasoning as /alerts below: a shared link
+                  handed out on any channel shouldn't care which domain the
+                  visitor opens it on), config-driven entirely from
+                  backend/giveaways/ so a new campaign needs no code
+                  change. Two path segments, so it never collides with a
+                  business storefront's single-segment "/:slug" catch-all. */}
+              <Route path="/campaign/:slug" element={<GiveawayLanding />} />
               <Route path="/signin" element={<SignIn />} />
               <Route path="/signup" element={<SignUp />} />
               <Route path="/signup/:paymentcanceled" element={<SignUp />} />

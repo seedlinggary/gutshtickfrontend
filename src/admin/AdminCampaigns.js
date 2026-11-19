@@ -55,7 +55,7 @@ const CONTRIBUTE_PRESETS = [
 /** One campaign's links -- new-link form, link rows with their stats, and
  * a per-link expandable activity drill-down (raw clicks + attributed
  * visitor sessions, from GET /campaigns/links/<id>/activity). */
-function CampaignLinks({ campaign, onLinkCreated }) {
+export function CampaignLinks({ campaign, onLinkCreated }) {
   const [addingLink, setAddingLink] = useState(false);
   const [linkForm, setLinkForm] = useState(EMPTY_LINK_FORM);
   const [linkError, setLinkError] = useState('');
