@@ -111,6 +111,11 @@
 }
 .news-ticker-viewport { flex: 1; min-width: 0; overflow: hidden; }
 .news-ticker-track {
+  /* animation-duration is set inline per-render from NewsTicker.js,
+     derived from the track's actual measured width so px/sec speed stays
+     constant regardless of how many items are live (see
+     TICKER_PX_PER_SECOND there) -- this 55s is only a pre-JS-measurement
+     fallback for the first paint. */
   display: inline-flex; white-space: nowrap; animation: news-ticker-scroll 55s linear infinite;
 }
 .news-ticker-scroll:hover .news-ticker-track { animation-play-state: paused; }
@@ -162,13 +167,6 @@
 @media (max-width: 768px) {
   .news-ticker-bar { flex-direction: column; }
   .news-ticker-rotator { flex: none; width: 100%; border-left: none; border-top: 1px solid rgba(255, 255, 255, 0.15); }
-  /* A phone screen shows much less of the track at once than a desktop
-     one, so the same px/sec speed (set by the animation's duration vs.
-     the track's full width, which doesn't shrink just because the
-     viewport did) reads as far faster -- each item crosses the visible
-     width in less real time. Slow the whole loop down further here
-     rather than relying on one duration to feel right at every width. */
-  .news-ticker-track { animation-duration: 95s; }
 }
 
 @media (prefers-reduced-motion: reduce) {

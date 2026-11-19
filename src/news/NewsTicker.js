@@ -5,6 +5,19 @@ import apiRequest from '../ApiRequest';
 import timeAgo from '../utils/timeAgo';
 
 const FALLBACK_ROTATE_MS = 5000;
+// Constant reading speed for the scrolling marquee, in pixels/second. The
+// old CSS used one fixed animation-duration (e.g. 55s) for the whole
+// loop regardless of how much text was in it -- that's a fixed TIME for
+// a variable DISTANCE (the track is the items doubled end-to-end), so
+// actual px/sec speed scaled up with the item count. Whenever the news
+// pipeline produced more live items than it had the day this was last
+// tuned, the same 55s now had to cover a much longer track and the
+// ticker visibly sped up -- which is exactly the "it's going very fast
+// again" complaint. Measuring the real track width and deriving the
+// duration from it keeps px/sec constant no matter how many items are
+// live at once.
+const TICKER_PX_PER_SECOND = 70;
+const MIN_TICKER_DURATION_S = 12;
 
 function renderText(item) {
   if (!item.link_url) return item.text;
@@ -31,6 +44,8 @@ export default function NewsTicker() {
     typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches,
   );
   const barRef = useRef(null);
+  const trackRef = useRef(null);
+  const [trackDuration, setTrackDuration] = useState(MIN_TICKER_DURATION_S);
 
   useEffect(() => {
     apiRequest('GET', null, '/news/ticker/live')
@@ -67,6 +82,25 @@ export default function NewsTicker() {
     };
   }, [items]);
 
+  // Derive the marquee's animation-duration from its actual rendered
+  // width instead of hard-coding one -- see TICKER_PX_PER_SECOND above.
+  // trackRef holds the DOUBLED content (for the seamless -50% loop), so
+  // the real one-copy distance is half of scrollWidth. Re-measured on
+  // resize too: the items themselves don't reflow with viewport width,
+  // but this keeps it correct if that ever changes.
+  useEffect(() => {
+    if (reducedMotion.current || !items || items.length === 0) return undefined;
+    const update = () => {
+      const el = trackRef.current;
+      if (!el) return;
+      const oneCopyWidth = el.scrollWidth / 2;
+      setTrackDuration(Math.max(MIN_TICKER_DURATION_S, oneCopyWidth / TICKER_PX_PER_SECOND));
+    };
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, [items]);
+
   if (!items || items.length === 0) return null;
 
   // Doubled so the horizontal marquee can loop seamlessly at a -50%
@@ -79,7 +113,7 @@ export default function NewsTicker() {
       <div className="news-ticker-scroll">
         <span className="news-ticker-label"><Radio size={11} /> Live</span>
         <div className="news-ticker-viewport">
-          <div className="news-ticker-track">
+          <div className="news-ticker-track" ref={trackRef} style={{ animationDuration: `${trackDuration}s` }}>
             {doubled.map((item, i) => (
               <span className={`news-ticker-item news-ticker-item-${item.type}`} key={`${item.type}-${item.id}-${i}`}>
                 {renderText(item)}
