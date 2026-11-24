@@ -818,7 +818,10 @@ function CampaignCard({ campaign, onUpdate, compareSelected, onToggleCompare }) 
     } finally { setSavingStatus(false); }
   }
 
-  const stats = campaign.stats || { participants: 0, verified: 0, entries: 0, referral_clicks: 0, qualified_referrals: 0, conversion_rate: 0 };
+  const stats = campaign.stats || {
+    participants: 0, verified: 0, entries: 0, referral_clicks: 0, qualified_referrals: 0,
+    conversion_rate: 0, page_views: 0, unique_visitors: 0,
+  };
   const landingUrl = `${(import.meta.env.VITE_MAIN_SITE_URL || 'https://www.gutshtick.com')}/campaign/${campaign.slug}`;
 
   return (
@@ -846,6 +849,7 @@ function CampaignCard({ campaign, onUpdate, compareSelected, onToggleCompare }) 
               <CopyButton text={landingUrl} />
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 8, flexWrap: 'wrap' }}>
+              <StatChip Icon={Eye} value={stats.page_views} label={`page views (${stats.unique_visitors} unique)`} />
               <StatChip Icon={MousePointerClick} value={stats.referral_clicks} label="referral clicks" />
               <StatChip Icon={Trophy} value={stats.qualified_referrals} label="qualified referrals" />
               <StatChip Icon={BarChart3} value={`${stats.conversion_rate}%`} label="conversion" />
@@ -923,6 +927,7 @@ function CompareView({ ids, onClose }) {
                 <tr style={{ textAlign: 'left', color: 'var(--muted)' }}>
                   <th style={{ padding: '4px 8px' }}>Campaign</th>
                   <th style={{ padding: '4px 8px' }}>Status</th>
+                  <th style={{ padding: '4px 8px' }}>Page views</th>
                   <th style={{ padding: '4px 8px' }}>Participants</th>
                   <th style={{ padding: '4px 8px' }}>Verified</th>
                   <th style={{ padding: '4px 8px' }}>Entries</th>
@@ -936,6 +941,7 @@ function CompareView({ ids, onClose }) {
                   <tr key={c.id} style={{ borderTop: '1px solid var(--border)' }}>
                     <td style={{ padding: '4px 8px', fontWeight: 700 }}>{c.name}</td>
                     <td style={{ padding: '4px 8px' }}>{STATUS_LABEL[c.status] || c.status}</td>
+                    <td style={{ padding: '4px 8px' }}>{c.page_views} ({c.unique_visitors} unique)</td>
                     <td style={{ padding: '4px 8px' }}>{c.participants}</td>
                     <td style={{ padding: '4px 8px' }}>{c.verified}</td>
                     <td style={{ padding: '4px 8px' }}>{c.entries}</td>
